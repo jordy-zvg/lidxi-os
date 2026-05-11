@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { render } from 'react-thermal-printer';
-import type { PrinterTarget } from '../types.js';
+import type { PrinterTarget } from '../types';
 
 /**
  * Envía un template renderizado a una impresora térmica 80mm.

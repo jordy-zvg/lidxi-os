@@ -1,6 +1,6 @@
 import { CHANNELS, formatMXN, formatOrderId, formatTimeMX } from '@lidxi/shared';
 import { Br, Cut, Line, Printer, Row, Text } from 'react-thermal-printer';
-import type { ReceiptOrder } from '../types.js';
+import type { ReceiptOrder } from '../types';
 
 /**
  * Ticket de venta para el cliente (80mm).

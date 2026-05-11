@@ -1,5 +1,5 @@
 import { type Result, err, ok } from '@lidxi/shared';
-import { apiError, isMockMode } from '../common.js';
+import { apiError, isMockMode } from '../common';
 import { mockOrder } from './mock';
 import type { RappiOrder, RappiWebhookEvent } from './types';
 

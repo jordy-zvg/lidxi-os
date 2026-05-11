@@ -1,6 +1,6 @@
 import { CHANNELS, formatOrderId, formatTimeMX } from '@lidxi/shared';
 import { Br, Cut, Line, Printer, Row, Text } from 'react-thermal-printer';
-import type { ReceiptOrder } from '../types.js';
+import type { ReceiptOrder } from '../types';
 
 /**
  * Comanda para cocina (80mm).

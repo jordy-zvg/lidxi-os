@@ -1,6 +1,6 @@
 import { CHANNELS, formatOrderId } from '@lidxi/shared';
 import { Br, Cut, Printer, Text } from 'react-thermal-printer';
-import type { ReceiptOrder } from '../types.js';
+import type { ReceiptOrder } from '../types';
 
 /**
  * Etiqueta de embalaje para bolsa de delivery (80mm chico).

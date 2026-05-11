@@ -1,4 +1,4 @@
-import type { CentsMXN } from '../types/money.js';
+import type { CentsMXN } from '../types/money';
 
 const mxnFormatter = new Intl.NumberFormat('es-MX', {
   style: 'currency',

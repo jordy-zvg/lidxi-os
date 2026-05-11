@@ -46,21 +46,21 @@ insert into public.employees (id, branch_id, full_name, role, pin_hash, active) 
 
 -- --- Menu items (~15) ---
 insert into public.menu_items (id, restaurant_id, category, name, description, base_price, active) values
-  ('00000000-0000-0000-0000-00000000m001', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de pastor',          'Cerdo al pastor, piña, cebolla, cilantro',           3500, true),
-  ('00000000-0000-0000-0000-00000000m002', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de suadero',         'Suadero suave, cebolla, cilantro',                   3500, true),
-  ('00000000-0000-0000-0000-00000000m003', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de bistec',          'Bistec a la plancha',                                3800, true),
-  ('00000000-0000-0000-0000-00000000m004', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco vegetariano',        'Champiñones y rajas',                                3400, true),
-  ('00000000-0000-0000-0000-00000000m005', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de queso',     'Tortilla de maíz hecha en casa',                     4500, true),
-  ('00000000-0000-0000-0000-00000000m006', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de huitlacoche','Huitlacoche con queso oaxaca',                       6500, true),
-  ('00000000-0000-0000-0000-00000000m007', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de flor',      'Flor de calabaza',                                   5800, true),
-  ('00000000-0000-0000-0000-00000000m008', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Agua de horchata 500ml',  'Horchata casera',                                    3500, true),
-  ('00000000-0000-0000-0000-00000000m009', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Agua de jamaica 500ml',   'Jamaica fresca',                                     3500, true),
-  ('00000000-0000-0000-0000-00000000m010', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Refresco vidrio',         'Coca-Cola 355ml',                                    3000, true),
-  ('00000000-0000-0000-0000-00000000m011', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Cerveza Victoria',        'Cerveza 355ml',                                      4500, true),
-  ('00000000-0000-0000-0000-00000000m012', '00000000-0000-0000-0000-00000000a001', 'Postres','Arroz con leche',         'Arroz con leche con canela',                         4500, true),
-  ('00000000-0000-0000-0000-00000000m013', '00000000-0000-0000-0000-00000000a001', 'Postres','Flan de coco',            'Flan casero',                                        5500, true),
-  ('00000000-0000-0000-0000-00000000m014', '00000000-0000-0000-0000-00000000a001', 'Extras', 'Salsa extra',             'Roja, verde, taquera o habanero',                    1500, true),
-  ('00000000-0000-0000-0000-00000000m015', '00000000-0000-0000-0000-00000000a001', 'Extras', 'Guacamole 100g',          'Guacamole fresco',                                   3800, true);
+  ('00000000-0000-0000-0000-00000000c001', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de pastor',          'Cerdo al pastor, piña, cebolla, cilantro',           3500, true),
+  ('00000000-0000-0000-0000-00000000c002', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de suadero',         'Suadero suave, cebolla, cilantro',                   3500, true),
+  ('00000000-0000-0000-0000-00000000c003', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco de bistec',          'Bistec a la plancha',                                3800, true),
+  ('00000000-0000-0000-0000-00000000c004', '00000000-0000-0000-0000-00000000a001', 'Tacos',  'Taco vegetariano',        'Champiñones y rajas',                                3400, true),
+  ('00000000-0000-0000-0000-00000000c005', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de queso',     'Tortilla de maíz hecha en casa',                     4500, true),
+  ('00000000-0000-0000-0000-00000000c006', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de huitlacoche','Huitlacoche con queso oaxaca',                       6500, true),
+  ('00000000-0000-0000-0000-00000000c007', '00000000-0000-0000-0000-00000000a001', 'Quesa',  'Quesadilla de flor',      'Flor de calabaza',                                   5800, true),
+  ('00000000-0000-0000-0000-00000000c008', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Agua de horchata 500ml',  'Horchata casera',                                    3500, true),
+  ('00000000-0000-0000-0000-00000000c009', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Agua de jamaica 500ml',   'Jamaica fresca',                                     3500, true),
+  ('00000000-0000-0000-0000-00000000c010', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Refresco vidrio',         'Coca-Cola 355ml',                                    3000, true),
+  ('00000000-0000-0000-0000-00000000c011', '00000000-0000-0000-0000-00000000a001', 'Bebidas','Cerveza Victoria',        'Cerveza 355ml',                                      4500, true),
+  ('00000000-0000-0000-0000-00000000c012', '00000000-0000-0000-0000-00000000a001', 'Postres','Arroz con leche',         'Arroz con leche con canela',                         4500, true),
+  ('00000000-0000-0000-0000-00000000c013', '00000000-0000-0000-0000-00000000a001', 'Postres','Flan de coco',            'Flan casero',                                        5500, true),
+  ('00000000-0000-0000-0000-00000000c014', '00000000-0000-0000-0000-00000000a001', 'Extras', 'Salsa extra',             'Roja, verde, taquera o habanero',                    1500, true),
+  ('00000000-0000-0000-0000-00000000c015', '00000000-0000-0000-0000-00000000a001', 'Extras', 'Guacamole 100g',          'Guacamole fresco',                                   3800, true);
 
 -- --- Channel pricing: marketplace cobra 15% más para absorber comisión ---
 insert into public.menu_channel_prices (menu_item_id, channel, price)
@@ -119,8 +119,8 @@ begin
           'Laura M.', '+5255111111', 8050, 1288, 0, 9338, now_ts + interval '15 minutes', now_ts - interval '1 minute', 'marketplace')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price, modifiers) values
-    (o_id, '00000000-0000-0000-0000-00000000m001', 2, 4025, '[]'::jsonb),
-    (o_id, '00000000-0000-0000-0000-00000000m008', 1, 4025, '[]'::jsonb);
+    (o_id, '00000000-0000-0000-0000-00000000c001', 2, 4025, '[]'::jsonb),
+    (o_id, '00000000-0000-0000-0000-00000000c008', 1, 4025, '[]'::jsonb);
 
   -- 2. En preparación — Rappi
   insert into public.orders (id, branch_id, channel, external_id, status, customer_name, customer_phone, subtotal, tax, total, sla_deadline, created_at, accepted_at, payment_method)
@@ -128,9 +128,9 @@ begin
           'Carlos T.', '+5255222222', 11800, 1888, 13688, now_ts + interval '8 minutes', now_ts - interval '7 minutes', now_ts - interval '6 minutes', 'marketplace')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price) values
-    (o_id, '00000000-0000-0000-0000-00000000m006', 1, 7475),
-    (o_id, '00000000-0000-0000-0000-00000000m009', 1, 4025),
-    (o_id, '00000000-0000-0000-0000-00000000m014', 1, 1725);
+    (o_id, '00000000-0000-0000-0000-00000000c006', 1, 7475),
+    (o_id, '00000000-0000-0000-0000-00000000c009', 1, 4025),
+    (o_id, '00000000-0000-0000-0000-00000000c014', 1, 1725);
 
   -- 3. En preparación — Didi
   insert into public.orders (id, branch_id, channel, external_id, status, customer_name, customer_phone, subtotal, total, sla_deadline, created_at, accepted_at, payment_method)
@@ -138,8 +138,8 @@ begin
           'Pablo G.', '+5255333333', 9650, 11198, now_ts + interval '12 minutes', now_ts - interval '5 minutes', now_ts - interval '4 minutes', 'marketplace')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price) values
-    (o_id, '00000000-0000-0000-0000-00000000m003', 2, 4370),
-    (o_id, '00000000-0000-0000-0000-00000000m010', 1, 3450);
+    (o_id, '00000000-0000-0000-0000-00000000c003', 2, 4370),
+    (o_id, '00000000-0000-0000-0000-00000000c010', 1, 3450);
 
   -- 4. Listo — Eats (al borde de SLA, naranja)
   insert into public.orders (id, branch_id, channel, external_id, status, subtotal, total, sla_deadline, created_at, accepted_at, ready_at, payment_method)
@@ -147,7 +147,7 @@ begin
           7000, 8120, now_ts + interval '3 minutes', now_ts - interval '17 minutes', now_ts - interval '16 minutes', now_ts - interval '1 minute', 'marketplace')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price) values
-    (o_id, '00000000-0000-0000-0000-00000000m002', 2, 4025);
+    (o_id, '00000000-0000-0000-0000-00000000c002', 2, 4025);
 
   -- 5. Listo — sitio propio
   insert into public.orders (id, branch_id, channel, external_id, status, customer_name, customer_phone, customer_address, subtotal, tax, delivery_fee, total, sla_deadline, created_at, accepted_at, ready_at, payment_method, payment_ref)
@@ -155,9 +155,9 @@ begin
           'Sofía R.', '+5255444444', 'Av. Tamaulipas 200, Condesa', 15800, 2528, 5500, 23828, now_ts + interval '20 minutes', now_ts - interval '12 minutes', now_ts - interval '11 minutes', now_ts, 'online', 'pi_stripe_demo_001')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price) values
-    (o_id, '00000000-0000-0000-0000-00000000m007', 2, 5800),
-    (o_id, '00000000-0000-0000-0000-00000000m015', 1, 3800),
-    (o_id, '00000000-0000-0000-0000-00000000m008', 1, 3500);
+    (o_id, '00000000-0000-0000-0000-00000000c007', 2, 5800),
+    (o_id, '00000000-0000-0000-0000-00000000c015', 1, 3800),
+    (o_id, '00000000-0000-0000-0000-00000000c008', 1, 3500);
 
   -- 6. En camino — Rappi
   insert into public.orders (id, branch_id, channel, external_id, status, subtotal, total, created_at, accepted_at, ready_at, dispatched_at, payment_method)
@@ -165,8 +165,8 @@ begin
           12300, 14268, now_ts - interval '30 minutes', now_ts - interval '29 minutes', now_ts - interval '8 minutes', now_ts - interval '7 minutes', 'marketplace')
   returning id into o_id;
   insert into public.order_items (order_id, menu_item_id, qty, unit_price) values
-    (o_id, '00000000-0000-0000-0000-00000000m005', 1, 5175),
-    (o_id, '00000000-0000-0000-0000-00000000m006', 1, 7475);
+    (o_id, '00000000-0000-0000-0000-00000000c005', 1, 5175),
+    (o_id, '00000000-0000-0000-0000-00000000c006', 1, 7475);
 
   -- 7. Entregado — sitio propio (caja)
   insert into public.orders (id, branch_id, channel, status, subtotal, tax, delivery_fee, total, created_at, accepted_at, ready_at, dispatched_at, delivered_at, payment_method, payment_ref)

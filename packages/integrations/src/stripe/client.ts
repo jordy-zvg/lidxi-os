@@ -1,6 +1,6 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import Stripe from 'stripe';
-import { apiError, isMockMode } from '../common.js';
+import { apiError, isMockMode } from '../common';
 import { mockCheckoutSession, mockPaymentIntent } from './mock';
 import type {
   CheckoutSession,

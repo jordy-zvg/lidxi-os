@@ -1,5 +1,5 @@
-import type { ChannelKey } from '../constants/channels.js';
-import type { OrderStatus } from '../constants/order-status.js';
+import type { ChannelKey } from '../constants/channels';
+import type { OrderStatus } from '../constants/order-status';
 import type { CentsMXN } from './money';
 
 /**
