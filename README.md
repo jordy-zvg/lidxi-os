@@ -38,6 +38,8 @@ Requisitos: Node 20+, pnpm 9+, Docker (para Supabase local), Supabase CLI.
 ```bash
 # 1. Instalar dependencias
 pnpm install
+pnpm init:env   # crea symlinks de .env.local en cada app
+pnpm dev
 
 # 2. Copiar variables de entorno
 cp .env.example .env.local
