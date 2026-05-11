@@ -17,9 +17,9 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "db:start": "supabase start",
-    "db:stop": "supabase stop",
-    "db:reset": "supabase db reset",
+    "db:start": "pnpm --filter @lidxi/db db:start",
+    "db:stop": "pnpm --filter @lidxi/db db:stop",
+    "db:reset": "pnpm --filter @lidxi/db db:reset",
     "db:types": "pnpm --filter @lidxi/db db:types",
     "prepare": "husky"
   },
