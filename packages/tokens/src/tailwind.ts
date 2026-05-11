@@ -86,6 +86,10 @@ const preset = {
         sidebar: '220px',
         topbar: '56px',
       },
+      animation: {
+        shake: 'shake 0.3s ease-in-out',
+        'ring-pulse': 'ring-pulse 1.8s ease-out infinite',
+      },
     },
   },
   plugins: [],

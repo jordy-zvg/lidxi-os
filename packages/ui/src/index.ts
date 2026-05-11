@@ -13,3 +13,6 @@ export {
   type SegmentedOption,
 } from './SegmentedControl';
 export { PageStub, type PageStubProps } from './PageStub';
+export { PinDots, type PinDotsProps } from './PinDots';
+export { Keypad, type KeypadProps } from './Keypad';
+export { Modal, type ModalProps } from './Modal';

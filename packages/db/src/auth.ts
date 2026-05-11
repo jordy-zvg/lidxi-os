@@ -16,6 +16,8 @@ export interface EmployeeClaims extends JWTPayload {
   employee_role: Role;
   branch_id: string;
   restaurant_id: string;
+  station_id?: string; // identificador de la estación POS activada
+  pos_session_id?: string; // shifts.id de la activación que abrió esta sesión
 }
 
 const requireEnv = (key: string): string => {

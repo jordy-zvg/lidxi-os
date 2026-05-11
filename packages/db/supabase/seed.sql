@@ -27,10 +27,10 @@ insert into public.branches (id, restaurant_id, name, address, lat, lng, phone)
 values (
   '00000000-0000-0000-0000-00000000b001',
   '00000000-0000-0000-0000-00000000a001',
-  'Roma Norte',
-  'Av. Insurgentes Sur 100, Roma Norte, CDMX',
-  19.413200, -99.165000,
-  '+52 55 1234 5678'
+  'Juriquilla',
+  'Anillo Vial Junípero Serra 100, Juriquilla, 76230 Querétaro',
+  20.703500, -100.435000,
+  '+52 442 123 4567'
 );
 
 -- --- Employees ---

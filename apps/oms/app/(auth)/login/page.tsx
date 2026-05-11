@@ -1,22 +1,34 @@
-import { Card } from '@lidxi/ui';
+import { getBranchId } from '@/lib/station';
+import {
+  createSupabaseServiceClient,
+  getBranchWithRestaurant,
+  getLastPosActivation,
+} from '@lidxi/db';
+import { LoginShell } from './LoginShell';
 
-/**
- * Pantalla de PIN. Implementación funcional pendiente: el formulario debe
- * postear al endpoint /api/auth/pin (también pendiente), que verifica el PIN
- * contra employees.pin_hash, firma un JWT con @lidxi/db/auth y lo guarda en
- * la cookie httpOnly `lidxi-session`.
- */
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = createSupabaseServiceClient();
+  const branchId = getBranchId();
+  const [branch, lastActivation] = await Promise.all([
+    getBranchWithRestaurant(supabase, branchId),
+    getLastPosActivation(supabase, branchId),
+  ]);
+
+  if (!branch) {
+    return (
+      <div className="max-w-md rounded-lg border border-danger-soft bg-danger-soft p-6 text-center text-sm text-danger-text">
+        Branch <code className="font-mono">{branchId}</code> no existe en la base de datos. Revisa{' '}
+        <code className="font-mono">BRANCH_ID</code> en .env.local o corre{' '}
+        <code className="font-mono">pnpm db:reset</code>.
+      </div>
+    );
+  }
+
   return (
-    <Card padding="lg" className="w-[360px] text-center">
-      <h1 className="text-xl font-semibold text-ink">LidxiOS</h1>
-      <p className="mt-1 text-sm text-ink-300">Ingresa tu PIN para iniciar sesión.</p>
-      <div className="mt-6 font-mono text-2xl tracking-[0.5em] text-ink-400">• • • •</div>
-      <p className="mt-6 text-xs text-ink-400">
-        Pantalla de login en construcción. Por ahora setea manualmente la cookie
-        <code className="mx-1 rounded bg-canvas px-1 py-0.5 font-mono">lidxi-session</code>
-        con un JWT válido para entrar.
-      </p>
-    </Card>
+    <LoginShell
+      stationName="Mostrador 1"
+      branch={{ id: branch.id, name: branch.name, restaurantName: branch.restaurant.name }}
+      lastActivation={lastActivation}
+    />
   );
 }

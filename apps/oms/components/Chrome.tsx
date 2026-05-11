@@ -16,9 +16,11 @@ import {
   IconUsers,
 } from '@tabler/icons-react';
 import type { ReactElement, ReactNode } from 'react';
+import { ClockOverlayProvider } from './ClockOverlayProvider';
+import { EntradaSalidaButton } from './EntradaSalidaButton';
 
 /**
- * Cromo común para toda la app autenticada (Sidebar + Topbar).
+ * Cromo común para toda la app autenticada (Sidebar + Topbar + ClockOverlay).
  *
  * TODO[oms-chrome]: leer pathname con `usePathname()` desde un Client
  * Component que envuelva los SidebarItem y resaltar el activo dinámicamente.
@@ -73,35 +75,38 @@ const NAV: NavSection[] = [
 ];
 
 export const Chrome = ({ children }: { children: ReactNode }) => (
-  <div className="flex h-screen overflow-hidden">
-    <Sidebar
-      brand={
-        <div className="flex items-center gap-2">
-          <IconSettingsAutomation size={20} className="text-brand" />
-          <span className="font-semibold text-ink">LidxiOS</span>
-        </div>
-      }
-    >
-      {NAV.map((section) => (
-        <SidebarSection key={section.title} title={section.title}>
-          {section.items.map((item) => (
-            <SidebarItem
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              label={item.label}
-              active={item.href === '/pedidos'}
-            />
-          ))}
-        </SidebarSection>
-      ))}
-    </Sidebar>
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <Topbar
-        breadcrumbs={<span>LidxiOS</span>}
-        session={<span className="text-xs text-ink-400">Demo · Miztli Pardo</span>}
-      />
-      <main className="flex-1 overflow-y-auto bg-canvas p-6">{children}</main>
+  <ClockOverlayProvider>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar
+        brand={
+          <div className="flex items-center gap-2">
+            <IconSettingsAutomation size={20} className="text-brand" />
+            <span className="font-semibold text-ink">LidxiOS</span>
+          </div>
+        }
+      >
+        {NAV.map((section) => (
+          <SidebarSection key={section.title} title={section.title}>
+            {section.items.map((item) => (
+              <SidebarItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                active={item.href === '/pedidos'}
+              />
+            ))}
+          </SidebarSection>
+        ))}
+      </Sidebar>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Topbar
+          breadcrumbs={<span>LidxiOS</span>}
+          actions={<EntradaSalidaButton />}
+          session={<span className="text-xs text-ink-400">Demo · Miztli Pardo</span>}
+        />
+        <main className="flex-1 overflow-y-auto bg-canvas p-6">{children}</main>
+      </div>
     </div>
-  </div>
+  </ClockOverlayProvider>
 );
