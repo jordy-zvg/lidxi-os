@@ -1,0 +1,36 @@
+{
+  "name": "@lidxi/oms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "lint": "biome check .",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo"
+  },
+  "dependencies": {
+    "@lidxi/db": "workspace:*",
+    "@lidxi/integrations": "workspace:*",
+    "@lidxi/printing": "workspace:*",
+    "@lidxi/shared": "workspace:*",
+    "@lidxi/tokens": "workspace:*",
+    "@lidxi/ui": "workspace:*",
+    "@tabler/icons-react": "3.20.0",
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zustand": "5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.16.11",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.47",
+    "tailwindcss": "3.4.13",
+    "typescript": "5.6.3"
+  }
+}

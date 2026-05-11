@@ -1,0 +1,12 @@
+{
+  "name": "LidxiOS Clock",
+  "short_name": "Clock",
+  "description": "Fichaje por huella para empleados de Miztli",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#F6F9FC",
+  "theme_color": "#635BFF",
+  "icons": []
+}
