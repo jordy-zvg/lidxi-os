@@ -1,4 +1,4 @@
-import type { RappiOrder } from './types.js';
+import type { RappiOrder } from './types';
 
 export const mockOrder = (id: string): RappiOrder => ({
   id,

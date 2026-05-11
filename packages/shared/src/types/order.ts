@@ -1,6 +1,6 @@
 import type { ChannelKey } from '../constants/channels.js';
 import type { OrderStatus } from '../constants/order-status.js';
-import type { CentsMXN } from './money.js';
+import type { CentsMXN } from './money';
 
 /**
  * Tipos de dominio para pedidos. Estos NO son los tipos generados por

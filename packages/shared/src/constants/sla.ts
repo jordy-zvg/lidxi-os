@@ -1,4 +1,4 @@
-import type { ChannelKey } from './channels.js';
+import type { ChannelKey } from './channels';
 
 /**
  * Umbrales de SLA en minutos desde la creación del pedido hasta `ready`.

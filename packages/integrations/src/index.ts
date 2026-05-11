@@ -1,6 +1,6 @@
-export * as UberDirect from './uber-direct/index.js';
-export * as UberEats from './uber-eats/index.js';
-export * as Rappi from './rappi/index.js';
-export * as DidiFood from './didi-food/index.js';
-export * as StripeIntegration from './stripe/index.js';
-export { isMockMode } from './common.js';
+export * as UberDirect from './uber-direct/index';
+export * as UberEats from './uber-eats/index';
+export * as Rappi from './rappi/index';
+export * as DidiFood from './didi-food/index';
+export * as StripeIntegration from './stripe/index';
+export { isMockMode } from './common';

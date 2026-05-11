@@ -1,4 +1,4 @@
-import type { EatsOrder } from './types.js';
+import type { EatsOrder } from './types';
 
 export const mockOrder = (id: string): EatsOrder => ({
   id,

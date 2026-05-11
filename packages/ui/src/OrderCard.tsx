@@ -7,7 +7,7 @@ import {
   formatTimeMX,
 } from '@lidxi/shared';
 import type { ReactNode } from 'react';
-import { ChannelBadge } from './ChannelBadge.js';
+import { ChannelBadge } from './ChannelBadge';
 
 export interface OrderCardItem {
   qty: number;

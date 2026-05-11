@@ -1,2 +1,2 @@
-export * from './types.js';
-export { createStripeClient, type StripeClient } from './client.js';
+export * from './types';
+export { createStripeClient, type StripeClient } from './client';

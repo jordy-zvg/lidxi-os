@@ -1,12 +1,12 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import { apiError, isMockMode } from '../common.js';
-import { mockDelivery, mockQuote } from './mock.js';
+import { mockDelivery, mockQuote } from './mock';
 import type {
   UberDirectDelivery,
   UberDirectQuote,
   UberDirectQuoteRequest,
   UberDirectWebhookEvent,
-} from './types.js';
+} from './types';
 
 export interface UberDirectClient {
   quote(req: UberDirectQuoteRequest): Promise<Result<UberDirectQuote>>;

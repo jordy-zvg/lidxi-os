@@ -1,2 +1,2 @@
-export { default as tailwindPreset } from './tailwind.js';
-export { inter, jetbrainsMono } from './fonts.js';
+export { default as tailwindPreset } from './tailwind';
+export { inter, jetbrainsMono } from './fonts';

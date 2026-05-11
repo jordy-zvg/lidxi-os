@@ -1,7 +1,7 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import { apiError, isMockMode } from '../common.js';
-import { mockOrder } from './mock.js';
-import type { DidiOrder, DidiWebhookEvent } from './types.js';
+import { mockOrder } from './mock';
+import type { DidiOrder, DidiWebhookEvent } from './types';
 
 export interface DidiFoodClient {
   getOrder(orderId: string): Promise<Result<DidiOrder>>;

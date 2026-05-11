@@ -1,7 +1,7 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import { apiError, isMockMode } from '../common.js';
-import { mockOrder } from './mock.js';
-import type { RappiOrder, RappiWebhookEvent } from './types.js';
+import { mockOrder } from './mock';
+import type { RappiOrder, RappiWebhookEvent } from './types';
 
 export interface RappiClient {
   getOrder(orderId: string): Promise<Result<RappiOrder>>;

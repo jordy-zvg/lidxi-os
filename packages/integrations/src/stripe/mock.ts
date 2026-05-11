@@ -1,4 +1,4 @@
-import type { CheckoutSession, CheckoutSessionRequest, PaymentIntent } from './types.js';
+import type { CheckoutSession, CheckoutSessionRequest, PaymentIntent } from './types';
 
 export const mockCheckoutSession = (req: CheckoutSessionRequest): CheckoutSession => {
   const id = `cs_test_mock_${req.orderId.slice(0, 8)}`;

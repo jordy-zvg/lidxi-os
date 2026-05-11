@@ -2,12 +2,12 @@ export {
   createSupabaseBrowserClient,
   createSupabaseServerClient,
   createSupabaseServiceClient,
-} from './client.js';
+} from './client';
 export {
   hashPin,
   verifyPin,
   signEmployeeJWT,
   verifyEmployeeJWT,
   type EmployeeClaims,
-} from './auth.js';
-export type { Database } from './types.js';
+} from './auth';
+export type { Database } from './types';

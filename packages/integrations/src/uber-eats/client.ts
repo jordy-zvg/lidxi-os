@@ -1,7 +1,7 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import { apiError, isMockMode } from '../common.js';
-import { mockOrder } from './mock.js';
-import type { EatsDenyReason, EatsOrder, EatsWebhookEvent } from './types.js';
+import { mockOrder } from './mock';
+import type { EatsDenyReason, EatsOrder, EatsWebhookEvent } from './types';
 
 export interface UberEatsClient {
   getOrder(orderId: string): Promise<Result<EatsOrder>>;

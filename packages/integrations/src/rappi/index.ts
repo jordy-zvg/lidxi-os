@@ -1,2 +1,2 @@
-export * from './types.js';
-export { createRappiClient, type RappiClient } from './client.js';
+export * from './types';
+export { createRappiClient, type RappiClient } from './client';

@@ -1,7 +1,7 @@
 import { cn } from '@lidxi/shared';
 import { IconArrowDownRight, IconArrowUpRight } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { Card } from './Card.js';
+import { Card } from './Card';
 
 export interface KpiCardProps {
   label: string;

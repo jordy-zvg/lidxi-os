@@ -1,4 +1,4 @@
-import type { UberDirectDelivery, UberDirectQuote, UberDirectQuoteRequest } from './types.js';
+import type { UberDirectDelivery, UberDirectQuote, UberDirectQuoteRequest } from './types';
 
 const isoIn = (minutes: number): string => new Date(Date.now() + minutes * 60_000).toISOString();
 

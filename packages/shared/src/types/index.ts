@@ -1,3 +1,3 @@
-export * from './result.js';
-export * from './money.js';
-export * from './order.js';
+export * from './result';
+export * from './money';
+export * from './order';

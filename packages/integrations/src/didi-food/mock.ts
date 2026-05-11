@@ -1,4 +1,4 @@
-import type { DidiOrder } from './types.js';
+import type { DidiOrder } from './types';
 
 export const mockOrder = (id: string): DidiOrder => ({
   id,

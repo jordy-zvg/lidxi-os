@@ -1,6 +1,6 @@
 import { type CookieOptions, createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient as createBaseClient } from '@supabase/supabase-js';
-import type { Database } from './types.js';
+import type { Database } from './types';
 
 /**
  * Helpers para crear clientes Supabase tipados con el `Database` generado.

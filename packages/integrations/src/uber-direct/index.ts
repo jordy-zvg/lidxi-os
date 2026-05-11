@@ -1,2 +1,2 @@
-export * from './types.js';
-export { createUberDirectClient, type UberDirectClient } from './client.js';
+export * from './types';
+export { createUberDirectClient, type UberDirectClient } from './client';

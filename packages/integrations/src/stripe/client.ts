@@ -1,14 +1,14 @@
 import { type Result, err, ok } from '@lidxi/shared';
 import Stripe from 'stripe';
 import { apiError, isMockMode } from '../common.js';
-import { mockCheckoutSession, mockPaymentIntent } from './mock.js';
+import { mockCheckoutSession, mockPaymentIntent } from './mock';
 import type {
   CheckoutSession,
   CheckoutSessionRequest,
   PaymentIntent,
   PaymentIntentRequest,
   StripeWebhookEvent,
-} from './types.js';
+} from './types';
 
 export interface StripeClient {
   createCheckoutSession(req: CheckoutSessionRequest): Promise<Result<CheckoutSession>>;
