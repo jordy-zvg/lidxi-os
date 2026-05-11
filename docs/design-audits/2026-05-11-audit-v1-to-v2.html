@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>LidxiOS — Auditoría de diseño</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { padding: 40px 56px 80px; max-width: 1240px; margin: 0 auto; }
+
+  /* ================ Header ================ */
+  .doc-head { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 0.5px solid var(--line); }
+  .doc-eyebrow {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand);
+    margin-bottom: 10px;
+  }
+  .doc-title { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); margin: 0 0 8px; }
+  .doc-sub { font-size: 15px; color: var(--ink-3); margin: 0; max-width: 720px; line-height: 1.55; }
+  .doc-meta { display: flex; gap: 24px; margin-top: 18px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-4); }
+  .doc-meta span b { color: var(--ink-2); font-weight: 500; }
+
+  /* ================ Section heads ================ */
+  section { margin-top: 56px; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+  .section-num {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; color: var(--ink-5);
+    padding: 4px 8px; background: var(--surface-2); border-radius: var(--r-sm);
+  }
+  .section-head h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; margin: 0; color: var(--ink); }
+  .section-head .sub { font-size: 13px; color: var(--ink-4); margin-left: auto; font-family: var(--font-mono); }
+
+  /* ================ Legend ================ */
+  .legend {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); padding: 16px 20px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-bottom: 24px;
+  }
+  .legend-item { display: flex; align-items: flex-start; gap: 10px; }
+  .legend-mark {
+    width: 22px; height: 22px; border-radius: var(--r-sm);
+    display: grid; place-items: center; font-family: var(--font-mono);
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+  .legend-item .l { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.2; }
+  .legend-item .d { font-size: 12px; color: var(--ink-4); margin-top: 2px; }
+  .mark-ok { background: var(--ok-soft); color: var(--ok-text); }
+  .mark-warn { background: var(--warn-soft); color: var(--warn-text); }
+  .mark-bad { background: var(--danger-soft); color: var(--danger-text); }
+  .mark-new { background: var(--brand-soft); color: var(--brand-text); }
+
+  /* ================ Matrix table ================ */
+  .matrix {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); overflow: hidden;
+  }
+  .matrix-head, .matrix-row {
+    display: grid;
+    grid-template-columns: 200px 110px 130px 1fr 90px;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 20px;
+  }
+  .matrix-head {
+    background: var(--surface-2);
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 0.5px solid var(--line);
+    padding: 12px 20px;
+  }
+  .matrix-row { border-bottom: 0.5px solid var(--line); transition: background 0.1s; }
+  .matrix-row:last-child { border-bottom: none; }
+  .matrix-row:hover { background: var(--canvas); }
+  .matrix-row .screen { display: flex; flex-direction: column; gap: 3px; }
+  .matrix-row .screen .name { font-size: 14px; font-weight: 500; color: var(--ink); font-family: var(--font-mono); }
+  .matrix-row .screen .desc { font-size: 12px; color: var(--ink-4); }
+  .matrix-row .lang, .matrix-row .state { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .matrix-row .action { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .matrix-row .prio { display: flex; justify-content: flex-end; }
+
+  .lang-tag {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: var(--r-sm);
+    letter-spacing: 0.04em;
+  }
+  .lang-v1 { background: var(--danger-soft); color: var(--danger-text); }
+  .lang-v2 { background: var(--ok-soft); color: var(--ok-text); }
+  .lang-mix { background: var(--warn-soft); color: var(--warn-text); }
+  .lang-new { background: var(--brand-soft); color: var(--brand-text); }
+
+  .state-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: grid; place-items: center; flex-shrink: 0;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  }
+  .state-ok   { background: var(--ok-soft); color: var(--ok-text); }
+  .state-warn { background: var(--warn-soft); color: var(--warn-text); }
+  .state-bad  { background: var(--danger-soft); color: var(--danger-text); }
+  .state-new  { background: var(--brand-soft); color: var(--brand-text); }
+  .state-label { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+
+  .prio-tag {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: var(--r-sm);
+    letter-spacing: 0.04em;
+  }
+  .p0 { background: #FEE7EB; color: var(--danger-text); }
+  .p1 { background: var(--warn-soft); color: var(--warn-text); }
+  .p2 { background: var(--surface-2); color: var(--ink-4); }
+
+  /* ================ Sprint cards ================ */
+  .sprints { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sprint {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); padding: 22px 24px;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .sprint.featured {
+    border: 0.5px solid rgba(99,91,255,0.3);
+    box-shadow: 0 0 0 3px rgba(99,91,255,0.04);
+  }
+  .sprint .s-tag {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 8px;
+  }
+  .sprint h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .sprint .s-sub { font-size: 13px; color: var(--ink-4); margin: 0 0 18px; line-height: 1.5; }
+  .sprint .s-screens { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .s-chip {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    padding: 3px 8px; border-radius: var(--r-sm);
+    background: var(--surface-2); color: var(--ink-2);
+  }
+  .s-chip.new { background: var(--brand-soft); color: var(--brand-text); }
+  .sprint .s-row { display: flex; align-items: center; gap: 16px; margin-top: auto; padding-top: 14px; border-top: 0.5px solid var(--line); }
+  .s-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .s-meta .lbl { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-5); }
+  .s-meta .val { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+  .effort {
+    width: 36px; height: 36px; border-radius: var(--r-md);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 16px; font-weight: 600;
+    background: var(--surface-2); color: var(--ink);
+    flex-shrink: 0;
+  }
+  .effort.S { background: var(--ok-soft); color: var(--ok-text); }
+  .effort.M { background: var(--warn-soft); color: var(--warn-text); }
+  .effort.L { background: var(--danger-soft); color: var(--danger-text); }
+
+  .sprint .why {
+    font-size: 13px; color: var(--ink-2); line-height: 1.55;
+    background: var(--canvas); border: 0.5px solid var(--line);
+    border-radius: var(--r-md); padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .sprint .why b { color: var(--ink); font-weight: 500; }
+
+  /* ================ New screens box ================ */
+  .new-box {
+    background: var(--brand-soft); border: 0.5px solid rgba(99,91,255,0.2);
+    border-radius: var(--r-lg); padding: 22px 24px;
+    margin-top: 24px;
+  }
+  .new-box h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+  .new-box p { margin: 0 0 16px; font-size: 13px; color: var(--ink-3); }
+  .new-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .new-item {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-md); padding: 12px 14px;
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline;
+  }
+  .new-item .nm { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--ink); }
+  .new-item .sp { font-family: var(--font-mono); font-size: 11px; color: var(--brand-text); font-weight: 500; }
+  .new-item .ds { grid-column: 1 / -1; font-size: 12px; color: var(--ink-4); line-height: 1.45; }
+
+  /* ================ Findings (criteria details) ================ */
+  .findings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .find-card {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); padding: 16px 18px;
+  }
+  .find-card h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .find-card .scope { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-5); margin-bottom: 10px; }
+  .find-card ul { margin: 0; padding-left: 18px; }
+  .find-card li { font-size: 12px; color: var(--ink-2); line-height: 1.55; margin-bottom: 4px; }
+  .find-card li code {
+    font-family: var(--font-mono); font-size: 11px; color: var(--brand-text);
+    background: var(--brand-soft); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ================ Roadmap timeline ================ */
+  .roadmap {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); padding: 18px 22px;
+    margin-top: 20px;
+  }
+  .roadmap-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
+  .rmb {
+    border-radius: var(--r-sm); padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+    min-height: 60px;
+  }
+  .rmb .num { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--brand-text); }
+  .rmb .ttl { font-size: 12px; font-weight: 500; color: var(--ink); letter-spacing: -0.005em; }
+  .rmb .ct { font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); margin-top: auto; }
+  .rmb.s1 { background: linear-gradient(180deg, var(--brand-soft), rgba(99,91,255,0.04)); }
+  .rmb.s2 { background: linear-gradient(180deg, rgba(99,91,255,0.18), rgba(99,91,255,0.04)); }
+  .rmb.s3 { background: linear-gradient(180deg, rgba(99,91,255,0.14), rgba(99,91,255,0.03)); }
+  .rmb.s4 { background: linear-gradient(180deg, rgba(99,91,255,0.10), rgba(99,91,255,0.02)); }
+  .rmb.s5 { background: linear-gradient(180deg, rgba(99,91,255,0.07), rgba(99,91,255,0.02)); }
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <div class="doc-eyebrow">Auditoría · Diseño v1 → v2</div>
+  <h1 class="doc-title">LidxiOS — alineación del sistema visual</h1>
+  <p class="doc-sub">Estado actual de las 12 pantallas del proyecto Claude Design contra el sistema v2 Stripe-class y el producto implementado en código. Sin refactor todavía: solo diagnóstico, prioridad y plan de sprints.</p>
+  <div class="doc-meta">
+    <span><b>12</b> pantallas auditadas</span>
+    <span><b>6</b> pantallas nuevas requeridas</span>
+    <span><b>5</b> sprints propuestos</span>
+    <span>Cliente piloto · <b>Miztli Pardo (Juriquilla)</b></span>
+  </div>
+</header>
+
+<!-- =========================================================
+     ARTIFACT 1 — MATRIX
+     ========================================================= -->
+<section>
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <h2>Matriz de auditoría</h2>
+    <span class="sub">12 pantallas · estado vs. código</span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-mark mark-ok">✓</div>
+      <div><div class="l">Alineada</div><div class="d">Cumple los 10 criterios v2</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-mark mark-warn">⚠</div>
+      <div><div class="l">Divergencias menores</div><div class="d">1–2 criterios fuera; estructura ok</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-mark mark-bad">✗</div>
+      <div><div class="l">Refactor completo</div><div class="d">Paradigma v1, sidebar oscuro</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-mark mark-new">★</div>
+      <div><div class="l">No existe en design</div><div class="d">Producto la necesita, hay que crearla</div></div>
+    </div>
+  </div>
+
+  <div class="matrix">
+    <div class="matrix-head">
+      <div>Pantalla</div>
+      <div>Lenguaje</div>
+      <div>Estado vs code</div>
+      <div>Acción requerida</div>
+      <div style="text-align:right;">Prioridad</div>
+    </div>
+
+    <!-- 1 Login -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Login.html</span>
+        <span class="desc">Activación POS · keypad + estado de estación</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">Validar que copy y campos del JWT (employee_id, branch_id, role, station_id, pos_session_id) están reflejados en panel izquierdo. Confirmar mensaje de error para cocineros.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 2 ClockOverlay -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">ClockOverlay.demo.html</span>
+        <span class="desc">Entrada / salida · 3 estados (identify, pin, result)</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">Sync menor: validar que la duración del turno en check-out usa shifts.type = 'pos_activation' del schema, no un campo inventado. Confirmar que cualquier rol puede registrar.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 3 Home -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Home.html</span>
+        <span class="desc">Kanban de pedidos · KPIs + columnas SLA</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">Validar contra <code>orders</code> + <code>dispatches</code>. Confirmar que el chip "Direct" mapea a <code>channel = 'direct'</code> y que el SLA usa columnas reales, no derivadas en cliente.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 4 Storefront -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Storefront.html</span>
+        <span class="desc">Pedidos directos + tracking Uber Direct</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-warn">⚠</div><span class="state-label">Divergencias menores</span></div>
+      <div class="action">Estructura v2 ok. Falta: estado <code>dispatch.status = failed</code> con retry, vista "sin couriers cercanos", error de cotización vencida. El mapa SVG es decorativo: sustituir por componente real o placeholder explícito.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 5 Menu -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Menu.html</span>
+        <span class="desc">Catálogo · sync de canales</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-mix">mixto</span></div>
+      <div class="state"><div class="state-icon state-warn">⚠</div><span class="state-label">Divergencias menores</span></div>
+      <div class="action">Estructura v2 ok pero <b>fuga del rojo Miztli</b>: usa <code>#E11D2E</code> para el badge de Rappi (debería ser <code>--warn</code> o color de marca de Rappi). Reemplazar todos los <code>#E11D2E</code> del sistema por tokens semánticos.</div>
+      <div class="prio"><span class="prio-tag p1">P1</span></div>
+    </div>
+
+    <!-- 6 Inventory -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Inventory.html</span>
+        <span class="desc">Insumos · stock + alertas</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">Validar mapeo con <code>inventory_items</code> + <code>recipes</code>. Agregar estado "merma" si existe en el schema. Confirmar que el chip de filtros usa tokens semánticos, no colores ad-hoc.</div>
+      <div class="prio"><span class="prio-tag p1">P1</span></div>
+    </div>
+
+    <!-- 7 POS -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">POS.html</span>
+        <span class="desc">Mostrador · ticket + grid de productos</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">El chip de categoría activa usa <code>--ink</code> en lugar de <code>--brand-soft</code> (inconsistente con Home/Storefront). Decidir patrón: ¿ink para selección dura, brand-soft para filtros? Documentar.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 8 OrderDetail -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">OrderDetail.html</span>
+        <span class="desc">Detalle de pedido · timeline + asignar courier</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v2">v2</span></div>
+      <div class="state"><div class="state-icon state-ok">✓</div><span class="state-label">Alineada</span></div>
+      <div class="action">Mismo issue de Storefront: faltan estados de error de Uber Direct y reintento manual. Validar que el timeline mapea 1:1 con valores de <code>orders.status</code>.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 9 KDS -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">KDS.html</span>
+        <span class="desc">Pantalla de cocina · modo oscuro (dark intencional)</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-mix">mixto</span></div>
+      <div class="state"><div class="state-icon state-warn">⚠</div><span class="state-label">Divergencias menores</span></div>
+      <div class="action">Dark mode es <b>correcto</b> para cocina (legibilidad a distancia, menos fatiga). Ya usa <code>--accent: #635BFF</code>. Falta: formalizar un <b>token set dark v2</b> en <code>tokens.css</code> (<code>--bg-dark</code>, <code>--ink-dark</code>, etc.) para que KDS no sea snowflake. Auditar tipografía: 16px base puede ser bajo a 1.5m de distancia.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 10 CashClose -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">CashClose.html</span>
+        <span class="desc">Corte de caja · denominaciones + diferencia</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v1">v1</span></div>
+      <div class="state"><div class="state-icon state-bad">✗</div><span class="state-label">Refactor completo</span></div>
+      <div class="action">Sidebar oscuro 60px, hairlines 1px, billetes con gradiente decorativo, eyebrow rojo, botón "cerrar caja" con <code>var(--accent)</code> que aún se lee semánticamente como destructivo v1. Refactor: sidebar 220px, cards v2, separar acción primaria (azul violeta) de destructivas.</div>
+      <div class="prio"><span class="prio-tag p0">P0</span></div>
+    </div>
+
+    <!-- 11 Analytics -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Analytics.html</span>
+        <span class="desc">KPIs · heatmap, ranking, embudo</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v1">v1</span></div>
+      <div class="state"><div class="state-icon state-bad">✗</div><span class="state-label">Refactor completo</span></div>
+      <div class="action">Mismo paradigma v1. Además: donut usa <code>#E11D2E</code> hard-coded para Uber Direct (debería ser <code>--brand</code> porque es el canal "ganador"/diferenciador). Refactor visual completo + recalibrar paleta de canales.</div>
+      <div class="prio"><span class="prio-tag p1">P1</span></div>
+    </div>
+
+    <!-- 12 Staff -->
+    <div class="matrix-row">
+      <div class="screen">
+        <span class="name">Staff.html</span>
+        <span class="desc">Empleados · grid + modal con PIN/rol</span>
+      </div>
+      <div class="lang"><span class="lang-tag lang-v1">v1</span></div>
+      <div class="state"><div class="state-icon state-bad">✗</div><span class="state-label">Refactor completo</span></div>
+      <div class="action">Sidebar oscuro, modal con border 1px, botón "danger" usa <code>var(--accent)</code> + <code>#F5C2C7</code> hard-coded. Refactor + integrar lectura de <code>employees</code> + <code>shifts</code> abiertos (mostrar quién tiene shift activo, en qué estación).</div>
+      <div class="prio"><span class="prio-tag p1">P1</span></div>
+    </div>
+  </div>
+
+  <!-- Detalle de hallazgos transversales -->
+  <div class="findings">
+    <div class="find-card">
+      <h4>Hallazgo transversal · color</h4>
+      <div class="scope">3 pantallas afectadas</div>
+      <ul>
+        <li>Menu, Analytics y CashClose usan <code>#E11D2E</code> hard-coded en partes del sistema (badges de canal, donut, eyebrow). Esto rompe el principio "Miztli es solo branding".</li>
+        <li>Acción: reemplazar por <code>--warn</code> / <code>--danger</code> / <code>--ink</code> según el caso. Crear paleta dedicada para canales (<code>--ch-direct</code>, <code>--ch-eats</code>, <code>--ch-rappi</code>, <code>--ch-didi</code>) y agregarla a <code>tokens.css</code>.</li>
+      </ul>
+    </div>
+    <div class="find-card">
+      <h4>Hallazgo transversal · shell</h4>
+      <div class="scope">3 pantallas afectadas</div>
+      <ul>
+        <li>CashClose, Analytics y Staff comparten un sidebar oscuro 60px con tira roja superior — herencia v1.</li>
+        <li>El sidebar 220px ya está implementado en Home, Storefront, Menu, Inventory, POS, OrderDetail. Es solo cuestión de copiar el bloque y migrar los íconos a Tabler outline.</li>
+      </ul>
+    </div>
+    <div class="find-card">
+      <h4>Hallazgo transversal · acción primaria</h4>
+      <div class="scope">CashClose, Staff</div>
+      <ul>
+        <li>El principio "una acción primaria violeta por vista" se violenta en Staff (modal con botón "Eliminar" + "Guardar" ambos prominentes) y en CashClose (botón cerrar grande sin clara distinción de destructividad).</li>
+        <li>Acción: en Staff, "Eliminar" pasa a <code>.btn-danger</code> (texto rojo, fondo blanco, border rojo). En CashClose, separar "Imprimir Z" (secundario) de "Cerrar turno" (primario violeta).</li>
+      </ul>
+    </div>
+    <div class="find-card">
+      <h4>Hallazgo transversal · datos no implementados</h4>
+      <div class="scope">producto vs design</div>
+      <ul>
+        <li>El schema tiene <code>printers</code>, <code>print_jobs</code>, <code>menu_channel_prices</code> y <code>automation_rules</code> — sin pantalla en design.</li>
+        <li>El schema tiene <code>shifts.auto_closed</code> — ninguna pantalla muestra el caso "turno cerrado automáticamente porque te activaste en otra estación".</li>
+        <li>Acción: ver "Pantallas nuevas" en Artifact 2.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ARTIFACT 2 — SPRINTS
+     ========================================================= -->
+<section>
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <h2>Plan de refactor en sprints</h2>
+    <span class="sub">5 sprints · refactor + nuevas pantallas</span>
+  </div>
+
+  <!-- Roadmap timeline -->
+  <div class="roadmap">
+    <div style="display:flex; align-items:baseline; gap:10px;">
+      <h3 style="margin:0; font-size:14px; font-weight:600; color:var(--ink);">Secuencia recomendada</h3>
+      <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-4);">de izquierda a derecha · dependencias resueltas</span>
+    </div>
+    <div class="roadmap-bar">
+      <div class="rmb s1">
+        <span class="num">SPRINT 01</span>
+        <span class="ttl">Foundation</span>
+        <span class="ct">tokens · sidebar · canales</span>
+      </div>
+      <div class="rmb s2">
+        <span class="num">SPRINT 02</span>
+        <span class="ttl">Backoffice</span>
+        <span class="ct">CashClose · Staff · Timesheet</span>
+      </div>
+      <div class="rmb s3">
+        <span class="num">SPRINT 03</span>
+        <span class="ttl">Cocina dark</span>
+        <span class="ct">KDS · OrderDetail · Printers</span>
+      </div>
+      <div class="rmb s4">
+        <span class="num">SPRINT 04</span>
+        <span class="ttl">Canales</span>
+        <span class="ct">Menu · MenuPricing · Storefront</span>
+      </div>
+      <div class="rmb s5">
+        <span class="num">SPRINT 05</span>
+        <span class="ttl">Insight + Auto</span>
+        <span class="ct">Analytics · Automation · Settings</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprints" style="margin-top:20px;">
+
+    <!-- Sprint 01 -->
+    <div class="sprint featured">
+      <div class="s-tag">Sprint 01 · pre-refactor</div>
+      <h3>Foundation: tokens dark + canales + shell compartido</h3>
+      <p class="s-sub">Bloqueador de los otros sprints. Sin esto, KDS, Analytics y CashClose se refactorizan a medias.</p>
+      <div class="s-screens">
+        <span class="s-chip new">tokens.css · dark set</span>
+        <span class="s-chip new">tokens.css · channel palette</span>
+        <span class="s-chip new">Shell.html · sidebar v2 doc</span>
+      </div>
+      <div class="why">
+        <b>Por qué van juntas:</b> el dark set es prerequisito de KDS. La paleta de canales destraba Menu/Analytics. El shell documentado evita que cada refactor reinvente el sidebar.
+      </div>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Dependencias</span>
+          <span class="val">Ninguna · arranca primero</span>
+        </div>
+        <div class="effort S">S</div>
+      </div>
+    </div>
+
+    <!-- Sprint 02 -->
+    <div class="sprint">
+      <div class="s-tag">Sprint 02 · backoffice de caja</div>
+      <h3>Cierre de día: CashClose + Staff + Timesheet</h3>
+      <p class="s-sub">Las tres viven en el cerebro del manager al final de turno. Comparten patrón "form + summary" y dependen de <code>shifts</code>.</p>
+      <div class="s-screens">
+        <span class="s-chip">CashClose.html</span>
+        <span class="s-chip">Staff.html</span>
+        <span class="s-chip new">Timesheet.html</span>
+      </div>
+      <div class="why">
+        <b>Por qué van juntas:</b> CashClose cierra el shift de caja; Staff gestiona quién puede activarlo; Timesheet reporta horas trabajadas derivadas del mismo <code>shifts</code>. Mismo lenguaje visual de tablas + sidebar v2.
+      </div>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Dependencias</span>
+          <span class="val">Sprint 01 (shell + tokens)</span>
+        </div>
+        <div class="effort L">L</div>
+      </div>
+    </div>
+
+    <!-- Sprint 03 -->
+    <div class="sprint">
+      <div class="s-tag">Sprint 03 · cocina y despacho</div>
+      <h3>Cocina: KDS + OrderDetail + Printers</h3>
+      <p class="s-sub">El flujo de "pedido entra → cocina lo prepara → impresora etiqueta → courier recoge". Una sola sesión de trabajo.</p>
+      <div class="s-screens">
+        <span class="s-chip">KDS.html</span>
+        <span class="s-chip">OrderDetail.html</span>
+        <span class="s-chip new">Printers.html</span>
+      </div>
+      <div class="why">
+        <b>Por qué van juntas:</b> los estados de error de Uber Direct se sienten en OrderDetail pero se originan en lo que KDS marca como "listo". Printers cierra el ciclo (etiqueta + comanda). Las tres tocan <code>orders</code>, <code>print_jobs</code> y <code>dispatches</code>.
+      </div>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Dependencias</span>
+          <span class="val">Sprint 01 (dark tokens para KDS)</span>
+        </div>
+        <div class="effort M">M</div>
+      </div>
+    </div>
+
+    <!-- Sprint 04 -->
+    <div class="sprint">
+      <div class="s-tag">Sprint 04 · catálogo y canales</div>
+      <h3>Menú: Menu + MenuPricing + MenuEditor público</h3>
+      <p class="s-sub">El menú es uno solo en BD pero tiene 3 audiencias: operadores (Menu), pricing por canal (MenuPricing) y cliente final (MenuEditor del sitio).</p>
+      <div class="s-screens">
+        <span class="s-chip">Menu.html</span>
+        <span class="s-chip new">MenuPricing.html</span>
+        <span class="s-chip new">MenuEditor.html</span>
+      </div>
+      <div class="why">
+        <b>Por qué van juntas:</b> mismo dato (<code>menu_items</code> + <code>menu_channel_prices</code>), tres lentes distintas. Resolver el patrón "una fila × N canales" una sola vez. Aquí se elimina la fuga de <code>#E11D2E</code>.
+      </div>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Dependencias</span>
+          <span class="val">Sprint 01 (channel palette)</span>
+        </div>
+        <div class="effort L">L</div>
+      </div>
+    </div>
+
+    <!-- Sprint 05 -->
+    <div class="sprint">
+      <div class="s-tag">Sprint 05 · inteligencia + setup</div>
+      <h3>Analytics + AutomationRules + Settings/Integraciones</h3>
+      <p class="s-sub">Las pantallas que no usa el operador diario pero que sostienen al sistema. Refactor + nuevas pueden compartir el patrón "config + preview".</p>
+      <div class="s-screens">
+        <span class="s-chip">Analytics.html</span>
+        <span class="s-chip new">AutomationRules.html</span>
+        <span class="s-chip new">Settings.html</span>
+      </div>
+      <div class="why">
+        <b>Por qué van juntas:</b> son las pantallas "del dueño", no del cajero. Tono más denso, más datos, menos urgencia. Resolver Analytics primero (datos en vivo) facilita las otras dos (reglas que actúan sobre esos datos + integraciones que los originan).
+      </div>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Dependencias</span>
+          <span class="val">Sprints 01, 02 y 04</span>
+        </div>
+        <div class="effort L">L</div>
+      </div>
+    </div>
+
+    <!-- Filler card to balance grid -->
+    <div class="sprint" style="background: var(--canvas); border-style: dashed;">
+      <div class="s-tag" style="color:var(--ink-4);">Después del sprint 05</div>
+      <h3 style="color:var(--ink-2);">Polish + casos edge</h3>
+      <p class="s-sub">Una vez todo migrado: estados vacíos sistémicos, error states de red, onboarding de cliente nuevo, multi-sucursal. Definir cuando el roadmap principal cierre.</p>
+      <div class="s-row">
+        <div class="s-meta">
+          <span class="lbl">Estado</span>
+          <span class="val">Por definir</span>
+        </div>
+        <div class="effort">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New screens box -->
+  <div class="new-box">
+    <h3>★ Pantallas nuevas que el producto necesita</h3>
+    <p>El schema y el código las requieren, pero aún no existen como diseño. Asignadas al sprint donde encajan mejor.</p>
+    <div class="new-grid">
+      <div class="new-item">
+        <span class="nm">Settings · Integraciones</span>
+        <span class="sp">Sprint 05</span>
+        <span class="ds">OAuth para Uber Eats, Rappi, Didi. Status de conexión, refresh tokens, webhook URLs.</span>
+      </div>
+      <div class="new-item">
+        <span class="nm">Printers</span>
+        <span class="sp">Sprint 03</span>
+        <span class="ds">Config de impresoras térmicas, prueba de impresión, asignación a estaciones, cola de <code>print_jobs</code>.</span>
+      </div>
+      <div class="new-item">
+        <span class="nm">Timesheet</span>
+        <span class="sp">Sprint 02</span>
+        <span class="ds">Horas trabajadas por empleado · backoffice. Deriva de <code>shifts</code>, marca los <code>auto_closed</code>, permite ajuste manual.</span>
+      </div>
+      <div class="new-item">
+        <span class="nm">MenuPricing</span>
+        <span class="sp">Sprint 04</span>
+        <span class="ds">Matriz <code>menu_items × canal</code> · markup por canal, descuentos, sync masivo. Reutiliza patrón de Inventory.</span>
+      </div>
+      <div class="new-item">
+        <span class="nm">AutomationRules</span>
+        <span class="sp">Sprint 05</span>
+        <span class="ds">Reglas que actúan solas: "si stock &lt; X, pausar plato en marketplaces". Builder visual <code>when → then</code>.</span>
+      </div>
+      <div class="new-item">
+        <span class="nm">MenuEditor público</span>
+        <span class="sp">Sprint 04</span>
+        <span class="ds">Editor del menú del sitio del cliente (no operadores). Single tenant view, branding Miztli activado.</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<footer style="margin-top: 72px; padding-top: 24px; border-top: 0.5px solid var(--line); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--ink-5);">
+  <span>LidxiOS · Diseño v2 · Auditoría interna</span>
+  <span>Sin refactor todavía — definir orden de sprints antes de arrancar</span>
+</footer>
+
+</body>
+</html>

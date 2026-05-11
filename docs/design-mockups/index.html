@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LidxiOS · Design mockups</title>
+    <link rel="stylesheet" href="./tokens.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--canvas, #F6F9FC);
+        color: var(--ink, #0A2540);
+        min-height: 100vh;
+        padding: 48px 24px;
+      }
+      .wrap { max-width: 880px; margin: 0 auto; }
+
+      .hero {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 8px;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        background: var(--ink, #0A2540);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 18px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      .lede {
+        font-size: 15px;
+        color: var(--ink-3, #425466);
+        margin: 0 0 40px;
+        line-height: 1.55;
+        max-width: 620px;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-5, #8898AA);
+        margin-bottom: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+        margin-bottom: 40px;
+      }
+      .card {
+        background: white;
+        border: 0.5px solid rgba(10, 37, 64, 0.08);
+        border-radius: 8px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .card:hover {
+        border-color: rgba(99, 91, 255, 0.4);
+        transform: translateY(-1px);
+      }
+      .card-title {
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-title i { color: #635BFF; font-size: 18px; }
+      .card-desc {
+        font-size: 13px;
+        color: var(--ink-3, #425466);
+        line-height: 1.5;
+        margin: 0;
+      }
+      .card-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--ink-5, #8898AA);
+        margin-top: auto;
+      }
+
+      .empty {
+        background: white;
+        border: 0.5px dashed rgba(10, 37, 64, 0.16);
+        border-radius: 8px;
+        padding: 20px;
+        font-size: 13px;
+        color: var(--ink-4, #697386);
+        text-align: center;
+      }
+
+      footer {
+        font-size: 12px;
+        color: var(--ink-5, #8898AA);
+        border-top: 0.5px solid rgba(10, 37, 64, 0.08);
+        padding-top: 20px;
+        margin-top: 40px;
+      }
+      footer code {
+        font-family: 'JetBrains Mono', monospace;
+        background: rgba(10, 37, 64, 0.04);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="hero">
+        <div class="logo">L</div>
+        <h1>LidxiOS · Design mockups</h1>
+      </div>
+      <p class="lede">
+        Prototipos HTML estáticos navegables que muestran el diseño visual de
+        cada pantalla. Funcionan sin servidor, sin base de datos, sin auth.
+        Sirven para demos, presentaciones y referencia de diseño.
+      </p>
+
+      <div class="eyebrow">Sistema operativo · OMS</div>
+      <div class="grid">
+        <a class="card" href="./login.html">
+          <div class="card-title">
+            <i class="ti ti-login"></i>Login · Activación POS
+          </div>
+          <p class="card-desc">
+            Pantalla de PIN para activar la estación. Solo manager y cashier.
+          </p>
+          <div class="card-meta">login.html</div>
+        </a>
+
+        <a class="card" href="./clock-overlay.html">
+          <div class="card-title">
+            <i class="ti ti-fingerprint"></i>Entrada / Salida
+          </div>
+          <p class="card-desc">
+            Overlay global para registrar horario de empleados. PIN ahora,
+            huella después.
+          </p>
+          <div class="card-meta">clock-overlay.html</div>
+        </a>
+
+        <a class="card" href="./home-oms.html">
+          <div class="card-title">
+            <i class="ti ti-layout-dashboard"></i>Home · Kanban
+          </div>
+          <p class="card-desc">
+            Vista principal con pedidos multi-canal en tiempo real, KPIs y SLAs.
+          </p>
+          <div class="card-meta">home-oms.html</div>
+        </a>
+
+        <a class="card" href="./storefront.html">
+          <div class="card-title">
+            <i class="ti ti-world"></i>Sitio propio
+          </div>
+          <p class="card-desc">
+            Admin de pedidos directos del sitio web del restaurante con
+            dispatch a Uber Direct.
+          </p>
+          <div class="card-meta">storefront.html</div>
+        </a>
+      </div>
+
+      <div class="eyebrow">Próximos</div>
+      <div class="grid">
+        <div class="empty">POS de mostrador · pendiente</div>
+        <div class="empty">OrderDetail con tracking · pendiente</div>
+        <div class="empty">KDS multi-estación · pendiente</div>
+      </div>
+
+      <footer>
+        Producto real en <code>apps/oms/</code> ·
+        tokens en <code>packages/tokens/</code> ·
+        última actualización <code>2026-05-11</code>
+      </footer>
+    </div>
+  </body>
+</html>
