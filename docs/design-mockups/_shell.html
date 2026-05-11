@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Sprint 01 · Shell v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { padding: 36px 44px 80px; max-width: 1340px; margin: 0 auto; }
+
+  .doc-head { margin-bottom: 32px; padding-bottom: 22px; border-bottom: 0.5px solid var(--line); }
+  .doc-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand); margin-bottom: 10px; }
+  .doc-title { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .doc-sub { font-size: 14px; color: var(--ink-3); margin: 0; max-width: 760px; line-height: 1.55; }
+
+  section.s { margin-top: 48px; }
+  section.s > .head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  section.s > .head .num { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-5); padding: 3px 8px; background: var(--surface-2); border-radius: var(--r-sm); }
+  section.s > .head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; }
+  section.s > .head .sub { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); margin-left: auto; }
+
+  /* ============ SHELL MOCK (real shell, used inside demo frames) ============ */
+  .frame {
+    border: 0.5px solid var(--line); border-radius: var(--r-lg);
+    overflow: hidden; background: var(--surface);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 22px;
+  }
+  .frame-caption {
+    padding: 10px 16px; background: var(--surface-2);
+    border-top: 0.5px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+  }
+  .frame-caption .tag {
+    padding: 2px 8px; border-radius: var(--r-sm);
+    background: var(--brand-soft); color: var(--brand-text);
+    font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+
+  /* Shell layout */
+  .app { display: grid; grid-template-columns: 220px 1fr; height: 640px; background: var(--canvas); }
+  .app.tall { height: 700px; }
+
+  /* === Sidebar 220px === */
+  .sidebar {
+    background: var(--surface);
+    border-right: 0.5px solid var(--line);
+    padding: 18px 14px 14px;
+    display: flex; flex-direction: column;
+  }
+  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 18px; }
+  .sb-logo { width: 28px; height: 28px; border-radius: 7px; background: var(--ink); color: white; display: grid; place-items: center; font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
+  .sb-name { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+  .sb-name .branch { display: block; font-size: 11px; font-weight: 400; color: var(--ink-4); margin-top: 1px; font-family: var(--font-mono); }
+  .sb-section { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-5); padding: 8px 10px 4px; }
+  .sb-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--r-md);
+    color: var(--ink-3); font-size: 14px; font-weight: 500;
+    text-decoration: none; cursor: pointer; user-select: none;
+  }
+  .sb-item:hover { background: var(--surface-2); color: var(--ink); }
+  .sb-item.active { background: var(--brand-soft); color: var(--brand-text); }
+  .sb-item.active i { color: var(--brand); }
+  .sb-item i { font-size: 18px; color: var(--ink-4); flex-shrink: 0; }
+  .sb-item .ct { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink-5); }
+  .sb-item.active .ct { color: var(--brand-text); }
+  .sb-user { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: var(--r-md); cursor: pointer; }
+  .sb-user:hover { background: var(--surface-2); }
+  .sb-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-text); display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+  .sb-user-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .sb-user-role { font-size: 11px; color: var(--ink-5); font-family: var(--font-mono); }
+
+  /* === Main + Topbar 56px (topbar adentro de main para alinear migas con contenido) === */
+  .main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .topbar {
+    height: 56px; flex-shrink: 0;
+    padding: 0 24px;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--line);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .crumbs { display: flex; align-items: baseline; gap: 8px; flex: 1; }
+  .crumbs h1 { margin: 0; font-size: 15px; font-weight: 500; color: var(--ink); letter-spacing: -0.005em; }
+  .crumbs .ctx { font-family: var(--font-mono); font-size: 12px; color: var(--ink-4); }
+  .crumbs .sep { color: var(--ink-6); }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--r-md); border: 0.5px solid var(--line-2); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--ink-3); }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .icon-btn i { font-size: 16px; }
+  .clock-btn {
+    height: 32px; padding: 0 12px;
+    background: var(--surface); border: 0.5px solid var(--line-2);
+    border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 500; color: var(--ink-2);
+    cursor: pointer;
+  }
+  .clock-btn:hover { background: var(--surface-2); }
+  .clock-btn .dot-ok { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .session {
+    display: flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 10px 0 4px;
+    background: var(--surface); border: 0.5px solid var(--line-2);
+    border-radius: 999px; cursor: pointer;
+  }
+  .session:hover { background: var(--surface-2); }
+  .session-av { width: 24px; height: 24px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-text); display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+  .session-name { font-size: 12px; font-weight: 500; color: var(--ink); }
+  .session-status { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-left: 2px; }
+
+  /* === Demo content insides === */
+  .content { padding: 22px 24px; overflow: auto; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { background: var(--surface); border: 0.5px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; }
+  .kpi .lbl { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-5); margin-bottom: 6px; }
+  .kpi .v { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); font-feature-settings: "tnum"; }
+  .kpi .d { font-family: var(--font-mono); font-size: 11px; color: var(--ok-text); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .kpi .d.warn { color: var(--warn-text); }
+
+  .panel { background: var(--surface); border: 0.5px solid var(--line); border-radius: var(--r-lg); margin-top: 14px; }
+  .panel .ph { display: flex; align-items: baseline; gap: 12px; padding: 14px 16px; border-bottom: 0.5px solid var(--line); }
+  .panel .ph h3 { margin: 0; font-size: 14px; font-weight: 500; color: var(--ink); }
+  .panel .ph .meta { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); margin-left: auto; }
+
+  /* Table fake */
+  .tb-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px; gap: 14px; padding: 11px 16px; border-bottom: 0.5px solid var(--line); align-items: center; font-size: 13px; }
+  .tb-row.head { background: var(--surface-2); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-4); padding: 9px 16px; }
+  .tb-row:last-child { border-bottom: none; }
+  .tb-row:hover:not(.head) { background: var(--canvas); }
+  .tb-row .id { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+
+  /* Side-panel demo (slide-over) */
+  .with-side { display: grid; grid-template-columns: 1fr 380px; height: 100%; overflow: hidden; }
+  .side-panel { background: var(--surface); border-left: 0.5px solid var(--line); padding: 18px 20px; overflow-y: auto; }
+  .side-panel .sph { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .side-panel .sph h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.005em; }
+  .side-panel .sph .id { font-family: var(--font-mono); font-size: 12px; color: var(--ink-4); margin-top: 2px; display: block; }
+
+  /* Pills inline */
+  .p { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .p .d { width: 5px; height: 5px; border-radius: 50%; }
+  .p.ok { background: var(--ok-soft); color: var(--ok-text); } .p.ok .d { background: var(--ok); }
+  .p.warn { background: var(--warn-soft); color: var(--warn-text); } .p.warn .d { background: var(--warn); }
+  .p.danger { background: var(--danger-soft); color: var(--danger-text); } .p.danger .d { background: var(--danger); }
+  .p.brand { background: var(--brand-soft); color: var(--brand-text); } .p.brand .d { background: var(--brand); }
+
+  /* ===== Spec callouts (anotaciones laterales) ===== */
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+  .spec {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-lg); padding: 16px 18px;
+  }
+  .spec h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .spec .scope { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-5); margin-bottom: 10px; }
+  .spec ul { margin: 0; padding-left: 16px; }
+  .spec li { font-size: 12px; color: var(--ink-2); line-height: 1.6; margin-bottom: 4px; }
+  .spec li code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--brand-text); }
+  .spec li b { color: var(--ink); font-weight: 500; }
+
+  /* ===== Don't list ===== */
+  .donts {
+    background: var(--danger-soft);
+    border: 0.5px solid rgba(223,27,65,0.18);
+    border-left: 3px solid var(--danger);
+    border-radius: var(--r-lg);
+    padding: 18px 22px;
+    margin-top: 12px;
+  }
+  .donts h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--danger-text); }
+  .donts .dgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .dont {
+    background: var(--surface); border: 0.5px solid var(--line);
+    border-radius: var(--r-md); padding: 12px 14px;
+  }
+  .dont .mini { height: 60px; border-radius: var(--r-sm); margin-bottom: 10px; display: flex; overflow: hidden; }
+  .dont .mini .sb-d { width: 22%; background: #0B0B0C; border-radius: 4px 0 0 4px; position: relative; }
+  .dont .mini .sb-d::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--miztli); }
+  .dont .mini .main-d { flex: 1; background: var(--surface-2); border: 1px solid var(--line); border-left: none; }
+  .dont .lbl { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--danger-text); margin-bottom: 4px; }
+  .dont .ttl { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .dont .why { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+  /* ===== Dark shell preview ===== */
+  .dark-app {
+    display: flex; flex-direction: column; height: 460px;
+    background: #0E1A2E; border-radius: var(--r-lg); overflow: hidden;
+  }
+  .dark-topbar {
+    height: 56px; padding: 0 22px;
+    background: #15233D; border-bottom: 1px solid #25395A;
+    display: flex; align-items: center; gap: 14px;
+    color: #F5F8FC;
+  }
+  .dark-crumbs { display: flex; align-items: baseline; gap: 8px; flex: 1; }
+  .dark-crumbs h1 { margin: 0; font-size: 15px; font-weight: 500; }
+  .dark-crumbs .ctx { font-family: var(--font-mono); font-size: 12px; color: #B5C2D4; }
+  .dark-station {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 30px; padding: 0 12px;
+    background: rgba(139,130,255,0.15); color: #B5AEFF;
+    border-radius: 999px;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  }
+  .dark-station .d { width: 6px; height: 6px; border-radius: 50%; background: #8B82FF; }
+  .dark-content { flex: 1; padding: 18px 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .dark-ticket {
+    background: #15233D; border: 1px solid #25395A; border-radius: 8px;
+    padding: 12px 14px; color: #F5F8FC;
+    border-left-width: 3px;
+  }
+  .dark-ticket .t-time { font-family: var(--font-mono); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .dark-ticket .t-id { font-family: var(--font-mono); font-size: 11px; color: #8B9DB8; margin-top: 2px; }
+  .dark-ticket .t-items { font-size: 12px; color: #D8E1EC; margin-top: 10px; line-height: 1.5; }
+
+  .anno {
+    background: var(--ok-soft); border: 0.5px solid rgba(0,166,86,0.2);
+    border-left: 3px solid var(--ok);
+    border-radius: var(--r-md); padding: 12px 16px;
+    margin-top: 12px; font-size: 12px; color: var(--ink-2); line-height: 1.55;
+  }
+  .anno b { color: var(--ok-text); }
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <div class="doc-eyebrow">Sprint 01 · Entregable 2</div>
+  <h1 class="doc-title">Shell v2 · referencia visual</h1>
+  <p class="doc-sub">Documento canónico del shell de LidxiOS: sidebar 220px + topbar 56px. Cuatro maquetas demostrativas + variante dark para KDS + lista de antipatrones detectados en CashClose, Staff y Analytics.</p>
+</header>
+
+<!-- ============== 01 · ESPECS ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">01</span>
+    <h2>Especs del shell</h2>
+    <span class="sub">sidebar 220 · topbar 56 · grid 220px 1fr</span>
+  </div>
+
+  <div class="spec-grid">
+    <div class="spec">
+      <h3>Sidebar (220px, claro)</h3>
+      <div class="scope">aside.sidebar</div>
+      <ul>
+        <li><b>Ancho:</b> <code>220px</code> fijo. No colapsa: el OMS no es mobile-first y los nombres de canal/módulo son demasiado largos para iconos solos.</li>
+        <li><b>Fondo:</b> <code>var(--surface)</code>. Border derecho <code>0.5px var(--line)</code>.</li>
+        <li><b>Brand block:</b> logo 28×28 cuadrado <code>r-sm</code> + nombre del tenant (Inter 600 14px) + sucursal abajo (mono 11px <code>--ink-4</code>).</li>
+        <li><b>Section labels:</b> eyebrow mono 10px <code>--ink-5</code> en uppercase, padding <code>8px 10px 4px</code>.</li>
+        <li><b>Items:</b> altura ~32px, gap 10px, icono Tabler outline 18px <code>--ink-4</code>, texto Inter 500 14px <code>--ink-3</code>.</li>
+        <li><b>Active:</b> <code>bg-brand-soft</code> + <code>text-brand-text</code> + icono <code>--brand</code>.</li>
+        <li><b>Hover:</b> <code>bg-surface-2</code> + <code>text-ink</code>.</li>
+        <li><b>Footer:</b> bloque usuario (avatar 28px circular brand-soft + nombre + rol) anclado <code>margin-top: auto</code>.</li>
+      </ul>
+    </div>
+
+    <div class="spec">
+      <h3>Topbar (56px)</h3>
+      <div class="scope">header.topbar · dentro de main</div>
+      <ul>
+        <li><b>Altura:</b> <code>56px</code> fija. Padding horizontal <code>24px</code> (igual al content para que las migas alineen visualmente con el primer card).</li>
+        <li><b>Posición clave:</b> la topbar va <i>dentro</i> de <code>.main</code>, no como hermano del sidebar. Así las migas alinean con la columna de contenido cuando alguien colapsa sidebar en el futuro.</li>
+        <li><b>Fondo:</b> <code>var(--surface)</code>. Border inferior <code>0.5px var(--line)</code>.</li>
+        <li><b>Migas:</b> H1 Inter 500 15px <code>--ink</code> + contexto mono 12px <code>--ink-4</code> (sucursal · estación · turno).</li>
+        <li><b>Slot derecho:</b> <code>display: flex; gap: 8px;</code>. Orden: icon-btns (search, alerts) → botón <b>Entrada/Salida</b> (pill 32px, dot verde, copia "Entrada / Salida") → indicador de sesión (pill avatar+nombre+status dot).</li>
+        <li><b>NO va aquí:</b> botones primary violetas. La acción primaria vive en el content, no en topbar.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="anno">
+    <b>Patrón de layout:</b> <code>display: grid; grid-template-columns: 220px 1fr;</code> a nivel <code>.app</code>. La topbar es hija de <code>.main</code> (no del grid raíz). Esto preserva alineación de migas con content y deja la sidebar como columna fija independiente del scroll del main.
+  </div>
+</section>
+
+<!-- ============== 02 · DEMO 1 — Dashboard ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">02</span>
+    <h2>Demo 1 · Dashboard con KPIs</h2>
+    <span class="sub">patrón Home · KPIs + panel ancho</span>
+  </div>
+
+  <div class="frame">
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sb-brand">
+          <div class="sb-logo">M</div>
+          <div class="sb-name">Miztli Pardo<span class="branch">Juriquilla</span></div>
+        </div>
+        <div class="sb-section">Operación</div>
+        <a class="sb-item active"><i class="ti ti-layout-dashboard"></i>Inicio<span class="ct">24</span></a>
+        <a class="sb-item"><i class="ti ti-bowl"></i>Pedidos<span class="ct">8</span></a>
+        <a class="sb-item"><i class="ti ti-cash-register"></i>Mostrador</a>
+        <a class="sb-item"><i class="ti ti-tools-kitchen-2"></i>Cocina</a>
+        <div class="sb-section">Catálogo</div>
+        <a class="sb-item"><i class="ti ti-grid-dots"></i>Menú</a>
+        <a class="sb-item"><i class="ti ti-package"></i>Inventario</a>
+        <div class="sb-section">Reportes</div>
+        <a class="sb-item"><i class="ti ti-chart-bar"></i>Analytics</a>
+        <a class="sb-item"><i class="ti ti-receipt-2"></i>Corte de caja</a>
+        <div class="sb-user">
+          <div class="sb-avatar">CR</div>
+          <div><div class="sb-user-name">Carla Reyes</div><div class="sb-user-role">manager · pos-3</div></div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="crumbs">
+            <h1>Inicio</h1>
+            <span class="ctx">Juriquilla · pos-3 · turno 12:18 — abierto</span>
+          </div>
+          <div class="top-actions">
+            <button class="icon-btn"><i class="ti ti-search"></i></button>
+            <button class="icon-btn"><i class="ti ti-bell"></i></button>
+            <button class="clock-btn"><span class="dot-ok"></span>Entrada / Salida</button>
+            <div class="session"><div class="session-av">CR</div><span class="session-name">Carla</span><span class="session-status"></span></div>
+          </div>
+        </header>
+        <div class="content">
+          <div class="kpi-row">
+            <div class="kpi"><div class="lbl">Ventas hoy</div><div class="v">$18,420</div><div class="d"><i class="ti ti-trending-up"></i>+12% vs ayer</div></div>
+            <div class="kpi"><div class="lbl">Pedidos</div><div class="v">124</div><div class="d"><i class="ti ti-trending-up"></i>+8 vs ayer</div></div>
+            <div class="kpi"><div class="lbl">Ticket promedio</div><div class="v">$148</div><div class="d warn"><i class="ti ti-trending-down"></i>−$6 vs ayer</div></div>
+            <div class="kpi"><div class="lbl">SLA cumplido</div><div class="v">94%</div><div class="d"><i class="ti ti-trending-up"></i>+2pp vs ayer</div></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><h3>Pedidos activos</h3><span class="meta">24 abiertos · 4 en riesgo</span></div>
+            <div style="padding: 16px;">
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <span class="p brand"><span class="d"></span>Direct · 8</span>
+                <span class="p ok"><span class="d"></span>Eats · 9</span>
+                <span class="p warn"><span class="d"></span>Rappi · 5</span>
+                <span class="p"><span class="d" style="background:var(--ink-4)"></span>Mostrador · 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">
+      <span class="tag">Demo 1</span>
+      <span>Dashboard · KPI row + activity panel · uso de channel palette en pills (Direct=brand, Eats=ok-tone, Rappi=warn-tone, Mostrador=neutral)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 03 · DEMO 2 — Tabla densa ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">03</span>
+    <h2>Demo 2 · Tabla densa</h2>
+    <span class="sub">patrón Inventory / Menu · listas con muchas filas</span>
+  </div>
+
+  <div class="frame">
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sb-brand"><div class="sb-logo">M</div><div class="sb-name">Miztli Pardo<span class="branch">Juriquilla</span></div></div>
+        <div class="sb-section">Catálogo</div>
+        <a class="sb-item"><i class="ti ti-grid-dots"></i>Menú</a>
+        <a class="sb-item active"><i class="ti ti-package"></i>Inventario<span class="ct">142</span></a>
+        <a class="sb-item"><i class="ti ti-tag"></i>Precios por canal</a>
+        <div class="sb-section">Operación</div>
+        <a class="sb-item"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+        <a class="sb-item"><i class="ti ti-bowl"></i>Pedidos</a>
+        <div class="sb-user"><div class="sb-avatar">CR</div><div><div class="sb-user-name">Carla Reyes</div><div class="sb-user-role">manager</div></div></div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="crumbs"><h1>Inventario</h1><span class="ctx">142 insumos · 3 alertas</span></div>
+          <div class="top-actions">
+            <button class="icon-btn"><i class="ti ti-search"></i></button>
+            <button class="clock-btn"><span class="dot-ok"></span>Entrada / Salida</button>
+            <div class="session"><div class="session-av">CR</div><span class="session-name">Carla</span><span class="session-status"></span></div>
+          </div>
+        </header>
+        <div class="content" style="padding-top: 18px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <input class="input" placeholder="Buscar insumo…" style="max-width: 280px; height: 32px;" />
+            <button class="clock-btn">Categoría: todas</button>
+            <button class="clock-btn">Stock: todos</button>
+            <div style="flex: 1;"></div>
+            <button class="clock-btn" style="background: var(--brand); color: white; border-color: var(--brand);"><i class="ti ti-plus" style="font-size: 14px;"></i>Agregar insumo</button>
+          </div>
+          <div class="panel" style="margin-top: 0;">
+            <div class="tb-row head">
+              <span>Insumo</span><span>Categoría</span><span>Stock</span><span>Estado</span><span></span>
+            </div>
+            <div class="tb-row"><div><b>Pechuga de pollo</b><div class="id">SKU · CH-001</div></div><span>Proteína</span><span>32.4 kg</span><span><span class="p ok"><span class="d"></span>en stock</span></span><span></span></div>
+            <div class="tb-row"><div><b>Tortilla de maíz</b><div class="id">SKU · TR-014</div></div><span>Carbohidrato</span><span>4 paquetes</span><span><span class="p warn"><span class="d"></span>stock bajo</span></span><span></span></div>
+            <div class="tb-row"><div><b>Aguacate Hass</b><div class="id">SKU · AG-007</div></div><span>Fruta/Verdura</span><span>0.8 kg</span><span><span class="p danger"><span class="d"></span>agotado</span></span><span></span></div>
+            <div class="tb-row"><div><b>Salsa verde casa</b><div class="id">SKU · SL-022</div></div><span>Salsa</span><span>2.1 L</span><span><span class="p ok"><span class="d"></span>en stock</span></span><span></span></div>
+            <div class="tb-row"><div><b>Limón</b><div class="id">SKU · LM-003</div></div><span>Fruta/Verdura</span><span>6.0 kg</span><span><span class="p ok"><span class="d"></span>en stock</span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">
+      <span class="tag">Demo 2</span>
+      <span>Tabla densa · filtros sticky en topbar interno · botón primary "Agregar insumo" en content (no en topbar)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 04 · DEMO 3 — Detalle + side panel ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">04</span>
+    <h2>Demo 3 · Shell + slide-over (patrón OrderDetail)</h2>
+    <span class="sub">panel lateral 380px · no es modal</span>
+  </div>
+
+  <div class="frame">
+    <div class="app tall">
+      <aside class="sidebar">
+        <div class="sb-brand"><div class="sb-logo">M</div><div class="sb-name">Miztli Pardo<span class="branch">Juriquilla</span></div></div>
+        <div class="sb-section">Operación</div>
+        <a class="sb-item"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+        <a class="sb-item active"><i class="ti ti-bowl"></i>Pedidos<span class="ct">8</span></a>
+        <a class="sb-item"><i class="ti ti-cash-register"></i>Mostrador</a>
+        <a class="sb-item"><i class="ti ti-tools-kitchen-2"></i>Cocina</a>
+        <div class="sb-user"><div class="sb-avatar">CR</div><div><div class="sb-user-name">Carla Reyes</div><div class="sb-user-role">manager</div></div></div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="crumbs">
+            <h1><a style="color: var(--ink-4); text-decoration: none;">Pedidos</a> <span class="sep">/</span> #A-4128</h1>
+            <span class="ctx">Direct · 12:18 · entrega en 18 min</span>
+          </div>
+          <div class="top-actions">
+            <button class="icon-btn"><i class="ti ti-printer"></i></button>
+            <button class="clock-btn"><span class="dot-ok"></span>Entrada / Salida</button>
+            <div class="session"><div class="session-av">CR</div><span class="session-name">Carla</span><span class="session-status"></span></div>
+          </div>
+        </header>
+        <div class="with-side">
+          <div class="content">
+            <div class="panel">
+              <div class="ph"><h3>Pedido #A-4128</h3><span class="meta"><span class="p brand"><span class="d"></span>Direct</span></span></div>
+              <div style="padding: 16px;">
+                <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-4); margin-bottom: 8px;">3 items · $268.00</div>
+                <div style="font-size: 13px; color: var(--ink-2); line-height: 1.7;">
+                  · 1× Burrito de pastor — con guacamole<br>
+                  · 1× Quesadilla de huitlacoche — sin epazote<br>
+                  · 1× Agua de horchata 500ml
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="ph"><h3>Timeline</h3></div>
+              <div style="padding: 16px; font-size: 13px; color: var(--ink-3); line-height: 1.8;">
+                <div>✓ 12:18 — Pedido recibido</div>
+                <div>✓ 12:19 — En preparación</div>
+                <div style="color: var(--brand-text); font-weight: 500;">● 12:24 — Esperando courier</div>
+                <div style="color: var(--ink-5);">○ Recogido por courier</div>
+                <div style="color: var(--ink-5);">○ Entregado</div>
+              </div>
+            </div>
+          </div>
+          <aside class="side-panel">
+            <div class="sph">
+              <div>
+                <h2>Asignar courier</h2>
+                <span class="id">vía Uber Direct · cotización en vivo</span>
+              </div>
+              <button class="icon-btn"><i class="ti ti-x"></i></button>
+            </div>
+            <div style="background: var(--brand-soft); border: 0.5px solid rgba(99,91,255,0.18); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 12px;">
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--brand-text); font-weight: 500;">UBER DIRECT · COTIZACIÓN</div>
+              <div style="font-size: 15px; font-weight: 600; color: var(--ink); margin-top: 4px;">$48.50 entrega · ETA 11 min</div>
+              <div style="font-size: 12px; color: var(--ink-4); margin-top: 2px;">2 couriers cerca · expira en 2:34</div>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-5); letter-spacing: 0.08em; text-transform: uppercase; margin: 14px 0 8px;">Couriers cercanos</div>
+            <div style="padding: 10px; border: 0.5px solid var(--brand); background: var(--brand-soft); border-radius: var(--r-md); margin-bottom: 6px;">
+              <div style="display: flex; gap: 10px; align-items: center;"><div style="width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: white; display: grid; place-items: center; font-size: 11px; font-weight: 600;">SO</div><div><div style="font-size: 13px; font-weight: 500;">Sofía Ortega</div><div style="font-size: 11px; color: var(--ink-4); font-family: var(--font-mono);">moto · 1.2 km</div></div></div>
+            </div>
+            <button style="width: 100%; height: 40px; background: var(--brand); color: white; border: none; border-radius: var(--r-md); font-family: inherit; font-weight: 500; font-size: 14px; margin-top: 14px; cursor: pointer;">Confirmar dispatch</button>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">
+      <span class="tag">Demo 3</span>
+      <span>Slide-over de 380px dentro de main · NO es modal (no usa backdrop, no es centrado). Acción primaria al fondo del panel.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 · DEMO 4 — Empty state ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">05</span>
+    <h2>Demo 4 · Empty state</h2>
+    <span class="sub">patrón "aún no hay datos" en módulo con shell completo</span>
+  </div>
+
+  <div class="frame">
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sb-brand"><div class="sb-logo">M</div><div class="sb-name">Miztli Pardo<span class="branch">Juriquilla</span></div></div>
+        <div class="sb-section">Reportes</div>
+        <a class="sb-item"><i class="ti ti-chart-bar"></i>Analytics</a>
+        <a class="sb-item active"><i class="ti ti-receipt-2"></i>Corte de caja</a>
+        <a class="sb-item"><i class="ti ti-clock-hour-4"></i>Timesheet</a>
+        <div class="sb-section">Sistema</div>
+        <a class="sb-item"><i class="ti ti-settings"></i>Ajustes</a>
+        <a class="sb-item"><i class="ti ti-printer"></i>Impresoras</a>
+        <div class="sb-user"><div class="sb-avatar">CR</div><div><div class="sb-user-name">Carla Reyes</div><div class="sb-user-role">manager</div></div></div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="crumbs"><h1>Corte de caja</h1><span class="ctx">turno abierto · 12:18 — en curso</span></div>
+          <div class="top-actions">
+            <button class="clock-btn"><span class="dot-ok"></span>Entrada / Salida</button>
+            <div class="session"><div class="session-av">CR</div><span class="session-name">Carla</span><span class="session-status"></span></div>
+          </div>
+        </header>
+        <div class="content" style="display: grid; place-items: center; padding: 40px;">
+          <div style="text-align: center; max-width: 360px;">
+            <div style="width: 56px; height: 56px; border-radius: var(--r-lg); background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; margin: 0 auto 16px; font-size: 28px;"><i class="ti ti-receipt-2"></i></div>
+            <h2 style="font-size: 18px; font-weight: 500; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.005em;">Aún no hay corte para hoy</h2>
+            <p style="font-size: 13px; color: var(--ink-4); line-height: 1.6; margin: 0 0 18px;">El corte de caja se genera al cierre del turno. Tu turno actual lleva 4h 32min abierto.</p>
+            <button style="height: 36px; padding: 0 16px; background: var(--brand); color: white; border: none; border-radius: var(--r-md); font-family: inherit; font-weight: 500; font-size: 14px; cursor: pointer;">Cerrar turno ahora</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">
+      <span class="tag">Demo 4</span>
+      <span>Empty state · ícono Tabler en brand-soft + título sentence case + texto explicativo + 1 acción primaria centrada</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 06 · SHELL DARK ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">06</span>
+    <h2>Shell dark · variante KDS</h2>
+    <span class="sub">sin sidebar · topbar oscura · full-screen tickets</span>
+  </div>
+
+  <div class="frame">
+    <div class="dark-app">
+      <header class="dark-topbar">
+        <div class="dark-crumbs">
+          <h1>Cocina · línea caliente</h1>
+          <span class="ctx">12 tickets activos · 2 en riesgo</span>
+        </div>
+        <span class="dark-station"><span class="d"></span>kds-01</span>
+        <span class="dark-station" style="background: rgba(34,197,94,0.15); color: #4ADE80;"><span class="d" style="background:#22C55E;"></span>11:14:32</span>
+      </header>
+      <div class="dark-content">
+        <div class="dark-ticket" style="border-left-color: #8B82FF;">
+          <div class="t-time">02:18</div><div class="t-id">#A-4128 · Direct</div>
+          <div class="t-items">1× Burrito pastor<br>1× Quesadilla huitlacoche<br>1× Horchata 500ml</div>
+        </div>
+        <div class="dark-ticket" style="border-left-color: #22C55E;">
+          <div class="t-time">04:32</div><div class="t-id">#A-4126 · Eats</div>
+          <div class="t-items">2× Tacos pastor<br>1× Quesadilla</div>
+        </div>
+        <div class="dark-ticket" style="border-left-color: #F5B043;">
+          <div class="t-time">08:47</div><div class="t-id">#A-4124 · Direct</div>
+          <div class="t-items">1× Sopa azteca<br>1× Enchiladas verdes</div>
+        </div>
+        <div class="dark-ticket" style="border-left-color: #FF4D6E;">
+          <div class="t-time">12:09</div><div class="t-id">#A-4119 · Rappi</div>
+          <div class="t-items">3× Tacos suadero<br>2× Aguas frescas</div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">
+      <span class="tag">Demo 5 · Dark</span>
+      <span>KDS sin sidebar · topbar dark con station + reloj live · grid de tickets · border-left semántico por SLA</span>
+    </div>
+  </div>
+
+  <div class="spec" style="margin-top: 12px;">
+    <h3>Notas del shell dark</h3>
+    <div class="scope">aplica a KDS y futuras vistas full-screen de cocina</div>
+    <ul>
+      <li>No usa sidebar: KDS es una vista de un solo módulo, la navegación de sistema no aplica.</li>
+      <li>Topbar oscura <code>--dark-surface</code> (<code>#15233D</code>) sobre canvas <code>--dark-canvas</code> (<code>#0E1A2E</code>).</li>
+      <li><b>Station pill</b> reemplaza al indicador de sesión: identifica QUÉ pantalla es (kds-01) no QUIÉN está logueado — cocina puede ser multi-cocinero.</li>
+      <li>Reloj live en pill verde mono — referencia compartida del tiempo entre todos los cocineros.</li>
+      <li>Tipografía de timers: mono 22px+ para ser legible a 2m. Items en sans 12–14px.</li>
+      <li>Border-left de 3px en tickets es el principal cue visual de SLA — más visible que un pill chico.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== 07 · QUÉ NO HACER ============== -->
+<section class="s">
+  <div class="head">
+    <span class="num">07</span>
+    <h2>Qué NO hacer</h2>
+    <span class="sub">antipatrones detectados en CashClose · Staff · Analytics</span>
+  </div>
+
+  <div class="donts">
+    <h3>3 patrones v1 a eliminar en el refactor</h3>
+    <div class="dgrid">
+      <div class="dont">
+        <div class="mini">
+          <div class="sb-d"></div>
+          <div class="main-d"></div>
+        </div>
+        <div class="lbl">Antipatrón 1</div>
+        <div class="ttl">Sidebar 60px oscuro</div>
+        <div class="why">CashClose, Staff, Analytics aún usan sidebar negro 60px con tira roja superior. Reemplazar por sidebar 220px claro (sección 01).</div>
+      </div>
+
+      <div class="dont">
+        <div class="mini" style="background: var(--surface); padding: 8px; display: block;">
+          <div style="height: 1px; background: rgba(0,0,0,0.18); margin-bottom: 6px;"></div>
+          <div style="height: 1px; background: rgba(0,0,0,0.18); margin-bottom: 6px;"></div>
+          <div style="height: 1px; background: rgba(0,0,0,0.18); margin-bottom: 6px;"></div>
+          <div style="height: 1px; background: rgba(0,0,0,0.18); margin-bottom: 6px;"></div>
+          <div style="height: 1px; background: rgba(0,0,0,0.18);"></div>
+        </div>
+        <div class="lbl">Antipatrón 2</div>
+        <div class="ttl">Hairlines 1px sólidos</div>
+        <div class="why">El v1 usaba <code style="font-size: 10px;">border: 1px solid var(--line)</code>. El v2 usa <code style="font-size: 10px;">0.5px</code> con <code style="font-size: 10px;">var(--line)</code> rgba — más sutil, deja respirar el aire entre elementos.</div>
+      </div>
+
+      <div class="dont">
+        <div class="mini" style="background: var(--surface); display: grid; place-items: center;">
+          <div style="display: flex; gap: 6px;">
+            <button style="height: 26px; padding: 0 10px; background: var(--miztli); color: white; border: none; border-radius: 4px; font-size: 11px;">Eliminar</button>
+            <button style="height: 26px; padding: 0 10px; background: var(--miztli); color: white; border: none; border-radius: 4px; font-size: 11px;">Guardar</button>
+          </div>
+        </div>
+        <div class="lbl">Antipatrón 3</div>
+        <div class="ttl">Dos primary rojos</div>
+        <div class="why">Staff modal mostraba "Eliminar" y "Guardar" ambos como botones rojos prominentes. Acción primaria es UNA: violeta brand. Destructivas: <code style="font-size: 10px;">.btn-danger</code> texto rojo, fondo blanco.</div>
+      </div>
+
+      <div class="dont">
+        <div class="mini" style="background: var(--surface); padding: 10px; display: flex; align-items: center;">
+          <div style="font-family: var(--font-mono); font-size: 9px; color: var(--miztli); font-weight: 700; letter-spacing: 0.14em;">SECCIÓN</div>
+        </div>
+        <div class="lbl">Antipatrón 4</div>
+        <div class="ttl">Eyebrows rojos hard-coded</div>
+        <div class="why">El v1 usaba eyebrows con <code style="font-size: 10px;">color: var(--accent)</code> que en práctica era rojo. En v2 los eyebrows son <code style="font-size: 10px;">--ink-5</code> uppercase mono — neutros, sin gritar.</div>
+      </div>
+
+      <div class="dont">
+        <div class="mini" style="background: var(--surface); display: grid; place-items: center;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #E11D2E; color: white; font-size: 10px; font-weight: 600;">RAPPI</span>
+        </div>
+        <div class="lbl">Antipatrón 5</div>
+        <div class="ttl">#E11D2E como color de canal</div>
+        <div class="why">Menu y Analytics usaban el rojo Miztli como color para el badge de Rappi. Hard-codeo del rojo del cliente en componentes sistémicos. Reemplazar por <code style="font-size: 10px;">var(--ch-rappi)</code>.</div>
+      </div>
+
+      <div class="dont">
+        <div class="mini" style="background: var(--surface); padding: 10px;">
+          <div style="background: linear-gradient(135deg, #2A2A2D, #0B0B0C); height: 12px; border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="background: linear-gradient(135deg, #2A2A2D, #0B0B0C); height: 12px; border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="background: linear-gradient(135deg, #D4A04C, #B68A3E); height: 12px; border-radius: 2px;"></div>
+        </div>
+        <div class="lbl">Antipatrón 6</div>
+        <div class="ttl">Gradientes decorativos</div>
+        <div class="why">CashClose dibujaba billetes con gradientes para verse "realistas". El sistema v2 prohíbe gradientes decorativos: pierden legibilidad, suman peso visual sin función. Usar swatches planos o íconos Tabler.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
