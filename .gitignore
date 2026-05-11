@@ -46,3 +46,4 @@ packages/db/src/types.gen.ts
 # Misc
 *.tsbuildinfo
 .cache/
+packages/db/supabase/.temp/
