@@ -60,6 +60,79 @@ const preset = {
           DEFAULT: 'var(--miztli)',
           soft: 'var(--miztli-soft)',
         },
+
+        /* ── Channel palette [Sprint 01] ─────────────────────────
+           Uso: bg-ch-direct, text-ch-eats-text, bg-ch-rappi-soft…
+           ─────────────────────────────────────────────────────── */
+        ch: {
+          direct: {
+            DEFAULT: 'var(--ch-direct)',
+            soft: 'var(--ch-direct-soft)',
+            text: 'var(--ch-direct-text)',
+          },
+          eats: {
+            DEFAULT: 'var(--ch-eats)',
+            soft: 'var(--ch-eats-soft)',
+            text: 'var(--ch-eats-text)',
+          },
+          rappi: {
+            DEFAULT: 'var(--ch-rappi)',
+            soft: 'var(--ch-rappi-soft)',
+            text: 'var(--ch-rappi-text)',
+          },
+          didi: {
+            DEFAULT: 'var(--ch-didi)',
+            soft: 'var(--ch-didi-soft)',
+            text: 'var(--ch-didi-text)',
+          },
+          mostrador: {
+            DEFAULT: 'var(--ch-mostrador)',
+            soft: 'var(--ch-mostrador-soft)',
+            text: 'var(--ch-mostrador-text)',
+          },
+        },
+
+        /* ── Dark set [Sprint 01] ─────────────────────────────────
+           Uso: bg-dark-canvas, text-dark-ink, border-dark-line-2…
+           ─────────────────────────────────────────────────────── */
+        dark: {
+          canvas: 'var(--dark-canvas)',
+          surface: {
+            DEFAULT: 'var(--dark-surface)',
+            2: 'var(--dark-surface-2)',
+          },
+          ink: {
+            DEFAULT: 'var(--dark-ink)',
+            100: 'var(--dark-ink-2)',
+            200: 'var(--dark-ink-3)',
+            300: 'var(--dark-ink-4)',
+            400: 'var(--dark-ink-5)',
+          },
+          line: {
+            DEFAULT: 'var(--dark-line)',
+            2: 'var(--dark-line-2)',
+          },
+          brand: {
+            DEFAULT: 'var(--dark-brand)',
+            soft: 'var(--dark-brand-soft)',
+            text: 'var(--dark-brand-text)',
+          },
+          ok: {
+            DEFAULT: 'var(--dark-ok)',
+            soft: 'var(--dark-ok-soft)',
+            text: 'var(--dark-ok-text)',
+          },
+          warn: {
+            DEFAULT: 'var(--dark-warn)',
+            soft: 'var(--dark-warn-soft)',
+            text: 'var(--dark-warn-text)',
+          },
+          danger: {
+            DEFAULT: 'var(--dark-danger)',
+            soft: 'var(--dark-danger-soft)',
+            text: 'var(--dark-danger-text)',
+          },
+        },
       },
       borderRadius: {
         sm: 'var(--r-sm)',
