@@ -22,6 +22,42 @@
   --shadow-lg: 0 4px 12px rgba(10, 37, 64, 0.08);
   --shadow-focus: 0 0 0 3px rgba(99, 91, 255, 0.2);
 
+  /* ========== SPACING SEMÁNTICO [NEW · Sprint 02 audit] ========== */
+
+  /* Padding interno de superficies */
+  --space-card: 24px;
+  --space-card-sm: 16px;
+  --space-card-lg: 32px;
+  --space-card-xl: 40px;
+
+  /* Gaps entre elementos */
+  --space-card-gap: 16px;
+  --space-section: 32px;
+  --space-section-sm: 24px;
+
+  /* Padding de página */
+  --space-page-x: 24px;
+  --space-page-y: 24px;
+
+  /* Tablas */
+  --space-row-y: 14px;
+  --space-row-x: 16px;
+  --space-row-header-y: 10px;
+
+  /* KPI cards internals */
+  --space-kpi-label: 6px;
+  --space-kpi-delta: 4px;
+
+  /* Formularios */
+  --space-form-section: 24px;
+  --space-form-row: 12px;
+  --space-form-field: 6px;
+
+  /* Touch targets */
+  --size-touch-min: 44px;
+  --size-touch-desktop: 36px;
+  --size-icon-btn: 40px;
+
   /* ========== 2 · LIGHT SURFACES & INK ========== */
 
   --brand: #635bff;
