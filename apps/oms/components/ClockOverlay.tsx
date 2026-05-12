@@ -8,6 +8,7 @@ import {
   IconClockStop,
   IconFingerprint,
   IconKeyboard,
+  IconLoader2,
   IconX,
 } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -20,6 +21,8 @@ import {
 
 const PIN_LENGTH = 4;
 const AUTO_DISMISS_MS = 3000;
+// Jorge Vargas (manager) del seed demo — PIN para simular huella en demo
+const DEMO_FINGERPRINT_PIN = '1234';
 
 interface CheckInDone {
   kind: 'check_in_done';
@@ -141,9 +144,13 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
   };
 
   return (
-    <Modal open={open} onClose={resetAndClose} closeOnEscape={!busy}>
+    <Modal open={open} onClose={resetAndClose} closeOnEscape={!busy} maxWidth="480px">
       {step.kind === 'identify' && (
-        <IdentifyStep onClose={resetAndClose} onUsePin={() => setStep({ kind: 'pin' })} />
+        <IdentifyStep
+          onClose={resetAndClose}
+          onUsePin={() => setStep({ kind: 'pin' })}
+          onPinSubmit={handleSubmitPin}
+        />
       )}
       {step.kind === 'pin' && (
         <PinStep
@@ -184,44 +191,113 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
 // Subcomponents
 // ---------------------------------------------------------------------------
 
-const IdentifyStep = ({ onClose, onUsePin }: { onClose: () => void; onUsePin: () => void }) => (
-  <div className="relative p-8">
-    <CloseButton onClick={onClose} />
-    <header className="mb-5 text-center">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-ink-400">
-        Registro de horario
-      </p>
-      <h2 className="mt-1 text-lg font-medium text-ink">Identifícate para registrar</h2>
-    </header>
+type FpState = 'idle' | 'scanning' | 'error';
 
-    <div className="mb-5 flex flex-col items-center rounded-lg bg-canvas py-7 opacity-90">
-      <div className="relative h-24 w-24">
-        <span className="absolute inset-0 animate-ring-pulse rounded-full border-2 border-brand" />
-        <span className="absolute inset-0 animate-ring-pulse rounded-full border-2 border-brand [animation-delay:600ms]" />
-        <span className="absolute inset-2 flex items-center justify-center rounded-full bg-brand-soft">
-          <IconFingerprint size={36} className="text-brand" />
-        </span>
+const IdentifyStep = ({
+  onClose,
+  onUsePin,
+  onPinSubmit,
+}: {
+  onClose: () => void;
+  onUsePin: () => void;
+  onPinSubmit: (pin: string) => Promise<void>;
+}) => {
+  const [fpState, setFpState] = useState<FpState>('idle');
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handleFingerprintSim = useCallback(async () => {
+    if (fpState !== 'idle') return;
+    setFpState('scanning');
+    await new Promise<void>((r) => setTimeout(r, 800));
+    await onPinSubmit(DEMO_FINGERPRINT_PIN);
+    if (!mountedRef.current) return; // Success → parent unmounted this component
+    // Still mounted → lookup failed, show error briefly
+    setFpState('error');
+    await new Promise<void>((r) => setTimeout(r, 600));
+    if (!mountedRef.current) return;
+    setFpState('idle');
+  }, [fpState, onPinSubmit]);
+
+  const ringColor =
+    fpState === 'error' ? 'border-danger' : fpState === 'scanning' ? 'border-ok' : 'border-brand';
+
+  const innerBg =
+    fpState === 'error'
+      ? 'bg-danger-soft'
+      : fpState === 'scanning'
+        ? 'bg-ok-soft scale-105'
+        : 'bg-brand-soft';
+
+  return (
+    <div className="relative p-8">
+      <CloseButton onClick={onClose} />
+
+      <header className="text-center">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-ink-400 mb-2">
+          Registro de horario
+        </p>
+        <h2 className="text-xl font-medium text-ink mb-6">Identifícate para registrar</h2>
+      </header>
+
+      <div className="flex flex-col items-center rounded-lg bg-canvas py-9 px-6">
+        <button
+          type="button"
+          onClick={handleFingerprintSim}
+          disabled={fpState !== 'idle'}
+          className="relative h-24 w-24 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-default cursor-pointer"
+          aria-label="Simular lectura de huella (demo)"
+          title="Haz clic para simular huella digital"
+        >
+          {fpState !== 'scanning' && (
+            <>
+              <span
+                className={`absolute inset-0 animate-ring-pulse rounded-full border-2 ${ringColor}`}
+              />
+              <span
+                className={`absolute inset-0 animate-ring-pulse rounded-full border-2 ${ringColor} [animation-delay:600ms]`}
+              />
+            </>
+          )}
+          <span
+            className={`absolute inset-2 flex items-center justify-center rounded-full transition-all duration-200 ${innerBg}`}
+          >
+            {fpState === 'scanning' ? (
+              <IconLoader2 size={28} className="text-ok animate-spin" />
+            ) : fpState === 'error' ? (
+              <IconX size={28} className="text-danger" />
+            ) : (
+              <IconFingerprint size={36} className="text-brand" />
+            )}
+          </span>
+        </button>
+
+        <p className="mt-5 text-[11px] italic text-ink-400">Haz clic para simular huella · demo</p>
+        <p className="mt-1.5 text-xs text-ink-400">Por ahora usa tu PIN</p>
       </div>
-      <p className="mt-4 text-sm font-medium text-ink">Próximamente: registro por huella</p>
-      <p className="mt-1 text-xs text-ink-400">Por ahora usa tu PIN</p>
-    </div>
 
-    <div className="mb-4 flex items-center gap-3">
-      <hr className="flex-1 border-line" />
-      <span className="text-xs text-ink-400">o usa tu PIN</span>
-      <hr className="flex-1 border-line" />
-    </div>
+      <div className="my-5 flex items-center gap-3">
+        <hr className="flex-1 border-line" />
+        <span className="text-xs text-ink-400">o usa tu PIN</span>
+        <hr className="flex-1 border-line" />
+      </div>
 
-    <button
-      type="button"
-      onClick={onUsePin}
-      className="flex w-full items-center justify-center gap-2 rounded-md border border-line-2 bg-surface py-2.5 text-sm font-medium text-ink hover:bg-canvas focus-visible:outline-none focus-visible:shadow-focus"
-    >
-      <IconKeyboard size={16} />
-      Ingresar PIN
-    </button>
-  </div>
-);
+      <button
+        type="button"
+        onClick={onUsePin}
+        className="flex w-full items-center justify-center gap-2 min-h-[44px] rounded-lg border-[0.5px] border-line-2 bg-surface px-4 py-3 text-sm font-medium text-ink hover:bg-canvas focus-visible:outline-none focus-visible:shadow-focus"
+      >
+        <IconKeyboard size={16} />
+        Ingresar PIN
+      </button>
+    </div>
+  );
+};
 
 const PinStep = ({
   pin,
@@ -259,13 +335,19 @@ const PinStep = ({
       <PinDots value={pin} shake={shake} />
     </div>
 
-    <Keypad onDigit={onDigit} onBackspace={onBackspace} disabled={busy} size="sm" />
+    <Keypad
+      onDigit={onDigit}
+      onBackspace={onBackspace}
+      disabled={busy}
+      size="sm"
+      className="gap-[10px] py-4"
+    />
 
     <button
       type="button"
       onClick={onBack}
       disabled={busy}
-      className="mt-4 w-full rounded-md border border-line-2 bg-surface py-2 text-sm font-medium text-ink-200 hover:bg-canvas disabled:opacity-50"
+      className="mt-4 w-full h-10 rounded-md border border-line-2 bg-surface text-sm font-medium text-ink-200 hover:bg-canvas disabled:opacity-50"
     >
       Volver
     </button>
