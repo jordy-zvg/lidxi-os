@@ -22,6 +22,7 @@
     "db:stop": "pnpm --filter @lidxi/db db:stop",
     "db:reset": "pnpm --filter @lidxi/db db:reset",
     "db:types": "pnpm --filter @lidxi/db db:types",
+    "db:demo-reset": "pnpm --filter @lidxi/db demo-reset",
     "prepare": "husky"
   },
   "devDependencies": {

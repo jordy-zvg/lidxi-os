@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimesheetClient } from './TimesheetClient';
 import type { ShiftRow } from './types';
 
-function weekBounds(offset: number): { start: Date; end: Date; label: string } {
+function weekBounds(offset: number): { startIso: string; endIso: string; label: string } {
   const now = new Date();
-  const day = now.getDay(); // 0 Sun, 1 Mon…
+  const day = now.getDay();
   const diffToMon = (day === 0 ? -6 : 1 - day) + offset * 7;
   const start = new Date(now);
   start.setDate(now.getDate() + diffToMon);
@@ -21,8 +21,11 @@ function weekBounds(offset: number): { start: Date; end: Date; label: string } {
       month: 'short',
       timeZone: 'America/Mexico_City',
     });
-  const label = `${fmt(start)} – ${fmt(end)}`;
-  return { start, end, label };
+  return {
+    startIso: start.toISOString(),
+    endIso: end.toISOString(),
+    label: `${fmt(start)} – ${fmt(end)}`,
+  };
 }
 
 export const TimesheetWrapper = () => {
@@ -30,14 +33,13 @@ export const TimesheetWrapper = () => {
   const [shifts, setShifts] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { start, end, label } = weekBounds(weekOffset);
+  // Memoized so ISO strings are stable references per weekOffset value
+  const { startIso, endIso, label } = useMemo(() => weekBounds(weekOffset), [weekOffset]);
 
   const fetchShifts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/timesheet?start=${start.toISOString()}&end=${end.toISOString()}`,
-      );
+      const res = await fetch(`/api/timesheet?start=${startIso}&end=${endIso}`);
       if (res.ok) {
         const data = (await res.json()) as ShiftRow[];
         setShifts(data);
@@ -49,7 +51,7 @@ export const TimesheetWrapper = () => {
     } finally {
       setLoading(false);
     }
-  }, [start, end]);
+  }, [startIso, endIso]);
 
   useEffect(() => {
     void fetchShifts();

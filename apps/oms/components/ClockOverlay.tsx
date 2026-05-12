@@ -100,7 +100,15 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
     async (fullPin: string) => {
       setBusy(true);
       setError(null);
-      const lookup = await lookupForClock(fullPin);
+      let lookup: Awaited<ReturnType<typeof lookupForClock>>;
+      try {
+        lookup = await lookupForClock(fullPin);
+      } catch {
+        setError('Error de conexión. Intenta de nuevo.');
+        setPin('');
+        setBusy(false);
+        return;
+      }
       if (!lookup.ok) {
         setShake(true);
         setError(lookup.error);
@@ -295,10 +303,14 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
     await new Promise<void>((r) => setTimeout(r, 300));
     if (!mountedRef.current) return;
 
-    await onSubmit();
+    try {
+      await onSubmit();
+    } catch {
+      // onSubmit threw — fall through to error state
+    }
     if (!mountedRef.current) return;
 
-    // Still mounted → onSubmit resulted in an error
+    // Still mounted → onSubmit failed (either threw or didn't change step)
     setFpPhase('error');
     setFillProgress(100);
     await new Promise<void>((r) => setTimeout(r, 400));
