@@ -131,7 +131,7 @@ export const AutomatizacionScreen = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-section-sm h-full">
       <div className="flex items-center justify-between shrink-0">
         <h1 className="text-xl font-medium text-ink">Automatización</h1>
         {toast && (
@@ -143,7 +143,10 @@ export const AutomatizacionScreen = () => {
         {/* Lista de reglas */}
         <div className="flex-[60] flex flex-col gap-3 overflow-y-auto">
           {reglas.map((regla) => (
-            <div key={regla.id} className="bg-surface border border-line rounded-lg p-4 flex gap-3">
+            <div
+              key={regla.id}
+              className="bg-surface border border-line rounded-lg p-card-sm flex gap-3"
+            >
               <div className="pt-0.5 shrink-0">
                 <Toggle
                   checked={regla.activa}

@@ -73,11 +73,15 @@ function KpiCard({
   warn?: boolean;
 }) {
   return (
-    <div className="bg-surface border border-line rounded-lg p-4 space-y-1">
-      <p className="text-xs text-ink-400">{label}</p>
+    <div className="bg-surface border border-line rounded-lg p-card">
+      <p className="text-xs text-ink-400 mb-kpi-label">{label}</p>
       <p className="font-mono text-2xl font-semibold text-ink tabular-nums">{value}</p>
       {delta && (
-        <p className={`text-xs font-mono ${warn ? 'text-danger-text' : 'text-ok-text'}`}>{delta}</p>
+        <p
+          className={`text-xs font-mono mt-kpi-delta ${warn ? 'text-danger-text' : 'text-ok-text'}`}
+        >
+          {delta}
+        </p>
       )}
     </div>
   );
@@ -105,7 +109,7 @@ export const ReportesScreen = () => {
   const totalVentas = Object.values(por_canal).reduce((s, d) => s + d.ventas, 0);
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto pb-6">
+    <div className="flex flex-col gap-section-sm overflow-y-auto pb-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-medium text-ink">Reportes</h1>
@@ -128,7 +132,7 @@ export const ReportesScreen = () => {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-card-gap">
         <KpiCard
           label="Ventas totales"
           value={formatMXN(MOCK_REPORTES.ventas_totales)}
@@ -153,7 +157,7 @@ export const ReportesScreen = () => {
       </div>
 
       {/* Heatmap */}
-      <div className="bg-surface border border-line rounded-lg p-5">
+      <div className="bg-surface border border-line rounded-lg p-card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-ink">Horas pico</h2>
           {picoCelda && (
@@ -200,7 +204,7 @@ export const ReportesScreen = () => {
       </div>
 
       {/* Canal breakdown */}
-      <div className="bg-surface border border-line rounded-lg p-5">
+      <div className="bg-surface border border-line rounded-lg p-card">
         <h2 className="text-sm font-semibold text-ink mb-4">Distribución por canal</h2>
         <div className="flex gap-6">
           <Donut slices={canalSlices} />
@@ -210,7 +214,10 @@ export const ReportesScreen = () => {
                 <tr className="text-xs text-ink-400 border-b border-line">
                   {['Canal', 'Pedidos', 'Ventas', '% total', 'Comisión est.', 'Margen neto'].map(
                     (h) => (
-                      <th key={h} className="text-left py-1.5 pr-4 font-medium whitespace-nowrap">
+                      <th
+                        key={h}
+                        className="text-left py-row-header-y px-row-x font-medium whitespace-nowrap"
+                      >
                         {h}
                       </th>
                     ),
@@ -224,7 +231,7 @@ export const ReportesScreen = () => {
                   const pct = totalVentas > 0 ? Math.round((d.ventas / totalVentas) * 100) : 0;
                   return (
                     <tr key={key}>
-                      <td className="py-2 pr-4">
+                      <td className="py-row-y px-row-x">
                         <div className="flex items-center gap-2">
                           <span
                             className="h-2 w-2 rounded-full shrink-0"
@@ -233,13 +240,15 @@ export const ReportesScreen = () => {
                           <span className="font-medium text-ink">{CH_LABELS[key]}</span>
                         </div>
                       </td>
-                      <td className="py-2 pr-4 font-mono text-ink-200">{d.pedidos}</td>
-                      <td className="py-2 pr-4 font-mono text-ink">{formatMXN(d.ventas)}</td>
-                      <td className="py-2 pr-4 font-mono text-ink-300">{pct}%</td>
-                      <td className="py-2 pr-4 font-mono text-danger-text">
+                      <td className="py-row-y px-row-x font-mono text-ink-200">{d.pedidos}</td>
+                      <td className="py-row-y px-row-x font-mono text-ink">
+                        {formatMXN(d.ventas)}
+                      </td>
+                      <td className="py-row-y px-row-x font-mono text-ink-300">{pct}%</td>
+                      <td className="py-row-y px-row-x font-mono text-danger-text">
                         {comision > 0 ? `${Math.round(comision * 100)}%` : '—'}
                       </td>
-                      <td className="py-2 font-mono text-ok-text">
+                      <td className="py-row-y font-mono text-ok-text">
                         {formatMXN(cents(Math.round(margen)))}
                       </td>
                     </tr>
@@ -252,8 +261,8 @@ export const ReportesScreen = () => {
       </div>
 
       {/* Top productos */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-surface border border-line rounded-lg p-5">
+      <div className="grid grid-cols-2 gap-card-gap">
+        <div className="bg-surface border border-line rounded-lg p-card">
           <h2 className="text-sm font-semibold text-ink mb-4">Top 5 más vendidos</h2>
           <div className="space-y-2">
             {top_vendidos.map((p, i) => (
@@ -278,7 +287,7 @@ export const ReportesScreen = () => {
           </div>
         </div>
 
-        <div className="bg-surface border border-line rounded-lg p-5">
+        <div className="bg-surface border border-line rounded-lg p-card">
           <h2 className="text-sm font-semibold text-ink mb-4">Top 5 más rentables</h2>
           <div className="space-y-2">
             {top_rentables.map((p, i) => (
@@ -305,7 +314,7 @@ export const ReportesScreen = () => {
       </div>
 
       {/* Embudo operativo */}
-      <div className="bg-surface border border-line rounded-lg p-5">
+      <div className="bg-surface border border-line rounded-lg p-card">
         <h2 className="text-sm font-semibold text-ink mb-4">Embudo operativo</h2>
         <div className="space-y-2">
           {embudo.map((e, i) => {

@@ -180,13 +180,16 @@ export const IntegracionesScreen = () => {
   const ahorroHoy = Math.round((comisionSiTodoEats - comisionReal) / 100);
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto pb-6">
+    <div className="flex flex-col gap-section-sm overflow-y-auto pb-6">
       <h1 className="text-xl font-medium text-ink shrink-0">Integraciones</h1>
 
       {/* Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-card-gap">
         {integraciones.map((integ) => (
-          <div key={integ.id} className="bg-surface border border-line rounded-lg p-4 space-y-3">
+          <div
+            key={integ.id}
+            className="bg-surface border border-line rounded-lg p-card-sm space-y-3"
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div
@@ -256,13 +259,16 @@ export const IntegracionesScreen = () => {
       </div>
 
       {/* Resumen de comisiones */}
-      <div className="bg-surface border border-line rounded-lg p-5">
+      <div className="bg-surface border border-line rounded-lg p-card">
         <h2 className="text-sm font-semibold text-ink mb-4">Resumen de comisiones · hoy</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-xs text-ink-400 border-b border-line">
               {['Canal', 'Comisión', 'Pedidos hoy', 'Comisión pagada hoy'].map((h) => (
-                <th key={h} className="text-left py-2 pr-4 font-medium whitespace-nowrap">
+                <th
+                  key={h}
+                  className="text-left py-row-header-y px-row-x font-medium whitespace-nowrap"
+                >
                   {h}
                 </th>
               ))}
@@ -271,9 +277,11 @@ export const IntegracionesScreen = () => {
           <tbody className="divide-y divide-line">
             {connected.map((i) => (
               <tr key={i.id}>
-                <td className="py-2.5 pr-4 font-medium text-ink">{i.nombre}</td>
-                <td className="py-2.5 pr-4 font-mono text-ink-200">{fmtComision(i.comision)}</td>
-                <td className="py-2.5 pr-4 font-mono text-ink-300">
+                <td className="py-row-y px-row-x font-medium text-ink">{i.nombre}</td>
+                <td className="py-row-y px-row-x font-mono text-ink-200">
+                  {fmtComision(i.comision)}
+                </td>
+                <td className="py-row-y px-row-x font-mono text-ink-300">
                   {i.estado === 'connected' ? i.pedidos_hoy : '—'}
                 </td>
                 <td className="py-2.5 font-mono text-danger-text">

@@ -155,7 +155,7 @@ export const TimesheetClient = ({ shifts, weekLabel, onPrevWeek, onNextWeek, onE
                 {['Empleado', 'Rol', 'Día', 'Entrada', 'Salida', 'Horas', 'Tipo'].map((h) => (
                   <th
                     key={h}
-                    className="text-left py-2 px-3 text-xs font-semibold uppercase tracking-wider text-ink-400 whitespace-nowrap"
+                    className="text-left py-row-header-y px-row-x text-xs font-semibold uppercase tracking-wider text-ink-400 whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -165,25 +165,25 @@ export const TimesheetClient = ({ shifts, weekLabel, onPrevWeek, onNextWeek, onE
             <tbody className="divide-y divide-line">
               {filtered.map((shift) => (
                 <tr key={shift.id} className="hover:bg-surface-2 transition-colors">
-                  <td className="py-2.5 px-3 font-medium text-ink">{shift.employee_name}</td>
-                  <td className="py-2.5 px-3 text-ink-300">
+                  <td className="py-row-y px-row-x font-medium text-ink">{shift.employee_name}</td>
+                  <td className="py-row-y px-row-x text-ink-300">
                     {ROLE_ES[shift.employee_role] ?? shift.employee_role}
                   </td>
-                  <td className="py-2.5 px-3 text-ink-200">{formatDate(shift.started_at)}</td>
-                  <td className="py-2.5 px-3 font-mono text-ink-200">
+                  <td className="py-row-y px-row-x text-ink-200">{formatDate(shift.started_at)}</td>
+                  <td className="py-row-y px-row-x font-mono text-ink-200">
                     {formatTime(shift.started_at)}
                   </td>
-                  <td className="py-2.5 px-3 font-mono text-ink-200">
+                  <td className="py-row-y px-row-x font-mono text-ink-200">
                     {shift.ended_at ? (
                       formatTime(shift.ended_at)
                     ) : (
                       <span className="text-ok-text text-xs">En curso</span>
                     )}
                   </td>
-                  <td className="py-2.5 px-3 font-mono text-ink">
+                  <td className="py-row-y px-row-x font-mono text-ink">
                     {hoursWorked(shift.started_at, shift.ended_at)}
                   </td>
-                  <td className="py-2.5 px-3 text-ink-300">
+                  <td className="py-row-y px-row-x text-ink-300">
                     {TYPE_LABEL[shift.type] ?? shift.type}
                   </td>
                 </tr>

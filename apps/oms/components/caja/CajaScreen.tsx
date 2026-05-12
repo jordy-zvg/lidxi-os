@@ -201,7 +201,7 @@ export const CajaScreen = () => {
   }));
 
   return (
-    <div className="h-full flex flex-col gap-5">
+    <div className="h-full flex flex-col gap-section-sm">
       <div className="shrink-0">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 mb-1">
           Corte de caja
@@ -214,7 +214,7 @@ export const CajaScreen = () => {
         {/* ── Columna izquierda ── */}
         <div className="flex-[55] flex flex-col gap-4 overflow-y-auto">
           {/* Billetes */}
-          <div className="bg-surface border border-line rounded-lg p-5">
+          <div className="bg-surface border border-line rounded-lg p-card">
             <h2 className="text-sm font-semibold text-ink mb-4">Billetes</h2>
             <div className="grid grid-cols-2 gap-3">
               {BILLETES.map((b) => {
@@ -275,7 +275,7 @@ export const CajaScreen = () => {
           </div>
 
           {/* Terminales */}
-          <div className="bg-surface border border-line rounded-lg p-5">
+          <div className="bg-surface border border-line rounded-lg p-card">
             <h2 className="text-sm font-semibold text-ink mb-4">Vouchers de terminales</h2>
             <div className="space-y-3">
               {TERMINALES.map((t) => (
@@ -319,7 +319,7 @@ export const CajaScreen = () => {
           className={`flex-[45] flex flex-col gap-4 overflow-y-auto transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
           {/* Ventas del sistema */}
-          <div className="bg-surface border border-line rounded-lg p-5 space-y-3">
+          <div className="bg-surface border border-line rounded-lg p-card space-y-3">
             <h2 className="text-sm font-semibold text-ink">Ventas del sistema</h2>
             <div className="flex justify-between text-sm">
               <span className="text-ink-200">Ventas brutas del turno</span>
@@ -336,7 +336,7 @@ export const CajaScreen = () => {
           </div>
 
           {/* Comparativa efectivo */}
-          <div className="bg-surface border border-line rounded-lg p-5 space-y-2">
+          <div className="bg-surface border border-line rounded-lg p-card space-y-2">
             <h2 className="text-sm font-semibold text-ink mb-3">Diferencia de efectivo</h2>
             <div className="flex justify-between text-sm">
               <span className="text-ink-400">Esperado</span>
@@ -366,7 +366,7 @@ export const CajaScreen = () => {
           </div>
 
           {/* Comparativa terminal */}
-          <div className="bg-surface border border-line rounded-lg p-5 space-y-2">
+          <div className="bg-surface border border-line rounded-lg p-card space-y-2">
             <h2 className="text-sm font-semibold text-ink mb-3">Diferencia de terminal</h2>
             <div className="flex justify-between text-sm">
               <span className="text-ink-400">Esperado</span>
@@ -396,7 +396,7 @@ export const CajaScreen = () => {
           </div>
 
           {/* Distribución por canal */}
-          <div className="bg-surface border border-line rounded-lg p-5">
+          <div className="bg-surface border border-line rounded-lg p-card">
             <h2 className="text-sm font-semibold text-ink mb-4">Distribución por canal</h2>
             <DonutChart slices={donutSlices} />
           </div>
