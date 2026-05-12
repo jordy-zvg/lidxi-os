@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { KdsScreen } from '@/components/kds/KdsScreen';
 
 export default function KdsPage() {
-  return <PageStub title="Kitchen Display" />;
+  return <KdsScreen />;
 }

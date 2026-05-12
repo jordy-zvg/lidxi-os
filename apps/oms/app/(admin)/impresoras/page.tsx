@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { ImpresorasScreen } from '@/components/impresoras/ImpresorasScreen';
 
 export default function ImpresorasPage() {
-  return <PageStub title="Impresoras" />;
+  return <ImpresorasScreen />;
 }

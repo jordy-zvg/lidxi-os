@@ -1,12 +1,13 @@
 'use server';
 
 import {
-  closeShift,
   createSupabaseServiceClient,
+  closeShift as dbCloseShift,
   findEmployeeByPin,
   getOpenShiftForEmployee,
   openShift,
   signEmployeeJWT,
+  verifyEmployeeJWT,
 } from '@lidxi/db';
 import type { Role } from '@lidxi/shared';
 import { cookies } from 'next/headers';
@@ -65,7 +66,7 @@ export const activatePosStation = async (
   // Cierra cualquier shift abierto del mismo empleado (multi-dispositivo defense).
   const previousOpen = await getOpenShiftForEmployee(supabase, employee.id);
   if (previousOpen) {
-    await closeShift(supabase, previousOpen.id, { autoClosed: true });
+    await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
   }
 
   const newShift = await openShift(supabase, {
@@ -144,9 +145,44 @@ export const performClockOut = async (
   shiftId: string,
 ): Promise<ActionResult<{ shiftId: string; endedAt: string }>> => {
   const supabase = createSupabaseServiceClient();
-  const shift = await closeShift(supabase, shiftId);
+  const shift = await dbCloseShift(supabase, shiftId);
   if (!shift || !shift.ended_at) {
     return { ok: false, error: 'No se pudo registrar la salida' };
   }
   return { ok: true, data: { shiftId: shift.id, endedAt: shift.ended_at } };
+};
+
+const clearSessionCookie = (): void => {
+  cookies().delete(SESSION_COOKIE);
+};
+
+export const signOut = async (): Promise<ActionResult<null>> => {
+  clearSessionCookie();
+  return { ok: true, data: null };
+};
+
+export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: string }>> => {
+  const cookieStore = cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (token) {
+    try {
+      const claims = await verifyEmployeeJWT(token);
+      const employeeId = claims.sub;
+      const supabase = createSupabaseServiceClient();
+      const openShiftRow = await getOpenShiftForEmployee(supabase, employeeId);
+
+      if (openShiftRow) {
+        const closed = await dbCloseShift(supabase, openShiftRow.id);
+        cookieStore.delete(SESSION_COOKIE);
+        if (!closed) return { ok: false, error: 'No se pudo cerrar el turno' };
+        return { ok: true, data: { shiftId: closed.id } };
+      }
+    } catch {
+      // JWT inválido — solo borrar cookie
+    }
+  }
+
+  cookieStore.delete(SESSION_COOKIE);
+  return { ok: true, data: { shiftId: '' } };
 };
