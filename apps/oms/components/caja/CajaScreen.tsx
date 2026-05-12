@@ -163,6 +163,8 @@ export const CajaScreen = () => {
   const [billetes, setBilletes] = useState<Record<number, string>>({});
   const [monedas, setMonedas] = useState<Record<number, string>>({});
   const [terminales, setTerminales] = useState<Record<string, string>>({});
+  const [tipElectronic, setTipElectronic] = useState('');
+  const [tipCash, setTipCash] = useState('');
   const [revealed, setRevealed] = useState(false);
 
   const totalBilletes = BILLETES.reduce((sum, b) => {
@@ -251,7 +253,6 @@ export const CajaScreen = () => {
               <h3 className="text-xs font-semibold text-ink-400 mb-3">Monedas</h3>
               <div className="flex gap-3 flex-wrap">
                 {MONEDAS.map((m) => {
-                  const qty = Number(monedas[m.valor] ?? 0);
                   return (
                     <div key={m.valor} className="flex items-center gap-1.5">
                       <div className="h-7 w-7 rounded-full bg-canvas border border-line flex items-center justify-center shrink-0">
@@ -298,6 +299,80 @@ export const CajaScreen = () => {
             <div className="mt-3 pt-3 border-t border-line flex justify-between">
               <span className="text-sm text-ink-400">Total terminales</span>
               <span className="font-mono text-sm text-ink">{fmt(terminalDeclaredCents)}</span>
+            </div>
+          </div>
+
+          {/* Propinas del turno */}
+          <div className="bg-surface border border-line rounded-lg p-card">
+            <div className="mb-4">
+              <h3 className="text-base font-medium text-ink">Propinas del turno</h3>
+              <p className="text-sm text-ink-400 mt-1">
+                Declara las propinas recibidas. No se incluyen en la diferencia de caja.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-card-gap">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-xs font-semibold uppercase tracking-wide text-ink-400"
+                  htmlFor="tip-electronic"
+                >
+                  Electrónicas (terminal + sitio)
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-ink-400 font-mono text-sm">$</span>
+                  <input
+                    id="tip-electronic"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    value={tipElectronic}
+                    onChange={(e) => setTipElectronic(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 h-9 rounded border border-line-2 bg-canvas px-2 font-mono text-sm text-ink text-right focus:outline-none focus:border-brand"
+                  />
+                </div>
+                <p className="text-xs text-ink-400">
+                  Incluye propinas del datáfono y del sitio propio.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-xs font-semibold uppercase tracking-wide text-ink-400"
+                  htmlFor="tip-cash"
+                >
+                  En efectivo
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-ink-400 font-mono text-sm">$</span>
+                  <input
+                    id="tip-cash"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    value={tipCash}
+                    onChange={(e) => setTipCash(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 h-9 rounded border border-line-2 bg-canvas px-2 font-mono text-sm text-ink text-right focus:outline-none focus:border-brand"
+                  />
+                </div>
+                <p className="text-xs text-ink-400">
+                  Propinas físicas separadas del efectivo de ventas.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-line">
+              <span className="text-sm text-ink-300">Total propinas</span>
+              <span className="font-mono text-lg font-semibold text-ink">
+                $
+                {(
+                  (Number.parseFloat(tipElectronic) || 0) + (Number.parseFloat(tipCash) || 0)
+                ).toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -399,6 +474,38 @@ export const CajaScreen = () => {
           <div className="bg-surface border border-line rounded-lg p-card">
             <h2 className="text-sm font-semibold text-ink mb-4">Distribución por canal</h2>
             <DonutChart slices={donutSlices} />
+          </div>
+
+          {/* Resumen propinas */}
+          <div className="bg-surface border border-line rounded-lg p-card">
+            <h2 className="text-sm font-semibold text-ink mb-3">Propinas declaradas</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-300">Electrónicas</span>
+                <span className="font-mono text-ink">${tipElectronic || '0.00'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-300">Efectivo</span>
+                <span className="font-mono text-ink">${tipCash || '0.00'}</span>
+              </div>
+              <div className="flex justify-between text-sm pt-2 border-t border-line">
+                <span className="font-medium text-ink">Total propinas</span>
+                <span className="font-mono font-semibold text-ink">
+                  $
+                  {(
+                    (Number.parseFloat(tipElectronic) || 0) + (Number.parseFloat(tipCash) || 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            {revealed && tipElectronic && Math.abs(Number.parseFloat(tipElectronic) - 284) > 1 && (
+              <div className="mt-3 p-3 bg-warn-soft rounded-md">
+                <p className="text-xs text-warn-text">
+                  Las propinas electrónicas declaradas (${tipElectronic}) no coinciden con lo
+                  registrado por el sistema ($284.00). Revisa antes de cerrar.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Footer acciones */}

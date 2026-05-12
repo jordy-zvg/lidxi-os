@@ -1,17 +1,17 @@
 'use client';
 
-import { cents, formatMXN } from '@lidxi/shared';
 import { useState } from 'react';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeSlideOver } from './EmployeeSlideOver';
 import { MOCK_EMPLOYEES, type MockEmployee } from './mock-employees';
 
+const totalHorasHoy = MOCK_EMPLOYEES.filter((e) => e.onShift).length * 4; // mock simple
+
 const MOCK_KPIS = {
   total: MOCK_EMPLOYEES.length,
   enTurno: MOCK_EMPLOYEES.filter((e) => e.onShift).length,
-  horasHoy: 14,
-  roles: { managers: 1, cajeros: 1, cocineros: 2, repartidores: 0 },
-  ventasHoy: cents(MOCK_EMPLOYEES.reduce((s, e) => s + e.sales, 0)),
+  horasTotalesHoy: `${totalHorasHoy}h`,
+  asistencia: `${MOCK_EMPLOYEES.filter((e) => e.onShift).length} de ${MOCK_EMPLOYEES.length}`,
 };
 
 export const PersonalScreen = () => {
@@ -26,8 +26,8 @@ export const PersonalScreen = () => {
         {[
           { label: 'Total empleados', value: String(MOCK_KPIS.total) },
           { label: 'En turno ahora', value: String(MOCK_KPIS.enTurno), highlight: true },
-          { label: 'Horas trabajadas hoy', value: `${MOCK_KPIS.horasHoy}h` },
-          { label: 'Ventas del equipo hoy', value: formatMXN(MOCK_KPIS.ventasHoy) },
+          { label: 'Horas del equipo hoy', value: MOCK_KPIS.horasTotalesHoy },
+          { label: 'Asistencia', value: MOCK_KPIS.asistencia },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface border border-line rounded-lg p-card">
             <p className="text-xs text-ink-400 mb-kpi-label">{kpi.label}</p>

@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type LookupForClockResult,
+  fingerprintDemoLookup,
   lookupForClock,
   performClockIn,
   performClockOut,
@@ -20,8 +21,6 @@ import {
 
 const PIN_LENGTH = 4;
 const AUTO_DISMISS_MS = 3000;
-// Jorge Vargas (manager) del seed demo — PIN para simular huella en demo
-const DEMO_FINGERPRINT_PIN = '1234';
 
 interface CheckInDone {
   kind: 'check_in_done';
@@ -140,6 +139,33 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
     [scheduleAutoDismiss],
   );
 
+  // Handler estable para la simulación de huella. No pasa por PIN — usa
+  // fingerprintDemoLookup que identifica al empleado por ID directamente.
+  const handleFingerprintSim = useCallback(async () => {
+    let lookup: Awaited<ReturnType<typeof fingerprintDemoLookup>>;
+    try {
+      lookup = await fingerprintDemoLookup();
+    } catch {
+      throw new Error('Error de conexión al simular huella');
+    }
+    if (!lookup.ok) {
+      throw new Error(lookup.error);
+    }
+    const { employee, openShift } = lookup.data;
+    if (!openShift) {
+      const result = await performClockIn(employee.id);
+      if (!result.ok) throw new Error(result.error);
+      setStep({
+        kind: 'check_in_done',
+        employee,
+        shift: { id: result.data.shiftId, startedAt: result.data.startedAt },
+      });
+      scheduleAutoDismiss();
+    } else {
+      setStep({ kind: 'check_out_preview', employee, openShift });
+    }
+  }, [scheduleAutoDismiss]);
+
   const finalizeClockOut = useCallback(
     async (shiftId: string, employee: LookupForClockResult['employee']) => {
       setBusy(true);
@@ -187,7 +213,7 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
         <IdentifyStep
           onClose={resetAndClose}
           onUsePin={() => setStep({ kind: 'pin_clockin' })}
-          onPinSubmit={handleSubmitPin}
+          onFingerprintSim={handleFingerprintSim}
         />
       )}
       {isPinStep && (
@@ -365,11 +391,11 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
 const IdentifyStep = ({
   onClose,
   onUsePin,
-  onPinSubmit,
+  onFingerprintSim,
 }: {
   onClose: () => void;
   onUsePin: () => void;
-  onPinSubmit: (pin: string) => Promise<void>;
+  onFingerprintSim: () => Promise<void>;
 }) => (
   <div className="relative p-8">
     <CloseButton onClick={onClose} />
@@ -383,7 +409,7 @@ const IdentifyStep = ({
 
     <div className="flex flex-col items-center rounded-lg bg-canvas py-9 px-6">
       <FingerprintButton
-        onSubmit={() => onPinSubmit(DEMO_FINGERPRINT_PIN)}
+        onSubmit={onFingerprintSim}
         label="Haz clic en la huella para simular · demo"
       />
       <p className="mt-5 text-[11px] italic text-ink-400">

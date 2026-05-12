@@ -1,14 +1,9 @@
 'use client';
 
 import { cents, formatMXN } from '@lidxi/shared';
-import { useMemo, useState } from 'react';
-import {
-  CH_COLORS,
-  CH_LABELS,
-  COMISIONES,
-  MOCK_REPORTES,
-  generateHeatmapMock,
-} from './mock-reportes';
+import { useState } from 'react';
+import { HEATMAP_DATA, HEATMAP_PEAK } from './mock-heatmap';
+import { CH_COLORS, CH_LABELS, COMISIONES, MOCK_REPORTES } from './mock-reportes';
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const PERIODOS = ['Hoy', 'Esta semana', 'Este mes', 'Rango custom'];
@@ -93,10 +88,9 @@ function KpiCard({
 
 export const ReportesScreen = () => {
   const [periodo, setPeriodo] = useState('Este mes');
-  const heatmap = useMemo(() => generateHeatmapMock(), []);
 
-  const maxPedidos = Math.max(...heatmap.map((c) => c.pedidos));
-  const picoCelda = heatmap.find((c) => c.pedidos === maxPedidos);
+  const maxPedidos = HEATMAP_PEAK.pedidos;
+  const picoCelda = HEATMAP_PEAK;
 
   const { por_canal, top_vendidos, top_rentables, embudo } = MOCK_REPORTES;
 
@@ -184,7 +178,7 @@ export const ReportesScreen = () => {
               {hora}h
             </div>
             {DIAS.map((dayName, dia) => {
-              const cell = heatmap.find((c) => c.dia === dia && c.hora === hora);
+              const cell = HEATMAP_DATA.find((c) => c.dia === dia && c.hora === hora);
               const val = cell?.pedidos ?? 0;
               const opacity = val / maxPedidos;
               const isPeak = val === maxPedidos;

@@ -1,6 +1,4 @@
 import type { Role } from '@lidxi/shared';
-import { cents } from '@lidxi/shared';
-import type { CentsMXN } from '@lidxi/shared';
 
 export interface MockEmployee {
   id: string;
@@ -9,7 +7,7 @@ export interface MockEmployee {
   onShift: boolean;
   shiftStart: string | null;
   orders: number;
-  sales: CentsMXN;
+  hoursToday: string;
 }
 
 export const MOCK_EMPLOYEES: MockEmployee[] = [
@@ -20,7 +18,7 @@ export const MOCK_EMPLOYEES: MockEmployee[] = [
     onShift: true,
     shiftStart: '11:08',
     orders: 23,
-    sales: cents(428700),
+    hoursToday: '4h 32m',
   },
   {
     id: 'e002',
@@ -29,7 +27,7 @@ export const MOCK_EMPLOYEES: MockEmployee[] = [
     onShift: true,
     shiftStart: '13:00',
     orders: 18,
-    sales: cents(312400),
+    hoursToday: '2h 40m',
   },
   {
     id: 'e003',
@@ -38,7 +36,7 @@ export const MOCK_EMPLOYEES: MockEmployee[] = [
     onShift: true,
     shiftStart: '11:08',
     orders: 0,
-    sales: cents(0),
+    hoursToday: '4h 32m',
   },
   {
     id: 'e004',
@@ -47,6 +45,6 @@ export const MOCK_EMPLOYEES: MockEmployee[] = [
     onShift: false,
     shiftStart: null,
     orders: 0,
-    sales: cents(0),
+    hoursToday: '0h 00m',
   },
 ];

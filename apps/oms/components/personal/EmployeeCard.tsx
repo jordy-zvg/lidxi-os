@@ -1,4 +1,4 @@
-import { ROLE_LABEL, formatMXN } from '@lidxi/shared';
+import { ROLE_LABEL } from '@lidxi/shared';
 import { Button } from '@lidxi/ui';
 import type { MockEmployee } from './mock-employees';
 
@@ -52,18 +52,18 @@ export const EmployeeCard = ({ employee, onEdit }: EmployeeCardProps) => (
       )}
     </div>
 
-    {employee.orders > 0 && (
-      <div className="border-t border-line pt-3 space-y-1">
+    <div className="border-t border-line pt-3 space-y-1">
+      {employee.orders > 0 && (
         <div className="flex justify-between text-xs">
           <span className="text-ink-400">Pedidos hoy</span>
           <span className="font-mono text-ink">{employee.orders}</span>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-ink-400">Ventas</span>
-          <span className="font-mono text-ink">{formatMXN(employee.sales)}</span>
-        </div>
+      )}
+      <div className="flex justify-between text-xs">
+        <span className="text-ink-400">Horas hoy</span>
+        <span className="font-mono text-ink">{employee.hoursToday}</span>
       </div>
-    )}
+    </div>
 
     <Button variant="secondary" size="sm" onClick={onEdit} className="w-full">
       Editar

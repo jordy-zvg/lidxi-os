@@ -9,6 +9,7 @@ import {
   signEmployeeJWT,
   verifyEmployeeJWT,
 } from '@lidxi/db';
+import type { EmployeeRow } from '@lidxi/db';
 import type { Role } from '@lidxi/shared';
 import { cookies } from 'next/headers';
 import { getBranchId, getStationId } from './station';
@@ -185,4 +186,51 @@ export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: st
 
   cookieStore.delete(SESSION_COOKIE);
   return { ok: true, data: { shiftId: '' } };
+};
+
+// ---------------------------------------------------------------------------
+// Demo fingerprint — identifica al empleado por ID sin verificar PIN.
+// Exclusivo para la simulación de huella en el ClockOverlay demo.
+// ---------------------------------------------------------------------------
+
+const DEMO_EMPLOYEE_ID = '00000000-0000-0000-0000-00000000e001'; // Jorge Vargas (seed)
+
+export const fingerprintDemoLookup = async (): Promise<ActionResult<LookupForClockResult>> => {
+  const supabase = createSupabaseServiceClient();
+
+  // Preferir el último empleado que hizo clock_in; fallback a Jorge Vargas
+  const { data: lastShift } = await supabase
+    .from('shifts')
+    .select('employee_id')
+    .eq('type', 'clock_in')
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const employeeId = lastShift?.employee_id ?? DEMO_EMPLOYEE_ID;
+
+  const { data: emp, error } = await supabase
+    .from('employees')
+    .select('id, full_name, role')
+    .eq('id', employeeId)
+    .maybeSingle();
+
+  if (error || !emp) {
+    return { ok: false, error: 'Empleado demo no encontrado' };
+  }
+
+  const employee = emp as Pick<EmployeeRow, 'id' | 'full_name' | 'role'>;
+  const openShiftRow = await getOpenShiftForEmployee(supabase, employee.id);
+
+  return {
+    ok: true,
+    data: {
+      employee: {
+        id: employee.id,
+        full_name: employee.full_name,
+        role: employee.role as Role,
+      },
+      openShift: openShiftRow ? { id: openShiftRow.id, started_at: openShiftRow.started_at } : null,
+    },
+  };
 };
