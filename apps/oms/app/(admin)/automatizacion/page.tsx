@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { AutomatizacionScreen } from '@/components/automatizacion/AutomatizacionScreen';
 
 export default function AutomatizacionPage() {
-  return <PageStub title="Centro de automatización" />;
+  return <AutomatizacionScreen />;
 }

@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { ReportesScreen } from '@/components/reportes/ReportesScreen';
 
 export default function ReportesPage() {
-  return <PageStub title="Reportes" />;
+  return <ReportesScreen />;
 }

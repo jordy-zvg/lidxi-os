@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { PersonalScreen } from '@/components/personal/PersonalScreen';
 
 export default function PersonalPage() {
-  return <PageStub title="Personal" />;
+  return <PersonalScreen />;
 }

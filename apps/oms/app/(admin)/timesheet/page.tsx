@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { TimesheetWrapper } from '@/components/timesheet/TimesheetWrapper';
 
 export default function TimesheetPage() {
-  return <PageStub title="Timesheet" />;
+  return <TimesheetWrapper />;
 }

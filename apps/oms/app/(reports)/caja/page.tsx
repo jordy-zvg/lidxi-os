@@ -1,5 +1,5 @@
-import { PageStub } from '@lidxi/ui';
+import { CajaScreen } from '@/components/caja/CajaScreen';
 
 export default function CajaPage() {
-  return <PageStub title="Corte de caja" />;
+  return <CajaScreen />;
 }

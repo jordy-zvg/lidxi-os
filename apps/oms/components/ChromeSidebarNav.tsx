@@ -10,6 +10,7 @@ import {
   IconClipboardList,
   IconCreditCard,
   IconPackage,
+  IconPlug,
   IconPrinter,
   IconReceipt,
   IconRobot,
@@ -62,6 +63,7 @@ const NAV: NavSection[] = [
       { label: 'Timesheet', href: '/timesheet', icon: <IconCalendarStats size={16} /> },
       { label: 'Impresoras', href: '/impresoras', icon: <IconPrinter size={16} /> },
       { label: 'Automatización', href: '/automatizacion', icon: <IconRobot size={16} /> },
+      { label: 'Integraciones', href: '/integraciones', icon: <IconPlug size={16} /> },
     ],
   },
 ];
