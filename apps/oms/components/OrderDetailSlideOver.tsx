@@ -1,7 +1,13 @@
 'use client';
 
 import { Button, ChannelBadge, StatusPill } from '@lidxi/ui';
-import { IconMapPin, IconPhone, IconX } from '@tabler/icons-react';
+import { IconBuildingStore, IconMapPin, IconPhone, IconX } from '@tabler/icons-react';
+
+const CHANNEL_NAMES: Record<string, string> = {
+  eats: 'Uber Eats',
+  rappi: 'Rappi',
+  didi: 'Didi Food',
+};
 import { useEffect } from 'react';
 import type { MockOrder } from './orders/mock-orders';
 
@@ -165,31 +171,54 @@ export const OrderDetailSlideOver = ({ order, onClose }: OrderDetailSlideOverPro
 
           {/* Cliente y entrega */}
           <Section title="Cliente y entrega">
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm mb-3">
               <div className="flex items-center gap-2 text-ink-200">
                 <span className="font-medium text-ink">{order.customer}</span>
-                <span className="text-ink-400">·</span>
-                <IconPhone size={14} className="text-ink-400 shrink-0" />
-                <span className="font-mono">{order.phone}</span>
-              </div>
-              <div className="flex items-start gap-2 text-ink-200">
-                <IconMapPin size={14} className="text-ink-400 shrink-0 mt-0.5" />
-                <div>
-                  <span>{order.address}</span>
-                  <span className="block text-xs text-ink-400">
-                    {order.distance} · estimado {order.deliveryEta} min
-                  </span>
-                </div>
+                {order.phone && (
+                  <>
+                    <span className="text-ink-400">·</span>
+                    <IconPhone size={14} className="text-ink-400 shrink-0" />
+                    <span className="font-mono">{order.phone}</span>
+                  </>
+                )}
               </div>
             </div>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(order.address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded border border-line-2 text-sm text-ink-200 hover:bg-surface-2 transition-colors"
-            >
-              Ver en mapa
-            </a>
+
+            {order.channel === 'direct' && order.address ? (
+              <>
+                <div className="flex items-start gap-2 text-sm text-ink-200">
+                  <IconMapPin size={14} className="text-ink-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span>{order.address}</span>
+                    <span className="block text-xs text-ink-400">
+                      {order.distance} · estimado {order.deliveryEta} min
+                    </span>
+                  </div>
+                </div>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(order.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded border border-line-2 text-sm text-ink-200 hover:bg-surface-2 transition-colors"
+                >
+                  Ver en mapa
+                </a>
+              </>
+            ) : order.channel === 'mostrador' ? (
+              <div className="flex items-center gap-2 text-sm text-ink-300">
+                <IconBuildingStore size={16} className="shrink-0" />
+                <span>Entrega en mostrador</span>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-canvas p-3 text-sm text-ink-300">
+                <p className="font-medium text-ink-200 mb-1">
+                  Entrega gestionada por {CHANNEL_NAMES[order.channel] ?? order.channel}
+                </p>
+                <p className="text-xs text-ink-400">
+                  El courier de la plataforma recoge aquí y entrega al cliente.
+                </p>
+              </div>
+            )}
           </Section>
 
           {/* Uber Direct */}

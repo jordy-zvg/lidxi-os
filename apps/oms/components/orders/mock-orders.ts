@@ -25,10 +25,10 @@ export interface MockOrder {
   channel: ChannelKey;
   status: OrderStatus;
   customer: string;
-  phone: string;
-  address: string;
-  distance: string;
-  deliveryEta: number;
+  phone: string | null;
+  address: string | null;
+  distance: string | null;
+  deliveryEta: number | null;
   items: OrderItem[];
   platformFee: number | null;
   courier: CourierInfo | null;
@@ -67,10 +67,10 @@ export const MOCK_ORDERS: MockOrder[] = [
     channel: 'eats',
     status: 'preparing',
     customer: 'Carlos Mendez',
-    phone: '55-9876-4321',
-    address: 'Álvaro Obregón 23, Condesa',
-    distance: '3.4 km',
-    deliveryEta: 22,
+    phone: null,
+    address: null,
+    distance: null,
+    deliveryEta: null,
     items: [
       { id: 3, name: 'Quesadilla de huitlacoche', qty: 1, mods: ['Extra queso'], unitPrice: 85 },
       {
@@ -98,10 +98,10 @@ export const MOCK_ORDERS: MockOrder[] = [
     channel: 'rappi',
     status: 'received',
     customer: 'María González',
-    phone: '55-5555-1234',
-    address: 'Orizaba 58, Roma Norte',
-    distance: '1.8 km',
-    deliveryEta: 18,
+    phone: null,
+    address: null,
+    distance: null,
+    deliveryEta: null,
     items: [
       { id: 5, name: 'Taco de suadero', qty: 3, mods: [], unitPrice: 40 },
       { id: 6, name: 'Refresco vidrio', qty: 2, mods: [], unitPrice: 25 },
