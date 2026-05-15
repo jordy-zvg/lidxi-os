@@ -20,7 +20,7 @@ interface TicketProps {
   onCustomerNameChange: (v: string) => void;
   onIncrement: (lineId: string) => void;
   onDecrement: (lineId: string) => void;
-  onSetNote: (lineId: string, note: string) => void;
+  onSetNote: (lineId: string, note: string, scope: 'all' | 'one') => void;
   onCobrarEfectivo: () => void;
   onCobrarTarjeta: () => void;
   paymentMethod: PaymentMethod;
@@ -73,7 +73,7 @@ export const Ticket = ({
                 line={line}
                 onIncrement={() => onIncrement(line.id)}
                 onDecrement={() => onDecrement(line.id)}
-                onSetNote={(note) => onSetNote(line.id, note)}
+                onSetNote={(note, scope) => onSetNote(line.id, note, scope)}
               />
             ))}
           </div>

@@ -70,21 +70,19 @@ export const PosScreen = () => {
     );
   }, []);
 
-  /** Establece nota en una línea.
-   *  Si la línea tiene qty > 1 y la nota no está vacía: auto-split
-   *  → 1 unidad con nota + (qty-1) sin nota como línea separada. */
-  const handleSetNote = useCallback((lineId: string, note: string) => {
+  const handleSetNote = useCallback((lineId: string, note: string, scope: 'all' | 'one') => {
     setLines((prev) => {
       const line = prev.find((l) => l.id === lineId);
       if (!line) return prev;
 
-      if (note && line.qty > 1) {
-        // Split: separar 1 unidad con nota del resto
+      if (scope === 'one' && note && line.qty > 1) {
+        // Separar 1 unidad con nota; el resto sin nota
         const withNote: TicketLine = { ...line, id: newId(), qty: 1, note };
         const rest: TicketLine = { ...line, qty: line.qty - 1, note: '' };
         return prev.flatMap((l) => (l.id === lineId ? [rest, withNote] : [l]));
       }
 
+      // 'all' o qty=1: aplicar nota a toda la línea
       return prev.map((l) => (l.id === lineId ? { ...l, note } : l));
     });
   }, []);
@@ -165,7 +163,7 @@ export const PosScreen = () => {
           onCustomerNameChange={setCustomerName}
           onIncrement={handleIncrement}
           onDecrement={handleDecrement}
-          onSetNote={handleSetNote}
+          onSetNote={(lineId, note, scope) => handleSetNote(lineId, note, scope)}
           onCobrarEfectivo={() => setScreen('cash')}
           onCobrarTarjeta={() => setScreen('card')}
           paymentMethod={paymentMethod}
