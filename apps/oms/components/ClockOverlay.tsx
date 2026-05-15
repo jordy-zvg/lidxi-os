@@ -341,36 +341,20 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
     });
 
     if (!mountedRef.current) return;
+
+    // Disparar el action SIN await para que React pueda procesar setStep
+    // durante la pausa de la fase "done". handleFingerprintSim siempre
+    // llama setStep (tiene fallback local), así que no necesitamos await.
+    void onSubmit();
+
     setFpPhase('done');
-    await new Promise<void>((r) => setTimeout(r, 300));
-    if (!mountedRef.current) return;
+    // 800ms para que React procese el re-render de setStep y desmonte este componente.
+    await new Promise<void>((r) => setTimeout(r, 800));
+    if (!mountedRef.current) return; // Éxito: el padre cambió el step
 
-    let submitFailed = false;
-    try {
-      await onSubmit();
-    } catch {
-      submitFailed = true;
-    }
-
-    if (!mountedRef.current) return;
-
-    if (submitFailed) {
-      // onSubmit lanzó excepción — mostrar error
-      setFpPhase('error');
-      setFillProgress(100);
-      await new Promise<void>((r) => setTimeout(r, 400));
-      if (!mountedRef.current) return;
-      setFpPhase('idle');
-      setFillProgress(0);
-    } else {
-      // onSubmit completó sin lanzar — el padre llamó setStep.
-      // Dar tiempo a React para procesar el re-render y desmontar este componente.
-      // Si sigue montado tras 1.5s, algo falló silenciosamente → resetear.
-      await new Promise<void>((r) => setTimeout(r, 1500));
-      if (!mountedRef.current) return;
-      setFpPhase('idle');
-      setFillProgress(0);
-    }
+    // Sigue montado → el action no navegó (raro dado el fallback), resetear
+    setFpPhase('idle');
+    setFillProgress(0);
   }, [fpPhase, onSubmit]);
 
   const fillColor = fpPhase === 'error' ? 'text-danger' : 'text-ok';
