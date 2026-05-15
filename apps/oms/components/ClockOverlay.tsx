@@ -345,20 +345,32 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
     await new Promise<void>((r) => setTimeout(r, 300));
     if (!mountedRef.current) return;
 
+    let submitFailed = false;
     try {
       await onSubmit();
     } catch {
-      // onSubmit threw — fall through to error state
+      submitFailed = true;
     }
+
     if (!mountedRef.current) return;
 
-    // Still mounted → onSubmit failed (either threw or didn't change step)
-    setFpPhase('error');
-    setFillProgress(100);
-    await new Promise<void>((r) => setTimeout(r, 400));
-    if (!mountedRef.current) return;
-    setFpPhase('idle');
-    setFillProgress(0);
+    if (submitFailed) {
+      // onSubmit lanzó excepción — mostrar error
+      setFpPhase('error');
+      setFillProgress(100);
+      await new Promise<void>((r) => setTimeout(r, 400));
+      if (!mountedRef.current) return;
+      setFpPhase('idle');
+      setFillProgress(0);
+    } else {
+      // onSubmit completó sin lanzar — el padre llamó setStep.
+      // Dar tiempo a React para procesar el re-render y desmontar este componente.
+      // Si sigue montado tras 1.5s, algo falló silenciosamente → resetear.
+      await new Promise<void>((r) => setTimeout(r, 1500));
+      if (!mountedRef.current) return;
+      setFpPhase('idle');
+      setFillProgress(0);
+    }
   }, [fpPhase, onSubmit]);
 
   const fillColor = fpPhase === 'error' ? 'text-danger' : 'text-ok';
