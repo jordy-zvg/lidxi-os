@@ -100,13 +100,40 @@ export const createSaleOrder = async (
     };
   }
 
-  const orderItems = input.items.map((line) => ({
-    order_id: order.id,
-    menu_item_id: line.menuItemId,
-    qty: line.qty,
-    unit_price: line.unitPriceCents,
-    modifiers: [],
-  }));
+  // Líneas con nota se guardan con qty=1 cada unidad (para cocina).
+  // Líneas sin nota mantienen su qty agrupado.
+  type OrderItemInsert = {
+    order_id: string;
+    menu_item_id: string;
+    qty: number;
+    unit_price: number;
+    modifiers: never[];
+    notes: string | null;
+  };
+
+  const orderItems: OrderItemInsert[] = input.items.flatMap((line) => {
+    if (line.note) {
+      // Una row por unidad para que la cocina vea la nota en cada ticket
+      return Array.from<unknown, OrderItemInsert>({ length: line.qty }, () => ({
+        order_id: order.id,
+        menu_item_id: line.menuItemId,
+        qty: 1,
+        unit_price: line.unitPriceCents,
+        modifiers: [],
+        notes: line.note,
+      }));
+    }
+    return [
+      {
+        order_id: order.id,
+        menu_item_id: line.menuItemId,
+        qty: line.qty,
+        unit_price: line.unitPriceCents,
+        modifiers: [],
+        notes: null,
+      },
+    ];
+  });
 
   const { error: itemsErr } = await supabase.from('order_items').insert(orderItems);
 

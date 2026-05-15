@@ -43,9 +43,12 @@ export const ReciboView = ({ result, onNuevaVenta, onPrint }: ReciboViewProps) =
         {/* Items */}
         <div className="px-4 py-2">
           {result.items.map((line) => (
-            <div key={line.menuItemId} className="flex justify-between text-sm py-1">
+            <div key={line.id} className="flex justify-between text-sm py-1">
               <span className="text-ink-200">
-                {line.qty}× {line.name}
+                <span>
+                  {line.qty}× {line.name}
+                </span>
+                {line.note && <span className="block text-xs text-brand ml-3">+ {line.note}</span>}
               </span>
               <span className="font-mono text-ink tabular-nums">
                 {formatMXN(cents(line.unitPriceCents * line.qty))}

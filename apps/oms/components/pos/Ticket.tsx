@@ -18,8 +18,9 @@ interface TicketProps {
   lines: TicketLineType[];
   customerName: string;
   onCustomerNameChange: (v: string) => void;
-  onIncrement: (menuItemId: string) => void;
-  onDecrement: (menuItemId: string) => void;
+  onIncrement: (lineId: string) => void;
+  onDecrement: (lineId: string) => void;
+  onSetNote: (lineId: string, note: string) => void;
   onCobrarEfectivo: () => void;
   onCobrarTarjeta: () => void;
   paymentMethod: PaymentMethod;
@@ -32,6 +33,7 @@ export const Ticket = ({
   onCustomerNameChange,
   onIncrement,
   onDecrement,
+  onSetNote,
   onCobrarEfectivo,
   onCobrarTarjeta,
   paymentMethod,
@@ -67,10 +69,11 @@ export const Ticket = ({
           <div className="py-2">
             {lines.map((line) => (
               <TicketLine
-                key={line.menuItemId}
+                key={line.id}
                 line={line}
-                onIncrement={() => onIncrement(line.menuItemId)}
-                onDecrement={() => onDecrement(line.menuItemId)}
+                onIncrement={() => onIncrement(line.id)}
+                onDecrement={() => onDecrement(line.id)}
+                onSetNote={(note) => onSetNote(line.id, note)}
               />
             ))}
           </div>

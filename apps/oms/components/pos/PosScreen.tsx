@@ -11,6 +11,8 @@ import type { MenuItemData, PaymentMethod, SaleResult, TicketLine } from './type
 
 type Screen = 'pos' | 'cash' | 'card' | 'receipt';
 
+const newId = () => Math.random().toString(36).slice(2, 10);
+
 export const PosScreen = () => {
   const [menu, setMenu] = useState<MenuItemData[]>([]);
   const [menuError, setMenuError] = useState<string | null>(null);
@@ -22,54 +24,69 @@ export const PosScreen = () => {
   const [screen, setScreen] = useState<Screen>('pos');
   const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
 
-  // Cargar menú desde BD
   useEffect(() => {
     loadMenu().then((result) => {
-      if (result.ok) {
-        setMenu(result.data);
-      } else {
-        setMenuError(result.error);
-      }
+      if (result.ok) setMenu(result.data);
+      else setMenuError(result.error);
       setLoading(false);
     });
   }, []);
 
-  // Mapa qty por menuItemId — para mostrar badge en cards
+  // Badge total por menuItemId en el menú
   const qtyMap: Record<string, number> = {};
   for (const line of lines) {
-    qtyMap[line.menuItemId] = line.qty;
+    qtyMap[line.menuItemId] = (qtyMap[line.menuItemId] ?? 0) + line.qty;
   }
 
+  /** Clic en una card del menú: incrementa la primera línea sin nota del mismo ítem,
+   *  o crea una nueva línea con qty=1 si no existe ninguna sin nota. */
   const handleAdd = useCallback((item: MenuItemData) => {
     setLines((prev) => {
-      const idx = prev.findIndex((l) => l.menuItemId === item.id);
+      const idx = prev.findIndex((l) => l.menuItemId === item.id && l.note === '');
       if (idx >= 0) {
         return prev.map((l, i) => (i === idx ? { ...l, qty: l.qty + 1 } : l));
       }
       return [
         ...prev,
         {
+          id: newId(),
           menuItemId: item.id,
           name: item.name,
           qty: 1,
           unitPriceCents: item.displayPriceCents,
+          note: '',
         },
       ];
     });
   }, []);
 
-  const handleIncrement = useCallback((menuItemId: string) => {
+  const handleIncrement = useCallback((lineId: string) => {
+    setLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, qty: l.qty + 1 } : l)));
+  }, []);
+
+  const handleDecrement = useCallback((lineId: string) => {
     setLines((prev) =>
-      prev.map((l) => (l.menuItemId === menuItemId ? { ...l, qty: l.qty + 1 } : l)),
+      prev.map((l) => (l.id === lineId ? { ...l, qty: l.qty - 1 } : l)).filter((l) => l.qty > 0),
     );
   }, []);
 
-  const handleDecrement = useCallback((menuItemId: string) => {
-    setLines((prev) =>
-      prev
-        .map((l) => (l.menuItemId === menuItemId ? { ...l, qty: l.qty - 1 } : l))
-        .filter((l) => l.qty > 0),
-    );
+  /** Establece nota en una línea.
+   *  Si la línea tiene qty > 1 y la nota no está vacía: auto-split
+   *  → 1 unidad con nota + (qty-1) sin nota como línea separada. */
+  const handleSetNote = useCallback((lineId: string, note: string) => {
+    setLines((prev) => {
+      const line = prev.find((l) => l.id === lineId);
+      if (!line) return prev;
+
+      if (note && line.qty > 1) {
+        // Split: separar 1 unidad con nota del resto
+        const withNote: TicketLine = { ...line, id: newId(), qty: 1, note };
+        const rest: TicketLine = { ...line, qty: line.qty - 1, note: '' };
+        return prev.flatMap((l) => (l.id === lineId ? [rest, withNote] : [l]));
+      }
+
+      return prev.map((l) => (l.id === lineId ? { ...l, note } : l));
+    });
   }, []);
 
   const handleSuccess = (result: SaleResult) => {
@@ -86,14 +103,11 @@ export const PosScreen = () => {
   };
 
   const handlePrint = () => {
-    // Mock: en el futuro conectar a impresora térmica
     alert(`Imprimiendo recibo ${saleResult?.folio ?? ''}…`);
   };
 
-  // Totales del ticket actual
   const { total, tax, net } = calcTotals(lines);
 
-  // Shared props para los modales
   const saleInput = {
     customerName: customerName || 'Mostrador',
     customerPhone: null,
@@ -103,7 +117,6 @@ export const PosScreen = () => {
     netCents: net,
   };
 
-  // ── Vista de recibo ──────────────────────────────────────
   if (screen === 'receipt' && saleResult) {
     return <ReciboView result={saleResult} onNuevaVenta={handleNuevaVenta} onPrint={handlePrint} />;
   }
@@ -152,6 +165,7 @@ export const PosScreen = () => {
           onCustomerNameChange={setCustomerName}
           onIncrement={handleIncrement}
           onDecrement={handleDecrement}
+          onSetNote={handleSetNote}
           onCobrarEfectivo={() => setScreen('cash')}
           onCobrarTarjeta={() => setScreen('card')}
           paymentMethod={paymentMethod}
@@ -159,7 +173,6 @@ export const PosScreen = () => {
         />
       </div>
 
-      {/* Modal efectivo */}
       <CobrarEfectivoModal
         open={screen === 'cash'}
         onClose={() => setScreen('pos')}
@@ -170,7 +183,6 @@ export const PosScreen = () => {
         onSuccess={handleSuccess}
       />
 
-      {/* Modal tarjeta */}
       <CobrarTarjetaModal
         open={screen === 'card'}
         onClose={() => setScreen('pos')}
