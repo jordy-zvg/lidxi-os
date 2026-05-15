@@ -141,10 +141,6 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
 
   // Handler estable para la simulación de huella. No pasa por PIN — usa
   const handleFingerprintSim = useCallback(() => {
-    // setStep se llama de forma SÍNCRONA para que React lo encole en el
-    // mismo lote que setFpPhase('done') de FingerprintButton.
-    // En background intentamos el lookup real; si falla no importa porque
-    // el resultado ya se mostró.
     const demoEmployee = {
       id: '00000000-0000-0000-0000-00000000e001',
       full_name: 'Jorge Vargas',
@@ -297,6 +293,9 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    // Reset en cada mount (React Strict Mode ejecuta mount→cleanup→remount
+    // en dev, la cleanup pone false y el remount debe restaurarlo a true).
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -336,11 +335,9 @@ const FingerprintButton = ({ onSubmit, label }: FingerprintButtonProps) => {
     void onSubmit();
 
     setFpPhase('done');
-    // 800ms para que React procese el re-render de setStep y desmonte este componente.
     await new Promise<void>((r) => setTimeout(r, 800));
-    if (!mountedRef.current) return; // Éxito: el padre cambió el step
+    if (!mountedRef.current) return;
 
-    // Sigue montado → el action no navegó (raro dado el fallback), resetear
     setFpPhase('idle');
     setFillProgress(0);
   }, [fpPhase, onSubmit]);
