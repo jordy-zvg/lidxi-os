@@ -140,46 +140,34 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
   );
 
   // Handler estable para la simulación de huella. No pasa por PIN — usa
-  const handleFingerprintSim = useCallback(async () => {
-    // Intentar con el servidor; si falla, usa empleado local para que
-    // la demo funcione siempre aunque la BD no esté disponible.
-    const fallbackEmployee = {
+  const handleFingerprintSim = useCallback(() => {
+    // setStep se llama de forma SÍNCRONA para que React lo encole en el
+    // mismo lote que setFpPhase('done') de FingerprintButton.
+    // En background intentamos el lookup real; si falla no importa porque
+    // el resultado ya se mostró.
+    const demoEmployee = {
       id: '00000000-0000-0000-0000-00000000e001',
       full_name: 'Jorge Vargas',
       role: 'manager',
     } as LookupForClockResult['employee'];
 
-    try {
-      const lookup = await fingerprintDemoLookup();
-      if (lookup.ok) {
-        const { employee, openShift } = lookup.data;
-        if (!openShift) {
-          const result = await performClockIn(employee.id);
-          if (result.ok) {
-            setStep({
-              kind: 'check_in_done',
-              employee,
-              shift: { id: result.data.shiftId, startedAt: result.data.startedAt },
-            });
-            scheduleAutoDismiss();
-            return;
-          }
-        } else {
-          setStep({ kind: 'check_out_preview', employee, openShift });
-          return;
-        }
-      }
-    } catch {
-      // BD no disponible — continuar con fallback local
-    }
-
-    // Fallback: mostrar entrada registrada con empleado local
     setStep({
       kind: 'check_in_done',
-      employee: fallbackEmployee,
-      shift: { id: 'local-demo', startedAt: new Date().toISOString() },
+      employee: demoEmployee,
+      shift: { id: 'demo', startedAt: new Date().toISOString() },
     });
     scheduleAutoDismiss();
+
+    // Background: intenta registrar en BD (fire-and-forget)
+    void fingerprintDemoLookup()
+      .then(async (lookup) => {
+        if (lookup.ok && !lookup.data.openShift) {
+          await performClockIn(lookup.data.employee.id);
+        }
+      })
+      .catch(() => {
+        /* BD no disponible — UI ya mostró el resultado */
+      });
   }, [scheduleAutoDismiss]);
 
   const finalizeClockOut = useCallback(
@@ -298,7 +286,7 @@ export const ClockOverlay = ({ open, onClose }: ClockOverlayProps) => {
 type FpPhase = 'idle' | 'scanning' | 'done' | 'error';
 
 interface FingerprintButtonProps {
-  onSubmit: () => Promise<void>;
+  onSubmit: () => void | Promise<void>;
   label: string;
 }
 
@@ -407,7 +395,7 @@ const IdentifyStep = ({
 }: {
   onClose: () => void;
   onUsePin: () => void;
-  onFingerprintSim: () => Promise<void>;
+  onFingerprintSim: () => void | Promise<void>;
 }) => (
   <div className="relative p-8">
     <CloseButton onClick={onClose} />
