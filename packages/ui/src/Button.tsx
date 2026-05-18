@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { type VariantProps, cva } from 'class-variance-authority';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 

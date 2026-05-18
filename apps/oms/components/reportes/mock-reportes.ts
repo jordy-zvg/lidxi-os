@@ -1,5 +1,5 @@
-import { cents } from '@lidxi/shared';
-import type { CentsMXN } from '@lidxi/shared';
+import { cents } from '@kobi/shared';
+import type { CentsMXN } from '@kobi/shared';
 
 export const COMISIONES: Record<string, number> = {
   direct: 0.072,

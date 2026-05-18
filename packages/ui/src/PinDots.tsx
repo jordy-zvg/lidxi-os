@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 
 export interface PinDotsProps {
   /** Cantidad de dígitos ingresados. Renderiza `length` dots llenos. */

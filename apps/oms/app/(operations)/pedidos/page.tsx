@@ -2,8 +2,8 @@
 
 import { OrderDetailSlideOver } from '@/components/OrderDetailSlideOver';
 import { MOCK_ORDERS, type MockOrder, STATUS_COLUMN } from '@/components/orders/mock-orders';
-import type { OrderStatus } from '@lidxi/shared';
-import { Button, ChannelBadge, StatusPill } from '@lidxi/ui';
+import type { OrderStatus } from '@kobi/shared';
+import { Button, ChannelBadge, StatusPill } from '@kobi/ui';
 import { useState } from 'react';
 
 const COLUMN_LABEL: Record<OrderStatus, string> = {

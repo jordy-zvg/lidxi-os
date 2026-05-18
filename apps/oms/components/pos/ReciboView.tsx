@@ -1,6 +1,6 @@
-import { cents } from '@lidxi/shared';
-import { formatDateMX, formatMXN, formatTimeMX } from '@lidxi/shared';
-import { Button } from '@lidxi/ui';
+import { cents } from '@kobi/shared';
+import { formatDateMX, formatMXN, formatTimeMX } from '@kobi/shared';
+import { Button } from '@kobi/ui';
 import { IconCheck, IconPrinter } from '@tabler/icons-react';
 import type { SaleResult } from './types';
 

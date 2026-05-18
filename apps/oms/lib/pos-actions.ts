@@ -1,7 +1,7 @@
 'use server';
 
-import { createSupabaseServiceClient } from '@lidxi/db';
-import { type CentsMXN, cents, pesos } from '@lidxi/shared';
+import { createSupabaseServiceClient } from '@kobi/db';
+import { type CentsMXN, cents, pesos } from '@kobi/shared';
 import type { MenuItemData, PaymentMethod, TicketLine } from '../components/pos/types';
 import { getBranchId } from './station';
 

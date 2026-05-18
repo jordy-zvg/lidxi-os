@@ -1,5 +1,5 @@
 {
-  "name": "@lidxi/integrations",
+  "name": "@kobi/integrations",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@lidxi/shared": "workspace:*",
+    "@kobi/shared": "workspace:*",
     "stripe": "17.2.0"
   },
   "devDependencies": {

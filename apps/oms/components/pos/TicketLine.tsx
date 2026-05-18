@@ -1,6 +1,6 @@
 'use client';
 
-import { cents, formatMXN } from '@lidxi/shared';
+import { cents, formatMXN } from '@kobi/shared';
 import { IconMinus, IconNotes, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { TicketLine as TicketLineType } from './types';

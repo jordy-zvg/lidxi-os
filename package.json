@@ -1,8 +1,8 @@
 {
-  "name": "lidxi-os",
+  "name": "kobi",
   "version": "0.1.0",
   "private": true,
-  "description": "LidxiOS — OMS para dark kitchens con integraciones nativas (Uber Eats, Rappi, Didi, Uber Direct)",
+  "description": "Kobi — El sistema operativo de la cocina moderna",
   "packageManager": "pnpm@9.12.3",
   "engines": {
     "node": ">=20.0.0",
@@ -18,11 +18,11 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "db:start": "pnpm --filter @lidxi/db db:start",
-    "db:stop": "pnpm --filter @lidxi/db db:stop",
-    "db:reset": "pnpm --filter @lidxi/db db:reset",
-    "db:types": "pnpm --filter @lidxi/db db:types",
-    "db:demo-reset": "pnpm --filter @lidxi/db demo-reset",
+    "db:start": "pnpm --filter @kobi/db db:start",
+    "db:stop": "pnpm --filter @kobi/db db:stop",
+    "db:reset": "pnpm --filter @kobi/db db:reset",
+    "db:types": "pnpm --filter @kobi/db db:types",
+    "db:demo-reset": "pnpm --filter @kobi/db demo-reset",
     "prepare": "husky"
   },
   "devDependencies": {

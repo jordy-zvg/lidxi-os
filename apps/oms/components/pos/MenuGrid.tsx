@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { useState } from 'react';
 import { MenuItem } from './MenuItem';
 import type { MenuItemData } from './types';

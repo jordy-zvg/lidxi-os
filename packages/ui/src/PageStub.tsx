@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { IconTool } from '@tabler/icons-react';
 
 /**

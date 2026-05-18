@@ -3,7 +3,7 @@
  * el sitio propio del restaurante (direct) y la venta presencial (mostrador).
  *
  * Los colores son los hex que usan los badges de canal en el sistema.
- * Mantén estos sincronizados con `ChannelBadge` en @lidxi/ui.
+ * Mantén estos sincronizados con `ChannelBadge` en @kobi/ui.
  */
 
 export const CHANNELS = {

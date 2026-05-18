@@ -5,7 +5,7 @@ import {
   cn,
   formatOrderId,
   formatTimeMX,
-} from '@lidxi/shared';
+} from '@kobi/shared';
 import type { ReactNode } from 'react';
 import { ChannelBadge } from './ChannelBadge';
 

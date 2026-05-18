@@ -1,6 +1,6 @@
 'use client';
 
-import { StatusPill } from '@lidxi/ui';
+import { StatusPill } from '@kobi/ui';
 import { IconLink, IconLoader2, IconUnlink } from '@tabler/icons-react';
 import { useState } from 'react';
 

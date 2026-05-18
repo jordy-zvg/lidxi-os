@@ -1,4 +1,4 @@
-import type { CentsMXN } from '@lidxi/shared';
+import type { CentsMXN } from '@kobi/shared';
 
 export interface MenuItemData {
   id: string;

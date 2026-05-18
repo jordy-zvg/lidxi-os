@@ -1,4 +1,4 @@
-import type { ApiError } from '@lidxi/shared';
+import type { ApiError } from '@kobi/shared';
 
 /**
  * Detecta si el cliente debe operar en modo mock. Usamos la env var sin

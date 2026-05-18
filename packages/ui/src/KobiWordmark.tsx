@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 
 const FONT_SIZES: Record<string, { wordmark: string; tagline: string }> = {
   sm: { wordmark: '16px', tagline: '10px' },

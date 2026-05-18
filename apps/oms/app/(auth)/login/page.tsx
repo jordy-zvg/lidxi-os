@@ -3,7 +3,7 @@ import {
   createSupabaseServiceClient,
   getBranchWithRestaurant,
   getLastPosActivation,
-} from '@lidxi/db';
+} from '@kobi/db';
 import { LoginShell } from './LoginShell';
 
 export default async function LoginPage() {

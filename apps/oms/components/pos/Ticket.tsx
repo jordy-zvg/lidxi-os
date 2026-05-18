@@ -1,6 +1,6 @@
-import { formatMXN } from '@lidxi/shared';
-import { cents } from '@lidxi/shared';
-import { Button } from '@lidxi/ui';
+import { formatMXN } from '@kobi/shared';
+import { cents } from '@kobi/shared';
+import { Button } from '@kobi/ui';
 import { IconReceipt } from '@tabler/icons-react';
 import { TicketLine } from './TicketLine';
 import type { PaymentMethod, TicketLine as TicketLineType } from './types';

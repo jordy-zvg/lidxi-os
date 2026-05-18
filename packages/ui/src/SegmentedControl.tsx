@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 
 export interface SegmentedOption<T extends string> {
   value: T;

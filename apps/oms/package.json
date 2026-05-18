@@ -1,5 +1,5 @@
 {
-  "name": "@lidxi/oms",
+  "name": "@kobi/oms",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,12 +12,12 @@
     "clean": "rm -rf .next .turbo"
   },
   "dependencies": {
-    "@lidxi/db": "workspace:*",
-    "@lidxi/integrations": "workspace:*",
-    "@lidxi/printing": "workspace:*",
-    "@lidxi/shared": "workspace:*",
-    "@lidxi/tokens": "workspace:*",
-    "@lidxi/ui": "workspace:*",
+    "@kobi/db": "workspace:*",
+    "@kobi/integrations": "workspace:*",
+    "@kobi/printing": "workspace:*",
+    "@kobi/shared": "workspace:*",
+    "@kobi/tokens": "workspace:*",
+    "@kobi/ui": "workspace:*",
     "@tabler/icons-react": "3.20.0",
     "next": "14.2.15",
     "react": "18.3.1",

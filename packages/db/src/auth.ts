@@ -1,4 +1,4 @@
-import type { Role } from '@lidxi/shared';
+import type { Role } from '@kobi/shared';
 import bcrypt from 'bcryptjs';
 import { type JWTPayload, SignJWT, jwtVerify } from 'jose';
 
@@ -49,8 +49,8 @@ export const signEmployeeJWT = async (
   claims: Omit<EmployeeClaims, 'role'>,
   ttlSeconds = 60 * 60 * 12,
 ): Promise<string> => {
-  const issuer = process.env.JWT_ISSUER ?? 'lidxi-os';
-  const audience = process.env.JWT_AUDIENCE ?? 'lidxi-oms';
+  const issuer = process.env.JWT_ISSUER ?? 'kobi';
+  const audience = process.env.JWT_AUDIENCE ?? 'kobi-oms';
   return new SignJWT({ ...claims, role: 'authenticated' })
     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
     .setIssuedAt()
@@ -65,8 +65,8 @@ export const signEmployeeJWT = async (
  */
 export const verifyEmployeeJWT = async (token: string): Promise<EmployeeClaims> => {
   const { payload } = await jwtVerify(token, getSecret(), {
-    issuer: process.env.JWT_ISSUER ?? 'lidxi-os',
-    audience: process.env.JWT_AUDIENCE ?? 'lidxi-oms',
+    issuer: process.env.JWT_ISSUER ?? 'kobi',
+    audience: process.env.JWT_AUDIENCE ?? 'kobi-oms',
   });
   return payload as EmployeeClaims;
 };

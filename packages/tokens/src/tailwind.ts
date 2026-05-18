@@ -5,7 +5,7 @@ import type { Config } from 'tailwindcss';
  *
  * Cada app extiende este preset desde su propio `tailwind.config.ts`:
  *
- *   import preset from '@lidxi/tokens/tailwind';
+ *   import preset from '@kobi/tokens/tailwind';
  *   export default { presets: [preset], content: ['./app/**\/*.{ts,tsx}'] };
  *
  * Los valores apuntan a las CSS vars definidas en `tokens.css`, así un cambio

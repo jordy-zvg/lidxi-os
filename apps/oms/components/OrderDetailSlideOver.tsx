@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, ChannelBadge, StatusPill } from '@lidxi/ui';
+import { Button, ChannelBadge, StatusPill } from '@kobi/ui';
 import { IconBuildingStore, IconMapPin, IconPhone, IconX } from '@tabler/icons-react';
 
 const CHANNEL_NAMES: Record<string, string> = {

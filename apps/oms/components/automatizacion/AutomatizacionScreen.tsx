@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Toggle } from '@lidxi/ui';
+import { Button, Toggle } from '@kobi/ui';
 import { useState } from 'react';
 
 type Categoria = 'Inventario' | 'SLA' | 'Precios' | 'Notificaciones';

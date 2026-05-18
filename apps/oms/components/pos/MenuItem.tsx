@@ -1,4 +1,4 @@
-import { formatMXN } from '@lidxi/shared';
+import { formatMXN } from '@kobi/shared';
 import type { MenuItemData } from './types';
 
 interface MenuItemProps {

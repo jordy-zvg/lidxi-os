@@ -35,16 +35,16 @@ importers:
 
   apps/clock:
     dependencies:
-      '@lidxi/db':
+      '@kobi/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@lidxi/tokens':
+      '@kobi/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
-      '@lidxi/ui':
+      '@kobi/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tabler/icons-react':
@@ -84,22 +84,22 @@ importers:
 
   apps/oms:
     dependencies:
-      '@lidxi/db':
+      '@kobi/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@lidxi/integrations':
+      '@kobi/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
-      '@lidxi/printing':
+      '@kobi/printing':
         specifier: workspace:*
         version: link:../../packages/printing
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@lidxi/tokens':
+      '@kobi/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
-      '@lidxi/ui':
+      '@kobi/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tabler/icons-react':
@@ -142,19 +142,19 @@ importers:
 
   apps/storefront:
     dependencies:
-      '@lidxi/db':
+      '@kobi/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@lidxi/integrations':
+      '@kobi/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@lidxi/tokens':
+      '@kobi/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
-      '@lidxi/ui':
+      '@kobi/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -191,7 +191,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../shared
       '@supabase/ssr':
@@ -216,7 +216,7 @@ importers:
 
   packages/integrations:
     dependencies:
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../shared
       stripe:
@@ -229,7 +229,7 @@ importers:
 
   packages/printing:
     dependencies:
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../shared
       react:
@@ -277,7 +277,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@lidxi/shared':
+      '@kobi/shared':
         specifier: workspace:*
         version: link:../shared
       '@tabler/icons-react':

@@ -8,9 +8,9 @@ import {
   openShift,
   signEmployeeJWT,
   verifyEmployeeJWT,
-} from '@lidxi/db';
-import type { EmployeeRow } from '@lidxi/db';
-import type { Role } from '@lidxi/shared';
+} from '@kobi/db';
+import type { EmployeeRow } from '@kobi/db';
+import type { Role } from '@kobi/shared';
 import { cookies } from 'next/headers';
 import { getBranchId, getStationId } from './station';
 
@@ -30,7 +30,7 @@ import { getBranchId, getStationId } from './station';
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 const ACTIVATABLE_ROLES: ReadonlySet<Role> = new Set(['manager', 'cashier']);
-const SESSION_COOKIE = 'lidxi-session';
+const SESSION_COOKIE = 'kobi-session';
 const SESSION_MAX_AGE_S = 60 * 60 * 12; // 12h, alineado con TTL del JWT
 
 const setSessionCookie = async (token: string): Promise<void> => {

@@ -1,8 +1,8 @@
 'use client';
 
-import { cents, formatMXN } from '@lidxi/shared';
-import type { CentsMXN } from '@lidxi/shared';
-import { Keypad, Modal } from '@lidxi/ui';
+import { cents, formatMXN } from '@kobi/shared';
+import type { CentsMXN } from '@kobi/shared';
+import { Keypad, Modal } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
 import { useState, useTransition } from 'react';
 import type { CreateSaleInput } from '../../lib/pos-actions';

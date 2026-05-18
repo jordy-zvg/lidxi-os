@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import type { Station, Ticket } from './mock-tickets';
 
 interface FilterChipProps {

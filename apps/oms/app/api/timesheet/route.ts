@@ -1,5 +1,5 @@
 import { getBranchId } from '@/lib/station';
-import { createSupabaseServerClient } from '@lidxi/db';
+import { createSupabaseServerClient } from '@kobi/db';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';

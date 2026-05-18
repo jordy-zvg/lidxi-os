@@ -1,4 +1,4 @@
-import { KobiWordmark, Sidebar, Topbar } from '@lidxi/ui';
+import { KobiWordmark, Sidebar, Topbar } from '@kobi/ui';
 import type { ReactNode } from 'react';
 import { ChromeSidebarNav } from './ChromeSidebarNav';
 import { ClockOverlayProvider } from './ClockOverlayProvider';

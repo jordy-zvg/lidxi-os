@@ -11,9 +11,9 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { createClient } from '@supabase/supabase-js';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createClient } from '@supabase/supabase-js';
 
 // ---------------------------------------------------------------------------
 // Cargar .env.local desde la raíz del monorepo
@@ -30,7 +30,10 @@ try {
     const eqIdx = trimmed.indexOf('=');
     if (eqIdx === -1) continue;
     const key = trimmed.slice(0, eqIdx).trim();
-    const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+    const val = trimmed
+      .slice(eqIdx + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (key && !(key in process.env)) {
       process.env[key] = val;
     }
@@ -49,7 +52,7 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) {
   console.error(
     '✗ Faltan variables de entorno: NEXT_PUBLIC_SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY\n' +
-    '  Asegúrate de que .env.local existe en la raíz del monorepo.',
+      '  Asegúrate de que .env.local existe en la raíz del monorepo.',
   );
   process.exit(1);
 }

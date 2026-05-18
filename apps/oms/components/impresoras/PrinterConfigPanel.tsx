@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, SegmentedControl, Toggle } from '@lidxi/ui';
+import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { useState } from 'react';
 import {
   DEFAULT_RULES,

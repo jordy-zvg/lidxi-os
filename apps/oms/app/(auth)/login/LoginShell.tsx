@@ -2,8 +2,8 @@
 
 import { HoraEnVivo } from '@/components/HoraEnVivo';
 import { activatePosStation } from '@/lib/auth-actions';
-import { formatTimeMX } from '@lidxi/shared';
-import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@lidxi/ui';
+import { formatTimeMX } from '@kobi/shared';
+import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@kobi/ui';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, useTransition } from 'react';

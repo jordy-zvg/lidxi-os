@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import type { ButtonHTMLAttributes } from 'react';
 
 export interface ToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {

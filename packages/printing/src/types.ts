@@ -1,4 +1,4 @@
-import type { CentsMXN, ChannelKey } from '@lidxi/shared';
+import type { CentsMXN, ChannelKey } from '@kobi/shared';
 
 export interface ReceiptOrder {
   id: string;

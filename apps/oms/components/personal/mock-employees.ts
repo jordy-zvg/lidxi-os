@@ -1,4 +1,4 @@
-import type { Role } from '@lidxi/shared';
+import type { Role } from '@kobi/shared';
 
 export interface MockEmployee {
   id: string;

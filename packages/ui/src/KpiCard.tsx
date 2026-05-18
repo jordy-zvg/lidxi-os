@@ -1,4 +1,4 @@
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { IconArrowDownRight, IconArrowUpRight } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { Card } from './Card';

@@ -1,4 +1,4 @@
-import { PageStub } from '@lidxi/ui';
+import { PageStub } from '@kobi/ui';
 
 interface Props {
   params: { employeeId: string };

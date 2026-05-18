@@ -1,5 +1,5 @@
 {
-  "name": "@lidxi/db",
+  "name": "@kobi/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,7 +21,7 @@
     "demo-reset": "node scripts/demo-reset.mjs"
   },
   "dependencies": {
-    "@lidxi/shared": "workspace:*",
+    "@kobi/shared": "workspace:*",
     "@supabase/ssr": "0.5.1",
     "@supabase/supabase-js": "2.45.4",
     "bcryptjs": "2.4.3",

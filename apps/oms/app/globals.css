@@ -1,4 +1,4 @@
-@import "@lidxi/tokens/css";
+@import "@kobi/tokens/css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

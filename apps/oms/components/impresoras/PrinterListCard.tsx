@@ -1,5 +1,5 @@
-import { cn } from '@lidxi/shared';
-import { StatusPill } from '@lidxi/ui';
+import { cn } from '@kobi/shared';
+import { StatusPill } from '@kobi/ui';
 import { IconCashRegister, IconPrinter, IconTag } from '@tabler/icons-react';
 import type { Printer, PrinterType } from './mock-printers';
 import { PRINTER_TYPE_LABEL } from './mock-printers';

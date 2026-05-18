@@ -1,4 +1,4 @@
-import type { ChannelKey } from '@lidxi/shared';
+import type { ChannelKey } from '@kobi/shared';
 
 export type Station = 'all' | 'hot' | 'cold' | 'pack';
 

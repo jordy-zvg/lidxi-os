@@ -1,4 +1,4 @@
-# LidxiOS
+# Kobi
 
 Order Management System (OMS) para dark kitchens y restaurantes multi-canal. Integra Uber Eats, Rappi, Didi Food y Uber Direct con un único panel de operación. Primer cliente: **Miztli Pardo** (Roma Norte, CDMX).
 
@@ -16,7 +16,7 @@ Order Management System (OMS) para dark kitchens y restaurantes multi-canal. Int
 ## Estructura
 
 ```
-lidxi-os/
+kobi/
 ├── apps/
 │   ├── oms/          # Sistema operativo (Kanban, KDS, POS, admin)
 │   ├── storefront/   # Sitio público del cliente (miztli.mx)

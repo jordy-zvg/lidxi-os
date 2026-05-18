@@ -1,4 +1,4 @@
-import type { ChannelKey, OrderStatus } from '@lidxi/shared';
+import type { ChannelKey, OrderStatus } from '@kobi/shared';
 
 export interface OrderItem {
   id: number;

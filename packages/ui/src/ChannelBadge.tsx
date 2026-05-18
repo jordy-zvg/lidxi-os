@@ -1,4 +1,4 @@
-import { CHANNELS, type ChannelKey, cn } from '@lidxi/shared';
+import { CHANNELS, type ChannelKey, cn } from '@kobi/shared';
 import type { HTMLAttributes } from 'react';
 
 export interface ChannelBadgeProps extends HTMLAttributes<HTMLSpanElement> {

@@ -1,4 +1,4 @@
-import type { Role } from '@lidxi/shared';
+import type { Role } from '@kobi/shared';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { verifyPin } from './auth';
 

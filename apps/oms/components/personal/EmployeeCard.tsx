@@ -1,5 +1,5 @@
-import { ROLE_LABEL } from '@lidxi/shared';
-import { Button } from '@lidxi/ui';
+import { ROLE_LABEL } from '@kobi/shared';
+import { Button } from '@kobi/ui';
 import type { MockEmployee } from './mock-employees';
 
 function avatarGradient(seed: string): string {

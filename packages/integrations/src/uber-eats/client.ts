@@ -1,4 +1,4 @@
-import { type Result, err, ok } from '@lidxi/shared';
+import { type Result, err, ok } from '@kobi/shared';
 import { apiError, isMockMode } from '../common';
 import { mockOrder } from './mock';
 import type { EatsDenyReason, EatsOrder, EatsWebhookEvent } from './types';

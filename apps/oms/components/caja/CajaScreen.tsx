@@ -1,8 +1,8 @@
 'use client';
 
-import { formatMXN } from '@lidxi/shared';
-import { type CentsMXN, cents } from '@lidxi/shared';
-import { Button, StatusPill } from '@lidxi/ui';
+import { formatMXN } from '@kobi/shared';
+import { type CentsMXN, cents } from '@kobi/shared';
+import { Button, StatusPill } from '@kobi/ui';
 import { IconPrinter, IconReceipt } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';

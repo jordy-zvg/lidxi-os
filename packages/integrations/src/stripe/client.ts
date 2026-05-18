@@ -1,4 +1,4 @@
-import { type Result, err, ok } from '@lidxi/shared';
+import { type Result, err, ok } from '@kobi/shared';
 import Stripe from 'stripe';
 import { apiError, isMockMode } from '../common';
 import { mockCheckoutSession, mockPaymentIntent } from './mock';

@@ -1,4 +1,4 @@
-import { inter, jetbrainsMono } from '@lidxi/tokens/fonts';
+import { inter, jetbrainsMono } from '@kobi/tokens/fonts';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';

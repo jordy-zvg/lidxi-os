@@ -1,5 +1,5 @@
 'use client';
-import { Button, SegmentedControl, Toggle } from '@lidxi/ui';
+import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import type { MockEmployee } from './mock-employees';

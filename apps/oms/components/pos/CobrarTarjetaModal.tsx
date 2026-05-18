@@ -1,8 +1,8 @@
 'use client';
 
-import { formatMXN } from '@lidxi/shared';
-import type { CentsMXN } from '@lidxi/shared';
-import { Modal } from '@lidxi/ui';
+import { formatMXN } from '@kobi/shared';
+import type { CentsMXN } from '@kobi/shared';
+import { Modal } from '@kobi/ui';
 import { IconCheck, IconCreditCard, IconX } from '@tabler/icons-react';
 import { useState, useTransition } from 'react';
 import type { CreateSaleInput } from '../../lib/pos-actions';

@@ -1,4 +1,4 @@
-import { CHANNELS, formatOrderId, formatTimeMX } from '@lidxi/shared';
+import { CHANNELS, formatOrderId, formatTimeMX } from '@kobi/shared';
 import { Br, Cut, Line, Printer, Row, Text } from 'react-thermal-printer';
 import type { ReceiptOrder } from '../types';
 

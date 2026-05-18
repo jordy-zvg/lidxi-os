@@ -1,4 +1,4 @@
-import preset from '@lidxi/tokens/tailwind';
+import preset from '@kobi/tokens/tailwind';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {

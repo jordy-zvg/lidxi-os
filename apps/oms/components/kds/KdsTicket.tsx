@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { useEffect, useState } from 'react';
 import type { Ticket } from './mock-tickets';
 

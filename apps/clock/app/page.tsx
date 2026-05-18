@@ -1,7 +1,7 @@
 'use client';
 
-import { formatTimeMX } from '@lidxi/shared';
-import { Button } from '@lidxi/ui';
+import { formatTimeMX } from '@kobi/shared';
+import { Button } from '@kobi/ui';
 import { IconFingerprint } from '@tabler/icons-react';
 import { useState } from 'react';
 

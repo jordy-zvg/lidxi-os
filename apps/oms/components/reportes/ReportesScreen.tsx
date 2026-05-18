@@ -1,6 +1,6 @@
 'use client';
 
-import { cents, formatMXN } from '@lidxi/shared';
+import { cents, formatMXN } from '@kobi/shared';
 import { useState } from 'react';
 import { HEATMAP_DATA, HEATMAP_PEAK } from './mock-heatmap';
 import { CH_COLORS, CH_LABELS, COMISIONES, MOCK_REPORTES } from './mock-reportes';

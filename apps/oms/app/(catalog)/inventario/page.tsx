@@ -1,4 +1,4 @@
-import { PageStub } from '@lidxi/ui';
+import { PageStub } from '@kobi/ui';
 
 export default function InventarioPage() {
   return <PageStub title="Inventario" />;

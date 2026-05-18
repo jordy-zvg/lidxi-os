@@ -1,6 +1,6 @@
 'use client';
 
-import { formatTimeMX } from '@lidxi/shared';
+import { formatTimeMX } from '@kobi/shared';
 import { useEffect, useState } from 'react';
 
 /**

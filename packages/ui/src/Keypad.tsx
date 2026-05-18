@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { IconBackspace } from '@tabler/icons-react';
 import { useEffect } from 'react';
 

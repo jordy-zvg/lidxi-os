@@ -1,7 +1,7 @@
 'use client';
 
-import { ROLE_LABEL, formatDateMX, formatTimeMX } from '@lidxi/shared';
-import { Keypad, Modal, PinDots } from '@lidxi/ui';
+import { ROLE_LABEL, formatDateMX, formatTimeMX } from '@kobi/shared';
+import { Keypad, Modal, PinDots } from '@kobi/ui';
 import {
   IconCheck,
   IconClock,

@@ -1,6 +1,6 @@
 'use client';
 
-import { SidebarItem, SidebarSection } from '@lidxi/ui';
+import { SidebarItem, SidebarSection } from '@kobi/ui';
 import {
   IconBuildingStore,
   IconCalendarStats,

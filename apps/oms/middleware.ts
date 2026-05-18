@@ -1,12 +1,12 @@
-import { verifyEmployeeJWT } from '@lidxi/db/auth';
+import { verifyEmployeeJWT } from '@kobi/db/auth';
 import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * Auth gating del OMS.
  *
  *   • Rutas dentro de `(auth)` (ej: /login) son públicas.
- *   • Cualquier otra ruta requiere cookie `lidxi-session` con un JWT válido
- *     firmado por nuestro JWT_SECRET (ver @lidxi/db/auth).
+ *   • Cualquier otra ruta requiere cookie `kobi-session` con un JWT válido
+ *     firmado por nuestro JWT_SECRET (ver @kobi/db/auth).
  *
  * Cuando la sesión es inválida o falta, redirigimos a /login con `?next=`
  * para regresar al destino original tras autenticar.
@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get('lidxi-session')?.value;
+  const token = req.cookies.get('kobi-session')?.value;
   if (!token) return redirectToLogin(req);
 
   try {

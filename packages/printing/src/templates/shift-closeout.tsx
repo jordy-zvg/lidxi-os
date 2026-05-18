@@ -1,4 +1,4 @@
-import { type CentsMXN, formatDateMX, formatMXN, formatTimeMX } from '@lidxi/shared';
+import { type CentsMXN, formatDateMX, formatMXN, formatTimeMX } from '@kobi/shared';
 import { Br, Cut, Line, Printer, Row, Text } from 'react-thermal-printer';
 
 export interface ShiftCloseoutData {

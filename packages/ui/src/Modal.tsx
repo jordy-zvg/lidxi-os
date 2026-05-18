@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@lidxi/shared';
+import { cn } from '@kobi/shared';
 import { type ReactNode, useEffect } from 'react';
 
 export interface ModalProps {
