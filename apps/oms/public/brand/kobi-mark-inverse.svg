@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Kobi mark inverse — K indigo sobre cuadrado blanco.
+    Para uso sobre fondos oscuros o coloreados donde el mark filled no aplica.
+    El asset de marca definitivo vive en kobi-mark-inverse.png.
+  -->
+  <rect width="64" height="64" rx="14" fill="#FFFFFF"/>
+  <path
+    fill="#635BFF"
+    d="M 13 12 L 21 12 L 21 29
+       L 44 12 L 53 12 L 29 33
+       L 53 52 L 44 52 L 21 35
+       L 21 52 L 13 52 Z"
+  />
+</svg>

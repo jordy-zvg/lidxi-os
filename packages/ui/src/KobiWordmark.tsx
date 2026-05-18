@@ -1,3 +1,20 @@
+/**
+ * Wordmark operativo de Kobi como texto Inter SemiBold.
+ *
+ * CUÁNDO USAR ESTE COMPONENTE (texto)
+ * - Header del OMS (sidebar brand, breadcrumb, topbar)
+ * - Recibo POS (footer "Powered by Kobi")
+ * - Emails transaccionales
+ * - Cualquier contexto donde el wordmark es utility, no hero
+ *
+ * CUÁNDO USAR EL PNG (kobi-wordmark.png)
+ * - Login hero (panel oscuro izquierdo)
+ * - Pantallas de error, splash, landing
+ * El PNG tiene la cuchara integrada en la O —un detalle geométrico
+ * de la marca que no aplica en contextos small o utility.
+ *
+ * @see /public/brand/kobi-wordmark.png — asset de alta fidelidad (1200px)
+ */
 import { cn } from '@kobi/shared';
 
 const FONT_SIZES: Record<string, { wordmark: string; tagline: string }> = {

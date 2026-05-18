@@ -1,4 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">
+  <!--
+    Kobi wordmark — fallback SVG simplificado (Inter SemiBold, sin cuchara en la O).
+    Usar para: CSS inline, tooltips, contextos donde PNG no aplica.
+    El asset de marca completo con la cuchara integrada en la O vive en:
+      kobi-wordmark.png (1200×670) — superficies de marca expuesta
+      kobi-wordmark-600.png (600×335) — usos responsivos
+      kobi-wordmark-300.png (300×168) — emails, usos pequeños
+    Usar PNG para: login hero, landing, emails, impresión.
+    Usar SVG para: uso programático, escalado arbitrario, fill="currentColor".
+  -->
   <text
     x="0"
     y="30"

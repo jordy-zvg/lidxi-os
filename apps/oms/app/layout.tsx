@@ -1,12 +1,25 @@
 import { inter, jetbrainsMono } from '@kobi/tokens/fonts';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Kobi',
+  title: { default: 'Kobi', template: '%s · Kobi' },
   description: 'El sistema operativo de la cocina moderna',
-  icons: { icon: '/brand/kobi-mark.svg', apple: '/brand/apple-touch-icon.svg' },
+  metadataBase: new URL('https://kobi.com.mx'),
+  openGraph: {
+    title: 'Kobi',
+    description: 'El sistema operativo de la cocina moderna',
+    url: 'https://kobi.com.mx',
+    siteName: 'Kobi',
+    locale: 'es_MX',
+    type: 'website',
+  },
+  twitter: { card: 'summary_large_image' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#635BFF',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

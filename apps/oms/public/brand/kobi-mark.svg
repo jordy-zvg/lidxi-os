@@ -1,15 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Kobi mark — geometric K sobre cuadrado redondeado indigo.
+    Fallback SVG para contextos donde el PNG no aplica (CSS inline, email, etc).
+    El asset de marca definitivo con geometría exacta vive en kobi-mark.png.
+    Variante inversa: kobi-mark-inverse.svg
+  -->
   <rect width="64" height="64" rx="14" fill="#635BFF"/>
-  <!-- K glyph — Inter SemiBold approximation, centered optical -->
-  <text
-    x="32"
-    y="44"
-    font-family="Inter, system-ui, -apple-system, sans-serif"
-    font-weight="600"
-    font-size="42"
+  <!-- K geométrica: stem vertical + brazos diagonales con corte en chevron -->
+  <path
     fill="#FFFFFF"
-    text-anchor="middle"
-    dominant-baseline="auto"
-    letter-spacing="-0.02em"
-  >K</text>
+    d="M 13 12 L 21 12 L 21 29
+       L 44 12 L 53 12 L 29 33
+       L 53 52 L 44 52 L 21 35
+       L 21 52 L 13 52 Z"
+  />
 </svg>

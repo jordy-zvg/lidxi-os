@@ -5,6 +5,15 @@ export const alt = 'Kobi — El sistema operativo de la cocina moderna';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
+/**
+ * OG image generada con Satori (next/og, edge runtime).
+ *
+ * Diseño: fondo indigo #635BFF full-bleed + wordmark Inter SemiBold en
+ * blanco + tagline + url. No usa el PNG del wordmark porque el archivo
+ * kobi-wordmark.png es indigo sobre transparente: sobre fondo indigo
+ * desaparece. La cuchara integrada en la O es un detalle del login hero,
+ * no del OG donde el thumbnail mide ~300px de ancho.
+ */
 export default function OgImage() {
   return new ImageResponse(
     <div
@@ -15,42 +24,49 @@ export default function OgImage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#F6F9FC',
+        background: '#635BFF',
         fontFamily: 'Inter, system-ui, sans-serif',
-        gap: 24,
       }}
     >
-      <span
+      {/* Wordmark */}
+      <div
         style={{
-          fontSize: 120,
+          fontSize: 180,
           fontWeight: 600,
-          color: '#635BFF',
-          letterSpacing: '-0.03em',
+          color: '#FFFFFF',
+          letterSpacing: '-0.04em',
           lineHeight: 1,
         }}
       >
         Kobi
-      </span>
-      <span
+      </div>
+
+      {/* Tagline */}
+      <div
         style={{
-          fontSize: 28,
+          marginTop: 32,
+          fontSize: 36,
           fontWeight: 400,
-          color: '#425466',
+          color: 'rgba(255, 255, 255, 0.75)',
           letterSpacing: 0,
         }}
       >
         El sistema operativo de la cocina moderna
-      </span>
-      <span
+      </div>
+
+      {/* URL — esquina inferior derecha */}
+      <div
         style={{
           position: 'absolute',
           bottom: 48,
+          right: 64,
           fontSize: 20,
-          color: '#8898AA',
+          fontWeight: 500,
+          color: 'rgba(255, 255, 255, 0.5)',
         }}
       >
         kobi.com.mx
-      </span>
+      </div>
     </div>,
     { ...size },
   );
