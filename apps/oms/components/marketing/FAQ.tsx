@@ -18,7 +18,7 @@ export function FAQ({ items }: FAQProps) {
   return (
     <div className="divide-y divide-ink/8">
       {items.map((item, i) => (
-        <div key={item.q}>
+        <div key={item.question}>
           <button
             type="button"
             onClick={() => setOpen(open === i ? null : i)}
