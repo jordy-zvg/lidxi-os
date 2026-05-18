@@ -1,6 +1,4 @@
-export const metadata = { title: 'Pedidos' };
-
-('use client');
+'use client';
 
 import { OrderDetailSlideOver } from '@/components/OrderDetailSlideOver';
 import { MOCK_ORDERS, type MockOrder, STATUS_COLUMN } from '@/components/orders/mock-orders';

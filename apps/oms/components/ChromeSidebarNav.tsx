@@ -46,7 +46,7 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Menú', href: '/menu', icon: <IconClipboardList size={16} /> },
       { label: 'Inventario', href: '/inventario', icon: <IconPackage size={16} /> },
-      { label: 'Precios', href: '/precios', icon: <IconReceipt size={16} /> },
+      { label: 'Tarifas', href: '/tarifas', icon: <IconReceipt size={16} /> },
     ],
   },
   {

@@ -1,7 +1,7 @@
-export const metadata = { title: 'Menú público' };
+export const metadata = { title: 'Editor de menú' };
 
-import { PageStub } from '@kobi/ui';
+import { MenuEditorScreen } from '@/components/menu-editor/MenuEditorScreen';
 
 export default function SitioPropioMenuPage() {
-  return <PageStub title="Editor de menú público" />;
+  return <MenuEditorScreen />;
 }

@@ -1,4 +1,4 @@
-export const metadata = { title: 'Precios' };
+export const metadata = { title: 'Tarifas' };
 
 import { PageStub } from '@kobi/ui';
 
