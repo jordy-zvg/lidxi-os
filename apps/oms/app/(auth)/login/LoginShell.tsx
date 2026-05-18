@@ -3,7 +3,7 @@
 import { HoraEnVivo } from '@/components/HoraEnVivo';
 import { activatePosStation } from '@/lib/auth-actions';
 import { formatTimeMX } from '@lidxi/shared';
-import { Card, Keypad, PinDots, StatusPill } from '@lidxi/ui';
+import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@lidxi/ui';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, useTransition } from 'react';
@@ -59,89 +59,92 @@ export const LoginShell = ({ stationName, branch, lastActivation }: LoginShellPr
   };
 
   return (
-    <div className="grid w-full max-w-[980px] grid-cols-1 gap-10 px-10 py-10 md:grid-cols-2">
-      <Card padding="lg" className="flex min-h-[520px] flex-col justify-between p-10">
-        <header className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink font-semibold text-white">
-            L
-          </span>
-          <span className="text-base font-semibold text-ink">LidxiOS</span>
-        </header>
+    <div className="flex min-h-screen">
+      {/* Panel izquierdo — Marca Kobi */}
+      <div
+        className="hidden lg:flex flex-col justify-between w-[55%] shrink-0 p-16"
+        style={{ background: 'var(--ink, #0A2540)' }}
+      >
+        <KobiWordmark size="xl" variant="dark" withTagline />
+        <p className="text-lg leading-relaxed max-w-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Ahorra hasta 28% en comisiones al diversificar tus canales de venta.
+        </p>
+      </div>
 
-        <section className="flex flex-col gap-3">
-          <Eyebrow>Estación</Eyebrow>
-          <h1 className="text-[22px] font-medium text-ink">{stationName}</h1>
-          <p className="text-[13px] text-ink-200">
-            {branch.name} · {branch.restaurantName}
-          </p>
-          <div>
-            <StatusPill variant="warn">Estación inactiva</StatusPill>
+      {/* Panel derecho — Formulario */}
+      <div className="flex flex-1 items-center justify-center bg-canvas px-6 py-12">
+        <div className="w-full max-w-[440px] space-y-6">
+          <div className="lg:hidden flex justify-center mb-8">
+            <KobiWordmark size="lg" withTagline />
           </div>
-        </section>
 
-        <section className="space-y-3 border-t border-line pt-6">
-          <Eyebrow>Estado del día</Eyebrow>
-          <DataRow label={<LongDateLabel />} value={<HoraEnVivo className="font-mono" />} />
-          <DataRow
-            label="Última activación"
-            value={
-              lastActivation ? (
-                <span>
-                  <span className="font-mono">
-                    {formatRelativeShort(new Date(lastActivation.started_at))}
-                  </span>
-                  {' · '}
-                  {abbreviateName(lastActivation.employee_full_name)}
-                </span>
-              ) : (
-                <span className="text-ink-400">Sin activaciones previas</span>
-              )
-            }
-          />
-          <DataRow
-            label="Caja"
-            value={<span className="text-ink-300">Cerrada · pendiente apertura</span>}
-          />
-        </section>
-      </Card>
+          <Card padding="lg" className="flex flex-col gap-5 p-8">
+            <header className="space-y-1">
+              <Eyebrow>Estación</Eyebrow>
+              <h1 className="text-[22px] font-medium text-ink">{stationName}</h1>
+              <p className="text-[13px] text-ink-200">
+                {branch.name} · {branch.restaurantName}
+              </p>
+              <div className="pt-1">
+                <StatusPill variant="warn">Estación inactiva</StatusPill>
+              </div>
+            </header>
 
-      <Card padding="lg" className="flex min-h-[520px] flex-col items-center p-10">
-        <header className="flex flex-col items-center gap-2">
-          <Eyebrow>Activar estación</Eyebrow>
-          <h2 className="text-lg font-medium text-ink">Ingresa tu PIN para empezar</h2>
-          <p className="text-[13px] text-ink-300">Solo gerentes y cajeros autorizados</p>
-        </header>
+            <section className="space-y-3 border-t border-line pt-4">
+              <Eyebrow>Estado del día</Eyebrow>
+              <DataRow label={<LongDateLabel />} value={<HoraEnVivo className="font-mono" />} />
+              <DataRow
+                label="Última activación"
+                value={
+                  lastActivation ? (
+                    <span>
+                      <span className="font-mono">
+                        {formatRelativeShort(new Date(lastActivation.started_at))}
+                      </span>
+                      {' · '}
+                      {abbreviateName(lastActivation.employee_full_name)}
+                    </span>
+                  ) : (
+                    <span className="text-ink-400">Sin activaciones previas</span>
+                  )
+                }
+              />
+            </section>
+          </Card>
 
-        <div className="my-8">
-          <PinDots value={pin} shake={shake} success={success} />
+          <Card padding="lg" className="flex flex-col items-center gap-6 p-8">
+            <header className="text-center space-y-1">
+              <Eyebrow>Inicia sesión en Kobi</Eyebrow>
+              <h2 className="text-lg font-medium text-ink">Ingresa tu PIN</h2>
+              <p className="text-[13px] text-ink-300">Solo gerentes y cajeros autorizados</p>
+            </header>
+
+            <PinDots value={pin} shake={shake} success={success} />
+
+            <Keypad
+              onDigit={onDigit}
+              onBackspace={onBackspace}
+              onClear={onClear}
+              disabled={pending || success}
+              size="md"
+            />
+
+            {error && (
+              <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
+                {error}
+              </p>
+            )}
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[11px] text-ink-400">
+              <IconInfoCircle size={13} />
+              Activar el POS también registra tu hora de entrada
+            </span>
+          </Card>
         </div>
-
-        <Keypad
-          onDigit={onDigit}
-          onBackspace={onBackspace}
-          onClear={onClear}
-          disabled={pending || success}
-          size="md"
-        />
-
-        {error && (
-          <p className="mt-5 text-[13px] font-medium text-danger-text" role="alert">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-auto pt-6">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[11px] text-ink-400">
-            <IconInfoCircle size={13} />
-            Activar el POS también registra tu hora de entrada
-          </span>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 };
-
-// ---------------------------------------------------------------------------
 
 const Eyebrow = ({ children }: { children: string }) => (
   <p className="text-[11px] font-medium uppercase tracking-wider text-ink-400">{children}</p>
@@ -170,7 +173,7 @@ const longDateFormatter = new Intl.DateTimeFormat('es-MX', {
 });
 
 const formatLongDateMX = (d: Date): string => {
-  const raw = longDateFormatter.format(d); // "lunes, 11 de mayo"
+  const raw = longDateFormatter.format(d);
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 };
 
@@ -191,7 +194,6 @@ const formatRelativeShort = (d: Date): string => {
   return `${short} · ${time}`;
 };
 
-/** "Jorge Vargas" → "J. Vargas" */
 const abbreviateName = (full: string): string => {
   const parts = full.trim().split(/\s+/);
   if (parts.length < 2) return full;

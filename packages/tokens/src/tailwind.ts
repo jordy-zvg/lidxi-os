@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Preset de Tailwind para LidxiOS.
+ * Preset de Tailwind para Kobi.
  *
  * Cada app extiende este preset desde su propio `tailwind.config.ts`:
  *

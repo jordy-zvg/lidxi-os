@@ -4,8 +4,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LidxiOS Clock',
-  description: 'Fichaje por huella',
+  title: 'Kobi',
+  description: 'Fichaje por huella — Kobi',
   manifest: '/manifest.webmanifest',
 };
 

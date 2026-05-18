@@ -4,8 +4,9 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LidxiOS',
-  description: 'Order Management System para dark kitchens',
+  title: 'Kobi',
+  description: 'El sistema operativo de la cocina moderna',
+  icons: { icon: '/brand/kobi-mark.svg', apple: '/brand/apple-touch-icon.svg' },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

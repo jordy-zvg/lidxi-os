@@ -1,5 +1,4 @@
-import { Sidebar, Topbar } from '@lidxi/ui';
-import { IconSettingsAutomation } from '@tabler/icons-react';
+import { KobiWordmark, Sidebar, Topbar } from '@lidxi/ui';
 import type { ReactNode } from 'react';
 import { ChromeSidebarNav } from './ChromeSidebarNav';
 import { ClockOverlayProvider } from './ClockOverlayProvider';
@@ -9,19 +8,12 @@ import { SessionMenu } from './SessionMenu';
 export const Chrome = ({ children }: { children: ReactNode }) => (
   <ClockOverlayProvider>
     <div className="flex h-screen overflow-hidden">
-      <Sidebar
-        brand={
-          <div className="flex items-center gap-2">
-            <IconSettingsAutomation size={20} className="text-brand" />
-            <span className="font-semibold text-ink">LidxiOS</span>
-          </div>
-        }
-      >
+      <Sidebar brand={<KobiWordmark size="md" />}>
         <ChromeSidebarNav />
       </Sidebar>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
-          breadcrumbs={<span>LidxiOS</span>}
+          breadcrumbs={<KobiWordmark size="sm" />}
           actions={<EntradaSalidaButton />}
           session={<SessionMenu />}
         />

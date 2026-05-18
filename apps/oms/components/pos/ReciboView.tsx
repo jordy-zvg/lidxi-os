@@ -108,6 +108,14 @@ export const ReciboView = ({ result, onNuevaVenta, onPrint }: ReciboViewProps) =
           Nueva venta
         </Button>
       </div>
+
+      {/* Footer de marca */}
+      <div className="mt-4 text-center space-y-0.5">
+        <p className="text-[10px] font-mono text-ink-500">Powered by Kobi</p>
+        <p className="text-[9px] font-mono text-ink-500">
+          El sistema operativo de la cocina moderna
+        </p>
+      </div>
     </div>
   </div>
 );

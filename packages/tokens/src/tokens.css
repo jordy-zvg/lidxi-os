@@ -1,5 +1,6 @@
 /*
- * LidxiOS Design Tokens v2.1
+ * Kobi Design Tokens v2.1
+ * (anteriormente LidxiOS — rebranding Sprint 05)
  *
  * Sprint 01 (Foundation): añade channel palette + dark set sin
  * romper tokens v2.0. Fuente única de verdad para colores, radios
@@ -7,6 +8,16 @@
  */
 
 :root {
+  /* ========== 0 · BRAND KOBI ========== */
+
+  --brand-wordmark-color: var(--brand, #635bff);
+  --brand-wordmark-color-inverse: #ffffff;
+  --brand-wordmark-weight: 600;
+  --brand-wordmark-tracking: -0.02em;
+  --brand-tagline-color: var(--ink-3, #425466);
+  --brand-tagline-color-inverse: rgba(255, 255, 255, 0.7);
+  --brand-tagline-weight: 400;
+
   /* ========== 1 · FOUNDATION ========== */
 
   --font-sans: "Inter", -apple-system, system-ui, sans-serif;
