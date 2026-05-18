@@ -1,3 +1,5 @@
+export const metadata = { title: 'Iniciar sesión' };
+
 import { getBranchId } from '@/lib/station';
 import {
   createSupabaseServiceClient,

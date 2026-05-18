@@ -83,7 +83,7 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-ink/40"
+        className="fixed inset-0 z-40 bg-ink/70"
         onClick={onClose}
         role="presentation"
         onKeyDown={(e) => e.key === 'Enter' && onClose()}

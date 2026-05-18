@@ -49,7 +49,7 @@ const MOCK_INTEGRACIONES: Integracion[] = [
   {
     id: 'direct',
     nombre: 'Uber Direct',
-    color: '#635BFF',
+    color: '#000000',
     estado: 'connected',
     store_id: 'UD-MZTL-001',
     ultima_sync: '14:35',
@@ -59,7 +59,7 @@ const MOCK_INTEGRACIONES: Integracion[] = [
   {
     id: 'stripe',
     nombre: 'Stripe · pagos sitio propio',
-    color: '#635BFF',
+    color: '#5469D4',
     estado: 'connected',
     store_id: 'acct_1QxMZL…',
     ultima_sync: '14:35',
@@ -104,7 +104,7 @@ const OAuthModal = ({ nombre, onSuccess, onClose }: OAuthModalProps) => {
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-ink/40"
+        className="fixed inset-0 z-40 bg-ink/70"
         role="presentation"
         onClick={onClose}
         onKeyDown={(e) => e.key === 'Enter' && onClose()}
@@ -284,7 +284,7 @@ export const IntegracionesScreen = () => {
                 <td className="py-row-y px-row-x font-mono text-ink-300">
                   {i.estado === 'connected' ? i.pedidos_hoy : '—'}
                 </td>
-                <td className="py-2.5 font-mono text-danger-text">
+                <td className="py-2.5 font-mono text-ink-300">
                   {i.estado === 'connected' && i.pedidos_hoy > 0
                     ? fmtPago(i.pedidos_hoy, i.comision)
                     : '—'}

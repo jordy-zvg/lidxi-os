@@ -32,13 +32,17 @@ const MOCK_TURNO = {
 // Denominaciones
 // ---------------------------------------------------------------------------
 
+// Paleta desaturada — mantiene asociación visual (verde=$1000, marrón=$500,
+// magenta=$200, coral=$100, naranja=$50, azul=$20) pero alejada del rojo
+// Miztli (#E11D2E). El $100 en particular pasa de rojo brillante a coral
+// oscuro, perceptualmente distinto.
 const BILLETES = [
-  { valor: 1000, color: '#2D6A4F' },
-  { valor: 500, color: '#1B4332' },
-  { valor: 200, color: '#B5179E' },
-  { valor: 100, color: '#E63946' },
-  { valor: 50, color: '#F4A261' },
-  { valor: 20, color: '#2196F3' },
+  { valor: 1000, color: '#4A7C59' },
+  { valor: 500, color: '#8B6F47' },
+  { valor: 200, color: '#A36480' },
+  { valor: 100, color: '#B45A52' },
+  { valor: 50, color: '#C97B3A' },
+  { valor: 20, color: '#4A6FA5' },
 ];
 
 const MONEDAS = [

@@ -25,8 +25,10 @@ export const CHANNELS = {
     key: 'rappi',
     label: 'Rappi',
     short: 'Rappi',
-    bg: '#FEE7EB',
-    color: '#A8112E',
+    // Fondo neutro + texto ink — el rojo Rappi (#FF441F) es brand del canal,
+    // no del sistema. Chip neutral evita colisión con rojo de errores (--danger).
+    bg: '#F8FAFC',
+    color: '#425466',
   },
   didi: {
     key: 'didi',

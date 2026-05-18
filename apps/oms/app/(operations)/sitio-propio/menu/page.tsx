@@ -1,3 +1,5 @@
+export const metadata = { title: 'Menú público' };
+
 import { PageStub } from '@kobi/ui';
 
 export default function SitioPropioMenuPage() {

@@ -2,22 +2,35 @@ import { CHANNELS, formatMXN, formatOrderId, formatTimeMX } from '@kobi/shared';
 import { Br, Cut, Line, Printer, Row, Text } from 'react-thermal-printer';
 import type { ReceiptOrder } from '../types';
 
+export interface TenantInfo {
+  displayName: string;
+  website?: string | null;
+}
+
 /**
  * Ticket de venta para el cliente (80mm).
  * Incluye precios, impuestos y total. Pie con leyenda fiscal/contacto.
+ *
+ * @param tenant - Datos del establecimiento. Inyectar via useTenant() o
+ *   equivalente. Nunca hardcodear el nombre del cliente en este componente.
  */
 export const CustomerReceipt = ({
   order,
   branchName,
-}: { order: ReceiptOrder; branchName: string }) => {
+  tenant,
+}: {
+  order: ReceiptOrder;
+  branchName: string;
+  tenant: TenantInfo;
+}) => {
   const channel = CHANNELS[order.channel];
   return (
     <Printer type="epson" width={42}>
       <Text align="center" bold size={{ width: 2, height: 2 }}>
-        MIZTLI
+        {tenant.displayName.toUpperCase()}
       </Text>
       <Text align="center">{branchName}</Text>
-      <Text align="center">www.miztli.mx</Text>
+      {tenant.website && <Text align="center">{tenant.website}</Text>}
       <Line />
       <Row left={<Text>Canal</Text>} right={<Text>{channel.label}</Text>} />
       <Row left={<Text>Orden</Text>} right={<Text>{formatOrderId(order.id)}</Text>} />
@@ -57,6 +70,9 @@ export const CustomerReceipt = ({
       />
       <Line />
       <Text align="center">Gracias por su compra</Text>
+      <Text align="center" size={{ width: 1, height: 1 }}>
+        Powered by Kobi
+      </Text>
       <Br />
       <Cut />
     </Printer>

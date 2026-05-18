@@ -1,3 +1,5 @@
+export const metadata = { title: 'Precios' };
+
 import { PageStub } from '@kobi/ui';
 
 export default function PreciosPage() {

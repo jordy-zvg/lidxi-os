@@ -22,7 +22,7 @@ export const MenuItem = ({ item, qty, onAdd }: MenuItemProps) => (
     {item.description && (
       <p className="text-xs text-ink-400 mt-0.5 line-clamp-1">{item.description}</p>
     )}
-    <p className="font-mono text-sm font-semibold text-brand mt-1.5">
+    <p className="font-mono text-sm font-semibold text-ink mt-1.5">
       {formatMXN(item.displayPriceCents)}
     </p>
   </button>

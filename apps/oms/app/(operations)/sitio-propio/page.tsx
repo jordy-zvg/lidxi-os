@@ -1,3 +1,5 @@
+export const metadata = { title: 'Tienda directa' };
+
 import { PageStub } from '@kobi/ui';
 
 export default function SitioPropioPage() {

@@ -1,15 +1,16 @@
 'use client';
 
 import { Button, ChannelBadge, StatusPill } from '@kobi/ui';
-import { IconBuildingStore, IconMapPin, IconPhone, IconX } from '@tabler/icons-react';
+import { IconBuildingStore, IconMapPin, IconPhone, IconPrinter, IconX } from '@tabler/icons-react';
+import { useEffect, useRef } from 'react';
+import { WebReceipt } from './WebReceipt';
+import type { MockOrder } from './orders/mock-orders';
 
 const CHANNEL_NAMES: Record<string, string> = {
   eats: 'Uber Eats',
   rappi: 'Rappi',
   didi: 'Didi Food',
 };
-import { useEffect } from 'react';
-import type { MockOrder } from './orders/mock-orders';
 
 const STATUS_PILL: Record<
   string,
@@ -45,7 +46,24 @@ interface OrderDetailSlideOverProps {
   onClose: () => void;
 }
 
+const PRINTABLE_STATUSES = new Set(['ready', 'dispatched', 'delivered']);
+
 export const OrderDetailSlideOver = ({ order, onClose }: OrderDetailSlideOverProps) => {
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!printRef.current || !order) return;
+    const content = printRef.current.innerHTML;
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+    iframe.srcdoc = `<html><head><title>Ticket ${order.id}</title><style>body{margin:0;background:#fff;font-family:monospace}</style></head><body>${content}</body></html>`;
+    document.body.appendChild(iframe);
+    iframe.onload = () => {
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    };
+  };
+
   useEffect(() => {
     if (!order) return;
     const handler = (e: KeyboardEvent) => {
@@ -78,7 +96,7 @@ export const OrderDetailSlideOver = ({ order, onClose }: OrderDetailSlideOverPro
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-ink/40"
+        className="fixed inset-0 z-40 bg-ink/70"
         onClick={onClose}
         onKeyDown={(e) => e.key === 'Enter' && onClose()}
         role="presentation"
@@ -157,7 +175,7 @@ export const OrderDetailSlideOver = ({ order, onClose }: OrderDetailSlideOverPro
                 <span className="font-mono">{formatCurrency(subtotal)}</span>
               </div>
               {order.platformFee !== null && (
-                <div className="flex justify-between text-sm text-danger-text">
+                <div className="flex justify-between text-sm text-ink-300">
                   <span>Comisión plataforma</span>
                   <span className="font-mono">−{formatCurrency(order.platformFee)}</span>
                 </div>
@@ -309,28 +327,51 @@ export const OrderDetailSlideOver = ({ order, onClose }: OrderDetailSlideOverPro
 
         {/* Footer sticky */}
         <footer className="shrink-0 border-t border-line px-5 py-4">
-          {order.status === 'received' && <Button className="w-full">Aceptar pedido</Button>}
-          {order.status === 'preparing' && <Button className="w-full">Marcar listo</Button>}
-          {order.status === 'ready' && order.channel === 'direct' && (
-            <div className="flex gap-2">
-              <Button className="flex-1">Despachar con Uber Direct</Button>
-              <Button variant="secondary">Ver alternativas</Button>
+          <div className="flex items-center gap-2">
+            {/* Botón imprimir — solo cuando el pedido está listo para facturar */}
+            {PRINTABLE_STATUSES.has(order.status) && (
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="flex items-center gap-1.5 h-9 px-3 rounded border border-line-2 text-sm text-ink-300 hover:bg-surface-2 transition-colors shrink-0"
+                title="Imprimir ticket"
+              >
+                <IconPrinter size={15} />
+                Imprimir
+              </button>
+            )}
+
+            {/* Acción primaria según estado */}
+            <div className="flex-1">
+              {order.status === 'received' && <Button className="w-full">Aceptar pedido</Button>}
+              {order.status === 'preparing' && <Button className="w-full">Marcar listo</Button>}
+              {order.status === 'ready' && order.channel === 'direct' && (
+                <div className="flex gap-2">
+                  <Button className="flex-1">Despachar con Uber Direct</Button>
+                  <Button variant="secondary">Ver alternativas</Button>
+                </div>
+              )}
+              {order.status === 'ready' && order.channel !== 'direct' && (
+                <p className="text-sm text-ink-400 text-center">
+                  Courier en camino · ETA {order.deliveryEta} min
+                </p>
+              )}
+              {order.status === 'dispatched' && (
+                <p className="text-sm text-ink-400 text-center">
+                  En camino · {order.courier?.name ?? 'Courier'}
+                </p>
+              )}
+              {order.status === 'delivered' && (
+                <p className="text-sm text-ink-400 text-center">Pedido entregado</p>
+              )}
             </div>
-          )}
-          {order.status === 'ready' && order.channel !== 'direct' && (
-            <p className="text-sm text-ink-400 text-center">
-              Courier en camino · ETA {order.deliveryEta} min
-            </p>
-          )}
-          {order.status === 'dispatched' && (
-            <p className="text-sm text-ink-400 text-center">
-              En camino · {order.courier?.name ?? 'Courier'}
-            </p>
-          )}
-          {order.status === 'delivered' && (
-            <p className="text-sm text-ink-400 text-center">Pedido entregado</p>
-          )}
+          </div>
         </footer>
+
+        {/* Contenido del ticket — oculto visualmente, disponible para imprimir */}
+        <div ref={printRef} className="hidden" aria-hidden>
+          <WebReceipt order={order} />
+        </div>
       </dialog>
     </>
   );

@@ -239,7 +239,7 @@ export const ReportesScreen = () => {
                         {formatMXN(d.ventas)}
                       </td>
                       <td className="py-row-y px-row-x font-mono text-ink-300">{pct}%</td>
-                      <td className="py-row-y px-row-x font-mono text-danger-text">
+                      <td className="py-row-y px-row-x font-mono text-ink-300">
                         {comision > 0 ? `${Math.round(comision * 100)}%` : '—'}
                       </td>
                       <td className="py-row-y font-mono text-ok-text">

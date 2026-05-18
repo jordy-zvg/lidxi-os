@@ -29,8 +29,8 @@ export const KdsTopbar = ({
 }: KdsTopbarProps) => (
   <header className="h-14 shrink-0 bg-dark-canvas border-b border-dark-line flex items-center px-6 gap-4">
     <div className="flex items-center gap-3 shrink-0">
-      <div className="h-7 w-7 rounded bg-dark-surface flex items-center justify-center text-dark-ink font-bold text-sm select-none">
-        L
+      <div className="h-7 w-7 rounded bg-[#635BFF] flex items-center justify-center text-white font-bold text-sm select-none">
+        K
       </div>
       <span className="text-sm font-medium text-dark-ink-300">KDS</span>
       <div className="w-px h-4 bg-dark-line" />

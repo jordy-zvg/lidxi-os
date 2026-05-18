@@ -5,6 +5,27 @@
  * Sprint 01 (Foundation): añade channel palette + dark set sin
  * romper tokens v2.0. Fuente única de verdad para colores, radios
  * y sombras del sistema.
+ *
+ * ─────────────────────────────────────────────────────────────────
+ * REGLA DE COLOR ROJO — CRÍTICA (Brand Hardening Sprint)
+ * ─────────────────────────────────────────────────────────────────
+ *
+ * 1. --danger (#DC2626, Tailwind red-600) es el ÚNICO rojo permitido
+ *    en la UI del sistema. Usar para: errores reales, acciones
+ *    destructivas confirmadas, diferencias de efectivo negativas,
+ *    alarmas de tiempo excedido en KDS.
+ *
+ * 2. #E11D2E (rojo Miztli) está RESERVADO para assets del cliente:
+ *    logo Miztli, header del recibo del cliente. Jamás en botones,
+ *    badges, headers ni texto del sistema operativo.
+ *
+ * 3. Los rojos brand-adjacent (#A8112E, #DF1B41, #E63946) están
+ *    PROHIBIDOS. Son perceptualmente indistinguibles de Miztli para
+ *    el usuario operativo. Migrar a --danger.
+ *
+ * 4. Comisiones, costos informativos, valores negativos que no sean
+ *    errores del sistema NO son danger. Usar --ink-3 o --ink-4.
+ * ─────────────────────────────────────────────────────────────────
  */
 
 :root {
@@ -101,9 +122,10 @@
   --warn-soft: #fef7e6;
   --warn-text: #93530a;
 
-  --danger: #df1b41;
-  --danger-soft: #fee7eb;
-  --danger-text: #a8112e;
+  /* Danger — Tailwind red-600 (#DC2626), alejado del rojo Miztli (#E11D2E) */
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-text: #b91c1c;
 
   /* ========== 4 · CHANNEL PALETTE [NEW · Sprint 01] ==========
      ch-direct apunta a --brand (refuerza diferenciador económico).

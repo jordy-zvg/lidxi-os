@@ -1,5 +1,6 @@
 import { KobiWordmark, Sidebar, Topbar } from '@kobi/ui';
 import type { ReactNode } from 'react';
+import { Breadcrumb } from './Breadcrumb';
 import { ChromeSidebarNav } from './ChromeSidebarNav';
 import { ClockOverlayProvider } from './ClockOverlayProvider';
 import { EntradaSalidaButton } from './EntradaSalidaButton';
@@ -13,7 +14,7 @@ export const Chrome = ({ children }: { children: ReactNode }) => (
       </Sidebar>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
-          breadcrumbs={<KobiWordmark size="sm" />}
+          breadcrumbs={<Breadcrumb />}
           actions={<EntradaSalidaButton />}
           session={<SessionMenu />}
         />
