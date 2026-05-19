@@ -1,8 +1,8 @@
-# Audit Handoff — 2026-05-19 19:05 CST (refresh post Sprint 7.5 ampliado)
+# Audit Handoff — 2026-05-19 → Sprint 7.7 (updated)
 
 ## Build info
-- Commit SHA: `9b9b5ae9c5a981a549e896f1917ab98dbaa220e2`
-- Previous SHA reportado al auditor: `090bb0f` — recargar con el SHA nuevo
+- Commit SHA Sprint 7.7: `a53bdac` (Fases 3-7) + `1b8ad41` (DB Fases 1-2)
+- Previous SHA: `9b9b5ae` (Sprint 7.5 ampliado)
 - Branch: `main` (no push)
 - Apps levantadas:
   - **oms** (marketing público + admin panel) → puerto 3000
@@ -87,6 +87,29 @@ Todos verificados con `curl -I` → HTTP/2 200.
 
 ### Captura visual
 No tomé captura programática (sin browser tool). El auditor verifica `/admin/inicio` post-onboarding en su sesión activa.
+
+## Sprint 7.7 — Cierre (commits 1b8ad41 + a53bdac)
+
+| Fase | Fix | Archivos clave | Estado |
+|------|-----|----------------|--------|
+| 1+2 DB | tenant_id a restaurants/menu_items/employees/orders; RLS unificada | `migrations/20260521000001_unify_tenant_model.sql`, `20260521000002_unify_rls_policies.sql` | ✅ |
+| H22 | Admin topbar muestra nombre real del tenant (no "Tenant Name") | `lib/supabase/tenant-guard.ts`, `components/admin/AdminShell.tsx`, `app/admin/layout.tsx` | ✅ |
+| H23/H24 | Cross-tenant leak cerrado — auditor ve 0 filas de Miztli | policies `*_tenant_isolation` + RLS tests 14/14 PASS | ✅ |
+| H25 | "Invitar empleado" CTA + drawer en `/admin/equipo` | `components/equipo/InviteEmployeeDrawer.tsx`, `app/admin/equipo/actions.ts` | ✅ |
+| H26 | Reset-password dual flow: `?code=` PKCE + `#access_token` implicit | `app/auth/reset-password/ResetPasswordForm.tsx` | ✅ |
+| Tests | 14 assertions RLS — tenant isolation, orphan check, legacy policy count | `packages/db/tests/rls-tenant-isolation.sql` | ✅ 14/14 |
+
+### Arquitectura multi-tenant post Sprint 7.7
+- `user_tenants` es el pivot de autorización: RLS en restaurants/menu_items/employees/orders ahora lee `user_tenants.tenant_id` con `auth.uid()`
+- Service role bypasea para server actions autorizadas (cron, webhooks, admin scripts)
+- `anon` solo ve `menu_items` con `active = true` (storefront público)
+- `requireTenant()` en `lib/supabase/tenant-guard.ts` es el helper SSOT para server components/actions
+
+### Deuda documentada (no bloqueante para auditoría)
+- 11 tablas con RLS legacy aún pendiente: `inventory_items`, `printers`, `dispatches`, `automation_rules`, `couriers`, `delivery_tracking`, `recipes`, `menu_channel_prices`, `order_items`, `shifts`, `print_jobs`
+- `employees` legacy (4 filas Miztli, rol English enum) → consolidar con `employees_v2` en Sprint 9
+- `NEXT_PUBLIC_MAPBOX_TOKEN` no configurado → geocoding en modo fallback manual
+- Sentry aún no instalado → `console.error` + `error.digest` como traza provisional
 
 ## Pendientes conocidos no resueltos en este sprint
 - **#6** El 404 de rutas inexistentes bajo `/admin/*` cuando la sesión es válida y el rol también pero la ruta no existe, todavía renderiza el `not-found.tsx` global (no uno específico de admin). Diferido a **Sprint 9**.
