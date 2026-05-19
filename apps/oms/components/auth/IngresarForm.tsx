@@ -38,7 +38,7 @@ export function IngresarForm() {
     const target = redirectTo
       ? `/auth/post-login?redirectTo=${encodeURIComponent(redirectTo)}`
       : '/auth/post-login';
-    router.push(target);
+    router.push(target as import('next').Route);
     router.refresh();
   };
 

@@ -1,11 +1,14 @@
 'use client';
 
+import { Button } from '@kobi/ui';
+import { IconUserPlus } from '@tabler/icons-react';
 import { useState } from 'react';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeSlideOver } from './EmployeeSlideOver';
+import { InviteEmployeeDrawer } from './InviteEmployeeDrawer';
 import { MOCK_EMPLOYEES, type MockEmployee } from './mock-employees';
 
-const totalHorasHoy = MOCK_EMPLOYEES.filter((e) => e.onShift).length * 4; // mock simple
+const totalHorasHoy = MOCK_EMPLOYEES.filter((e) => e.onShift).length * 4;
 
 const MOCK_KPIS = {
   total: MOCK_EMPLOYEES.length,
@@ -16,10 +19,17 @@ const MOCK_KPIS = {
 
 export const EquipoScreen = () => {
   const [selected, setSelected] = useState<MockEmployee | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-section-sm h-full">
-      <h1 className="text-xl font-medium text-ink shrink-0">Equipo</h1>
+      <div className="flex items-center justify-between shrink-0">
+        <h1 className="text-xl font-medium text-ink">Equipo</h1>
+        <Button onClick={() => setInviteOpen(true)} size="sm">
+          <IconUserPlus size={16} className="mr-1.5" />
+          Invitar empleado
+        </Button>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-card-gap shrink-0">
@@ -48,6 +58,7 @@ export const EquipoScreen = () => {
       </div>
 
       <EmployeeSlideOver employee={selected} onClose={() => setSelected(null)} />
+      <InviteEmployeeDrawer open={inviteOpen} onClose={() => setInviteOpen(false)} />
     </div>
   );
 };

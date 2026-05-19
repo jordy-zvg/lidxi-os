@@ -14,23 +14,46 @@ export function ResetPasswordForm() {
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(false);
 
-  // Supabase's verify endpoint redirects with #access_token in the URL hash.
-  // The supabase-js client picks it up automatically on init and stores the
-  // session, after which updateUser({ password }) is authorized.
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-      else {
-        // detectSessionInUrl runs on init; give it a tick to pick up the hash.
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: d2 }) => {
-            setReady(!!d2.session);
-            if (!d2.session) setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
-          });
-        }, 200);
+
+    async function resolveSession() {
+      // PKCE flow: Supabase redirects with ?code=<code>&type=recovery
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code) {
+        const { error: exchErr } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchErr) {
+          setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
+          return;
+        }
+        // Clean the code from the URL so a reload doesn't re-exchange
+        const clean = new URL(window.location.href);
+        clean.searchParams.delete('code');
+        clean.searchParams.delete('type');
+        window.history.replaceState(null, '', clean.toString());
+        setReady(true);
+        return;
       }
-    });
+
+      // Implicit flow: Supabase redirects with #access_token=...&type=recovery
+      // supabase-js detects the hash on init; give it one tick.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setReady(true);
+        return;
+      }
+      setTimeout(async () => {
+        const { data: d2 } = await supabase.auth.getSession();
+        if (d2.session) {
+          setReady(true);
+        } else {
+          setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
+        }
+      }, 250);
+    }
+
+    resolveSession();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
