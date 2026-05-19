@@ -3,15 +3,32 @@ import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
 // Called after email/password sign-in to determine where to redirect.
-// Checks onboarding_completed and routes accordingly.
 function safeRedirect(raw: string | null): string | null {
   if (!raw) return null;
   if (!raw.startsWith('/admin/')) return null;
   return raw;
 }
 
+// Resolve the public origin honoring proxy headers (Cloudflare tunnel, Vercel, etc.)
+// to avoid leaking the internal hostname (`localhost:3000`) in Location headers.
+function resolveOrigin(request: NextRequest): string {
+  const envOverride = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (envOverride && /^https?:\/\//.test(envOverride)) return envOverride;
+
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+  const host = forwardedHost ?? request.headers.get('host');
+  if (host) {
+    const proto = forwardedProto ?? (host.startsWith('localhost') ? 'http' : 'https');
+    return `${proto}://${host}`;
+  }
+
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: NextRequest) {
-  const { origin, searchParams } = new URL(request.url);
+  const origin = resolveOrigin(request);
+  const { searchParams } = new URL(request.url);
   const redirectTo = safeRedirect(searchParams.get('redirectTo'));
   const cookieStore = cookies();
 
@@ -60,6 +77,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/onboarding/restaurante`);
   }
 
-  // Onboarding complete — honor redirectTo if it's a safe /admin/* path.
   return NextResponse.redirect(`${origin}${redirectTo ?? '/admin/inicio'}`);
 }

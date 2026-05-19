@@ -1,6 +1,6 @@
 'use client';
 
-import { completeOnboarding } from '@/app/(marketing)/onboarding/actions';
+import { completeOnboarding } from '@/app/(onboarding)/onboarding/actions';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 

@@ -9,72 +9,23 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
 
-// TODO: validar precios definitivos con stakeholder
-const PLANS = [
-  {
-    id: 'arranque',
-    name: 'Arranque',
-    priceMonthly: '$799 MXN',
-    priceAnnual: '$639 MXN',
-    priceSub: '/ sucursal / mes',
-    description: 'Para un restaurante o cocina oscura que empieza.',
-    features: [
-      'POS y caja',
-      'OMS hasta 2 canales (Uber Eats + tu sitio)',
-      'KDS básico (1 estación)',
-      'Inventario simple',
-      'Hasta 3 usuarios',
-      'Soporte por correo',
-    ],
-    cta: { label: 'Empezar gratis 14 días', href: '/registro?plan=arranque' as Route },
-    highlighted: false,
-    badge: undefined,
+import { PLANS as CANONICAL_PLANS, formatMXN } from '@/lib/constants/plans';
+
+const PLANS = CANONICAL_PLANS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  priceMonthly: formatMXN(p.priceMonthlyMXN),
+  priceAnnual: formatMXN(p.priceAnnualMXN),
+  priceSub: p.priceSub,
+  description: p.description,
+  features: p.features,
+  cta: {
+    label: p.id === 'escala' ? 'Hablar con ventas' : 'Empezar gratis 14 días',
+    href: (p.id === 'escala' ? '/contacto?tipo=escala' : `/registro?plan=${p.id}`) as Route,
   },
-  {
-    id: 'crecimiento',
-    name: 'Crecimiento',
-    priceMonthly: '$1,499 MXN',
-    priceAnnual: '$1,199 MXN',
-    priceSub: '/ sucursal / mes',
-    description: 'Para operaciones con múltiples canales y delivery.',
-    features: [
-      'Todo lo de Arranque, más:',
-      'OMS multi-canal (Uber Eats, Rappi, Didi, tu sitio)',
-      'Storefront propio con Uber Direct',
-      'Automatizaciones (hasta 10 reglas activas)',
-      'KDS multi-estación',
-      'Reportes avanzados',
-      'Hasta 10 usuarios',
-      'Soporte prioritario por WhatsApp',
-    ],
-    cta: { label: 'Empezar gratis 14 días', href: '/registro?plan=crecimiento' as Route },
-    highlighted: true,
-    badge: 'Más popular',
-  },
-  {
-    id: 'escala',
-    name: 'Escala',
-    priceMonthly: null,
-    priceAnnual: null,
-    priceSub: undefined,
-    description: 'Para cadenas y operaciones multi-sucursal.',
-    features: [
-      'Todo lo de Crecimiento, más:',
-      'Sucursales ilimitadas',
-      'Reportes consolidados con drill-down',
-      'Automatizaciones ilimitadas',
-      'Permisos granulares por sucursal/rol',
-      'API y webhooks',
-      'SSO con tu proveedor de identidad',
-      'Onboarding dedicado',
-      'Account manager',
-      'SLA garantizado',
-    ],
-    cta: { label: 'Hablar con ventas', href: '/contacto?tipo=escala' as Route },
-    highlighted: false,
-    badge: undefined,
-  },
-];
+  highlighted: p.highlighted,
+  badge: p.badge,
+}));
 
 const FAQ_ITEMS: FAQItem[] = [
   {

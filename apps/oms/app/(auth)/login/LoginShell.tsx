@@ -82,9 +82,11 @@ export const LoginShell = ({ stationName, branch, lastActivation }: LoginShellPr
             <header className="space-y-1">
               <Eyebrow>Estación</Eyebrow>
               <h1 className="text-[22px] font-medium text-ink">{stationName}</h1>
-              <p className="text-[13px] text-ink-200">
-                {branch.name} · {branch.restaurantName}
-              </p>
+              {(branch.name || branch.restaurantName) && (
+                <p className="text-[13px] text-ink-200">
+                  {[branch.name, branch.restaurantName].filter(Boolean).join(' · ')}
+                </p>
+              )}
               <div className="pt-1">
                 <StatusPill variant="warn">Estación inactiva</StatusPill>
               </div>

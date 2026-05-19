@@ -54,6 +54,22 @@ export async function saveOperacionStep(formData: FormData) {
   const tenant_id = await getTenantId();
 
   const canales = formData.getAll('canales') as string[];
+  const address = (formData.get('address') as string | null)?.trim() ?? '';
+  const latRaw = formData.get('lat') as string | null;
+  const lngRaw = formData.get('lng') as string | null;
+  const lat = latRaw ? Number(latRaw) : null;
+  const lng = lngRaw ? Number(lngRaw) : null;
+  const hoursRaw = formData.get('hours_json') as string | null;
+  let hours_json: unknown = {};
+  if (hoursRaw) {
+    try {
+      hours_json = JSON.parse(hoursRaw);
+    } catch {
+      hours_json = {};
+    }
+  }
+  const branchName =
+    ((formData.get('branch_name') as string | null) ?? '').trim() || 'Sucursal principal';
 
   const { data: existing } = await supabase
     .from('tenants')
@@ -61,14 +77,47 @@ export async function saveOperacionStep(formData: FormData) {
     .eq('id', tenant_id)
     .single();
 
+  // Upsert manual: una sucursal por tenant en este onboarding (multi-sucursal queda para Ajustes).
+  const { data: existingBranch } = await supabase
+    .from('branches_v2')
+    .select('id')
+    .eq('tenant_id', tenant_id)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingBranch?.id) {
+    const { error: branchErr } = await supabase
+      .from('branches_v2')
+      .update({
+        name: branchName,
+        address,
+        lat,
+        lng,
+        hours_json,
+        channels: canales,
+      })
+      .eq('id', existingBranch.id);
+    if (branchErr) throw new Error(`Error guardando sucursal: ${branchErr.message}`);
+  } else {
+    const { error: branchErr } = await supabase.from('branches_v2').insert({
+      tenant_id,
+      name: branchName,
+      address,
+      lat,
+      lng,
+      hours_json,
+      channels: canales,
+      is_active: true,
+    });
+    if (branchErr) throw new Error(`Error guardando sucursal: ${branchErr.message}`);
+  }
+
   const { error } = await supabase
     .from('tenants')
     .update({
       metadata: {
         ...(existing?.metadata ?? {}),
         canales,
-        volumen: formData.get('volumen') as string,
-        equipo: formData.get('equipo') as string,
       },
       updated_at: new Date().toISOString(),
     })

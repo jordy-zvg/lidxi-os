@@ -1,66 +1,11 @@
 'use client';
 
-import { savePlanStep } from '@/app/(marketing)/onboarding/actions';
-import { useState } from 'react';
+import { savePlanStep } from '@/app/(onboarding)/onboarding/actions';
+import { PLANS, type PlanId, formatMXN, isValidPlanSlug } from '@/lib/constants/plans';
+import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
 
-interface Plan {
-  id: 'arranque' | 'crecimiento' | 'escala';
-  name: string;
-  price: string | null;
-  priceSub: string;
-  description: string;
-  features: string[];
-  salesContact?: boolean;
-}
-
-const PLANS: Plan[] = [
-  {
-    id: 'arranque',
-    name: 'Arranque',
-    price: '$499',
-    priceSub: '/mes',
-    description: 'Para cocinas que están empezando o tienen bajo volumen.',
-    features: [
-      '1 sucursal',
-      'Hasta 100 pedidos/día',
-      'POS + KDS básico',
-      'Integración con 1 marketplace',
-      'Soporte por email',
-    ],
-  },
-  {
-    id: 'crecimiento',
-    name: 'Crecimiento',
-    price: '$999',
-    priceSub: '/mes',
-    description: 'Para operaciones en expansión con múltiples canales.',
-    features: [
-      'Hasta 3 sucursales',
-      'Pedidos ilimitados',
-      'POS + KDS + Reportes avanzados',
-      'Todos los marketplaces',
-      'Sitio propio incluido',
-      'Soporte prioritario WhatsApp',
-    ],
-  },
-  {
-    id: 'escala',
-    name: 'Escala',
-    price: null,
-    priceSub: '',
-    description: 'Para cadenas y operaciones de alto volumen con necesidades especiales.',
-    features: [
-      'Sucursales ilimitadas',
-      'SLA personalizado',
-      'Integraciones enterprise',
-      'Account manager dedicado',
-      'Onboarding asistido',
-    ],
-    salesContact: true,
-  },
-];
-
-function suggestPlan(volumen: string): Plan['id'] {
+function suggestPlan(volumen: string): PlanId {
   if (volumen === 'menos_50') return 'arranque';
   if (volumen === 'mas_500') return 'escala';
   return 'crecimiento';
@@ -71,8 +16,15 @@ interface PlanSelectorProps {
 }
 
 export function PlanSelector({ volumen }: PlanSelectorProps) {
-  const suggested = suggestPlan(volumen);
-  const [selected, setSelected] = useState<Plan['id']>(suggested);
+  const searchParams = useSearchParams();
+  const queryPlan = searchParams?.get('plan');
+
+  const suggested = useMemo<PlanId>(() => {
+    if (isValidPlanSlug(queryPlan)) return queryPlan;
+    return suggestPlan(volumen);
+  }, [queryPlan, volumen]);
+
+  const [selected, setSelected] = useState<PlanId>(suggested);
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -124,14 +76,10 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
                   </ul>
                 </div>
                 <div className="shrink-0 text-right">
-                  {plan.price ? (
-                    <>
-                      <span className="text-xl font-semibold text-[#0A2540]">{plan.price}</span>
-                      <span className="block text-xs text-ink/40">{plan.priceSub}</span>
-                    </>
-                  ) : (
-                    <span className="text-sm font-semibold text-[#0A2540]">Cotización</span>
-                  )}
+                  <span className="text-xl font-semibold text-[#0A2540]">
+                    {formatMXN(plan.priceMonthlyMXN)}
+                  </span>
+                  <span className="block text-xs text-ink/40">{plan.priceSub}</span>
                 </div>
               </div>
             </label>
@@ -151,11 +99,7 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
           disabled={pending}
           className="rounded-lg bg-[#635BFF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60 active:scale-[0.98]"
         >
-          {pending
-            ? 'Guardando…'
-            : selected === 'escala'
-              ? 'Hablar con ventas'
-              : `Elegir ${PLANS.find((p) => p.id === selected)?.name}`}
+          {pending ? 'Guardando…' : `Elegir ${PLANS.find((p) => p.id === selected)?.name}`}
         </button>
       </div>
     </form>

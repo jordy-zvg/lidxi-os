@@ -1,6 +1,6 @@
 'use client';
 
-import { saveRestauranteStep } from '@/app/(marketing)/onboarding/actions';
+import { saveRestauranteStep } from '@/app/(onboarding)/onboarding/actions';
 import { useRef, useState } from 'react';
 
 const OPERATION_TYPES = [

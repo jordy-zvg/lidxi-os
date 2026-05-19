@@ -18,16 +18,33 @@ export default async function OnboardingOperacionPage() {
     redirect(`/onboarding/${next.step}`);
   }
 
+  const { data: membership } = await supabase
+    .from('user_tenants')
+    .select('tenant_id')
+    .eq('user_id', user.id)
+    .single();
+
+  let branchName: string | undefined;
+  if (membership) {
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', membership.tenant_id)
+      .single();
+    branchName = (tenant?.name as string | undefined) ?? undefined;
+  }
+
   return (
     <div className="rounded-2xl border border-ink/10 bg-white p-8 shadow-sm">
       <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink/40">
         Paso 2 de 4
       </p>
-      <h1 className="mb-1 text-xl font-semibold text-[#0A2540]">Cómo opera tu cocina</h1>
+      <h1 className="mb-1 text-xl font-semibold text-[#0A2540]">Tu sucursal</h1>
       <p className="mb-8 text-sm text-ink/50">
-        Estos datos nos ayudan a recomendarte el plan correcto y a preconfigurar tu sistema.
+        Captura la dirección, horario y canales activos. Lo usamos para configurar tu OMS y la
+        cobertura de delivery.
       </p>
-      <OperacionForm />
+      <OperacionForm mapboxToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN} branchName={branchName} />
     </div>
   );
 }

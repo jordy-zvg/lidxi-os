@@ -1,6 +1,7 @@
 export const metadata = { title: 'Iniciar sesión' };
 
 import { getBranchId } from '@/lib/station';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
   createSupabaseServiceClient,
   getBranchWithRestaurant,
@@ -9,28 +10,76 @@ import {
 import { LoginShell } from './LoginShell';
 
 export default async function LoginPage() {
-  const supabase = createSupabaseServiceClient();
-  const branchId = getBranchId();
-  const [branch, lastActivation] = await Promise.all([
-    getBranchWithRestaurant(supabase, branchId),
-    getLastPosActivation(supabase, branchId),
-  ]);
+  // Detect tenant via Supabase session (admin coming from "Abrir la operación").
+  const userClient = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await userClient.auth.getUser();
 
-  if (!branch) {
-    return (
-      <div className="max-w-md rounded-lg border border-danger-soft bg-danger-soft p-6 text-center text-sm text-danger-text">
-        Branch <code className="font-mono">{branchId}</code> no existe en la base de datos. Revisa{' '}
-        <code className="font-mono">BRANCH_ID</code> en .env.local o corre{' '}
-        <code className="font-mono">pnpm db:reset</code>.
-      </div>
-    );
+  if (user) {
+    const { data: membership } = await userClient
+      .from('user_tenants')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .single();
+    if (membership?.tenant_id) {
+      const { data: tenant } = await userClient
+        .from('tenants')
+        .select('name')
+        .eq('id', membership.tenant_id)
+        .single();
+      const { data: branch } = await userClient
+        .from('branches_v2')
+        .select('id,name')
+        .eq('tenant_id', membership.tenant_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      return (
+        <LoginShell
+          stationName={branch?.name ?? 'Estación principal'}
+          branch={{
+            id: (branch?.id as string | undefined) ?? '',
+            name: branch?.name ?? 'Sucursal',
+            restaurantName: (tenant?.name as string | undefined) ?? 'Tu restaurante',
+          }}
+          lastActivation={null}
+        />
+      );
+    }
   }
 
+  // Legacy path: single-tenant POS via BRANCH_ID env (Miztli demo).
+  const legacyBranchId = getBranchId();
+  if (legacyBranchId) {
+    const svc = createSupabaseServiceClient();
+    const [branch, lastActivation] = await Promise.all([
+      getBranchWithRestaurant(svc, legacyBranchId),
+      getLastPosActivation(svc, legacyBranchId),
+    ]);
+    if (branch) {
+      return (
+        <LoginShell
+          stationName={branch.name}
+          branch={{
+            id: branch.id,
+            name: branch.name,
+            restaurantName: branch.restaurant.name,
+          }}
+          lastActivation={lastActivation}
+        />
+      );
+    }
+  }
+
+  // Neutral fallback: no session, no legacy branch — pure Kobi UI.
   return (
     <LoginShell
-      stationName="Mostrador 1"
-      branch={{ id: branch.id, name: branch.name, restaurantName: branch.restaurant.name }}
-      lastActivation={lastActivation}
+      stationName="Kobi"
+      branch={{ id: '', name: '', restaurantName: '' }}
+      lastActivation={null}
     />
   );
 }
