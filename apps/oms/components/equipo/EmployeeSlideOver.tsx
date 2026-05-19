@@ -1,8 +1,9 @@
 'use client';
+import type { Role } from '@kobi/shared';
 import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import type { MockEmployee } from './mock-employees';
+import type { EmployeeRecord } from './EquipoScreen';
 
 type PermKey = 'cancel_tickets' | 'discounts' | 'open_cash' | 'view_reports' | 'edit_inventory';
 
@@ -22,13 +23,13 @@ const ROLE_OPTIONS = [
 ] as const;
 
 interface EmployeeSlideOverProps {
-  employee: MockEmployee | null;
+  employee: EmployeeRecord | null;
   onClose: () => void;
 }
 
 export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps) => {
   const [name, setName] = useState('');
-  const [role, setRole] = useState<MockEmployee['role']>('cook');
+  const [role, setRole] = useState<Role>('cook');
   const [pin, setPin] = useState('••••');
   const [pinVisible, setPinVisible] = useState(false);
   const [perms, setPerms] = useState<Record<PermKey, boolean>>({
@@ -43,7 +44,7 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
   useEffect(() => {
     if (!employee) return;
     setName(employee.name);
-    setRole(employee.role);
+    setRole((employee.role as Role) ?? 'cook');
     setPin('••••');
     setPinVisible(false);
     setPerms({

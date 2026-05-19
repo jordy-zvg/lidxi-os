@@ -1,6 +1,7 @@
 import { ROLE_LABEL } from '@kobi/shared';
+import type { Role } from '@kobi/shared';
 import { Button } from '@kobi/ui';
-import type { MockEmployee } from './mock-employees';
+import type { EmployeeRecord } from './EquipoScreen';
 
 function avatarGradient(seed: string): string {
   let hash = 0;
@@ -19,8 +20,15 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+const ROLE_KEYS = Object.keys(ROLE_LABEL) as Role[];
+
+function roleLabel(role: string): string {
+  if (ROLE_KEYS.includes(role as Role)) return ROLE_LABEL[role as Role];
+  return role;
+}
+
 interface EmployeeCardProps {
-  employee: MockEmployee;
+  employee: EmployeeRecord;
   onEdit: () => void;
 }
 
@@ -35,34 +43,17 @@ export const EmployeeCard = ({ employee, onEdit }: EmployeeCardProps) => (
       </div>
       <div>
         <p className="text-sm font-medium text-ink">{employee.name}</p>
-        <p className="text-xs text-ink-400">{ROLE_LABEL[employee.role]}</p>
+        <p className="text-xs text-ink-400">{roleLabel(employee.role)}</p>
       </div>
     </div>
 
     <div className="flex items-center justify-center gap-1.5 text-xs">
       <span
-        className={`h-2 w-2 rounded-full shrink-0 ${employee.onShift ? 'bg-ok animate-pulse' : 'bg-ink-500'}`}
+        className={`h-2 w-2 rounded-full shrink-0 ${employee.status === 'activo' ? 'bg-ok' : 'bg-ink-500'}`}
       />
-      {employee.onShift ? (
-        <span className="text-ink-200">
-          En turno · desde <span className="font-mono">{employee.shiftStart}</span>
-        </span>
-      ) : (
-        <span className="text-ink-400">Fuera de turno</span>
-      )}
-    </div>
-
-    <div className="border-t border-line pt-3 space-y-1">
-      {employee.orders > 0 && (
-        <div className="flex justify-between text-xs">
-          <span className="text-ink-400">Pedidos hoy</span>
-          <span className="font-mono text-ink">{employee.orders}</span>
-        </div>
-      )}
-      <div className="flex justify-between text-xs">
-        <span className="text-ink-400">Horas hoy</span>
-        <span className="font-mono text-ink">{employee.hoursToday}</span>
-      </div>
+      <span className={employee.status === 'activo' ? 'text-ink-200' : 'text-ink-400'}>
+        {employee.status === 'activo' ? 'Activo' : 'Pausado'}
+      </span>
     </div>
 
     <Button variant="secondary" size="sm" onClick={onEdit} className="w-full">

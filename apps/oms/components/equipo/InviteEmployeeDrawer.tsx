@@ -6,10 +6,10 @@ import { IconX } from '@tabler/icons-react';
 import { useActionState, useEffect, useState } from 'react';
 
 const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
-  { value: 'Admin operativo', label: 'Admin operativo' },
-  { value: 'Cajero', label: 'Cajero' },
-  { value: 'Cocinero', label: 'Cocinero' },
-  { value: 'Runner', label: 'Runner' },
+  { value: 'manager', label: 'Gerente' },
+  { value: 'cashier', label: 'Cajero' },
+  { value: 'cook', label: 'Cocinero' },
+  { value: 'courier', label: 'Repartidor' },
 ];
 
 function randomPin(): string {
@@ -115,7 +115,7 @@ export function InviteEmployeeDrawer({ open, onClose }: InviteEmployeeDrawerProp
                     id="inv-role"
                     name="role"
                     required
-                    defaultValue="Cajero"
+                    defaultValue="cashier"
                     className="w-full h-9 rounded-md border border-line-2 bg-canvas px-3 text-sm text-ink focus:outline-none focus:border-brand"
                   >
                     {ROLE_OPTIONS.map((r) => (

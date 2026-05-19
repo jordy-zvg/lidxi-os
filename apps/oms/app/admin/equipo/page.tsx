@@ -1,7 +1,26 @@
 export const metadata = { title: 'Equipo' };
 
 import { EquipoScreen } from '@/components/equipo/EquipoScreen';
+import type { EmployeeRecord } from '@/components/equipo/EquipoScreen';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { requireTenant } from '@/lib/supabase/tenant-guard';
 
-export default function EquipoPage() {
-  return <EquipoScreen />;
+export default async function EquipoPage() {
+  const { tenantId } = await requireTenant();
+  const supabase = createSupabaseServerClient();
+
+  const { data } = await supabase
+    .from('employees_v2')
+    .select('id, name, role, status')
+    .eq('tenant_id', tenantId)
+    .order('name', { ascending: true });
+
+  const employees: EmployeeRecord[] = (data ?? []).map((e) => ({
+    id: e.id as string,
+    name: e.name as string,
+    role: e.role as string,
+    status: (e.status ?? 'activo') as 'activo' | 'pausado',
+  }));
+
+  return <EquipoScreen employees={employees} />;
 }

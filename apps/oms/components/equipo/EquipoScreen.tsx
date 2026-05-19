@@ -6,20 +6,23 @@ import { useState } from 'react';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeSlideOver } from './EmployeeSlideOver';
 import { InviteEmployeeDrawer } from './InviteEmployeeDrawer';
-import { MOCK_EMPLOYEES, type MockEmployee } from './mock-employees';
 
-const totalHorasHoy = MOCK_EMPLOYEES.filter((e) => e.onShift).length * 4;
+export interface EmployeeRecord {
+  id: string;
+  name: string;
+  role: string;
+  status: 'activo' | 'pausado';
+}
 
-const MOCK_KPIS = {
-  total: MOCK_EMPLOYEES.length,
-  enTurno: MOCK_EMPLOYEES.filter((e) => e.onShift).length,
-  horasTotalesHoy: `${totalHorasHoy}h`,
-  asistencia: `${MOCK_EMPLOYEES.filter((e) => e.onShift).length} de ${MOCK_EMPLOYEES.length}`,
-};
+interface EquipoScreenProps {
+  employees: EmployeeRecord[];
+}
 
-export const EquipoScreen = () => {
-  const [selected, setSelected] = useState<MockEmployee | null>(null);
+export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
+  const [selected, setSelected] = useState<EmployeeRecord | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+
+  const active = employees.filter((e) => e.status === 'activo');
 
   return (
     <div className="flex flex-col gap-section-sm h-full">
@@ -34,10 +37,10 @@ export const EquipoScreen = () => {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-card-gap shrink-0">
         {[
-          { label: 'Total empleados', value: String(MOCK_KPIS.total) },
-          { label: 'En turno ahora', value: String(MOCK_KPIS.enTurno), highlight: true },
-          { label: 'Horas del equipo hoy', value: MOCK_KPIS.horasTotalesHoy },
-          { label: 'Asistencia', value: MOCK_KPIS.asistencia },
+          { label: 'Total empleados', value: String(employees.length) },
+          { label: 'Activos', value: String(active.length), highlight: true },
+          { label: 'En turno ahora', value: '—' },
+          { label: 'Horas del equipo hoy', value: '—' },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-surface border border-line rounded-lg p-card">
             <p className="text-xs text-ink-400 mb-kpi-label">{kpi.label}</p>
@@ -51,11 +54,20 @@ export const EquipoScreen = () => {
       </div>
 
       {/* Grid de empleados */}
-      <div className="grid grid-cols-4 gap-card-gap flex-1 content-start overflow-y-auto">
-        {MOCK_EMPLOYEES.map((emp) => (
-          <EmployeeCard key={emp.id} employee={emp} onEdit={() => setSelected(emp)} />
-        ))}
-      </div>
+      {employees.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center">
+          <p className="text-sm font-medium text-ink">No hay empleados todavía</p>
+          <p className="text-xs text-ink-400 max-w-xs">
+            Invita a tu primer empleado con el botón de arriba. Recibirá un PIN para acceder al POS.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-card-gap flex-1 content-start overflow-y-auto">
+          {employees.map((emp) => (
+            <EmployeeCard key={emp.id} employee={emp} onEdit={() => setSelected(emp)} />
+          ))}
+        </div>
+      )}
 
       <EmployeeSlideOver employee={selected} onClose={() => setSelected(null)} />
       <InviteEmployeeDrawer open={inviteOpen} onClose={() => setInviteOpen(false)} />

@@ -75,6 +75,48 @@ export const findEmployeeByPin = async (
   return null;
 };
 
+/**
+ * Encuentra el empleado activo del tenant cuyo PIN coincide (employees_v2).
+ * Retorna un EmployeeRow-compatible para que el caller no necesite bifurcar.
+ * branch_id queda vacío ('') cuando el empleado no tiene asignación de sucursal.
+ */
+export const findEmployeeByPinV2 = async (
+  supabase: SupabaseClient,
+  tenantId: string,
+  pin: string,
+): Promise<EmployeeRow | null> => {
+  const { data, error } = await supabase
+    .from('employees_v2')
+    .select('id, tenant_id, branch_id, name, role, pin_hash, status')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'activo');
+
+  if (error || !data) return null;
+
+  type V2Row = {
+    id: string;
+    tenant_id: string;
+    branch_id: string | null;
+    name: string;
+    role: string;
+    pin_hash: string;
+    status: string;
+  };
+  for (const row of data as V2Row[]) {
+    if (await verifyPin(pin, row.pin_hash)) {
+      return {
+        id: row.id,
+        branch_id: row.branch_id ?? '',
+        full_name: row.name,
+        role: row.role as Role,
+        pin_hash: row.pin_hash,
+        active: true,
+      };
+    }
+  }
+  return null;
+};
+
 /** Último shift abierto (ended_at IS NULL) del empleado. */
 export const getOpenShiftForEmployee = async (
   supabase: SupabaseClient,

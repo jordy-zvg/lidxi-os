@@ -1,20 +1,18 @@
 'use server';
 
-import { createHash } from 'node:crypto';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireTenant } from '@/lib/supabase/tenant-guard';
+import { hashPin } from '@kobi/db';
 import { revalidatePath } from 'next/cache';
 
-export type EmployeeRole = 'Admin operativo' | 'Cajero' | 'Cocinero' | 'Runner';
+export type EmployeeRole = 'manager' | 'cashier' | 'cook' | 'courier';
 
 export interface InviteEmployeeState {
   error?: string;
   success?: boolean;
 }
 
-function hashPin(pin: string): string {
-  return createHash('sha256').update(pin).digest('hex');
-}
+const VALID_ROLES: EmployeeRole[] = ['manager', 'cashier', 'cook', 'courier'];
 
 export async function inviteEmployee(
   _prev: InviteEmployeeState,
@@ -25,18 +23,19 @@ export async function inviteEmployee(
   const pin = formData.get('pin') as string | null;
 
   if (!name || name.length < 2) return { error: 'El nombre es requerido.' };
-  const VALID_ROLES: EmployeeRole[] = ['Admin operativo', 'Cajero', 'Cocinero', 'Runner'];
   if (!role || !VALID_ROLES.includes(role)) return { error: 'Selecciona un rol válido.' };
   if (!pin || !/^\d{4}$/.test(pin)) return { error: 'El PIN debe ser 4 dígitos.' };
 
   const { tenantId } = await requireTenant();
   const supabase = createSupabaseServerClient();
 
+  const pinHash = await hashPin(pin);
+
   const { error } = await supabase.from('employees_v2').insert({
     tenant_id: tenantId,
     name,
     role,
-    pin_hash: hashPin(pin),
+    pin_hash: pinHash,
     status: 'activo',
   });
 

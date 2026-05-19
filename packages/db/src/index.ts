@@ -12,6 +12,7 @@ export {
 } from './auth';
 export {
   findEmployeeByPin,
+  findEmployeeByPinV2,
   getOpenShiftForEmployee,
   openShift,
   closeShift,

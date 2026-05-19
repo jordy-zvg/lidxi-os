@@ -156,6 +156,63 @@ begin
 end $$;
 
 -- ============================================================================
+-- Test 6: employees_v2 — auditor no ve filas de Miztli
+-- ============================================================================
+begin;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"02097a8b-ca78-443e-9370-544ade59201d","role":"authenticated"}',
+  true
+);
+set local role authenticated;
+
+do $$
+declare
+  n_v2 bigint;
+begin
+  select count(*) into n_v2 from public.employees_v2;
+  perform pg_temp.assert_count('auditor_cross_tenant: employees_v2 (expect 0)', n_v2, 0);
+end $$;
+
+rollback;
+
+-- ============================================================================
+-- Test 7: employees_v2 — service role ve los 4 de Miztli
+-- ============================================================================
+do $$
+declare
+  n_miztli bigint;
+begin
+  select count(*) into n_miztli from public.employees_v2
+    where tenant_id = 'eefd730e-52f4-4171-b702-231fb28616d4';
+  perform pg_temp.assert_count('service_role: miztli employees_v2', n_miztli, 4);
+end $$;
+
+-- ============================================================================
+-- Test 8: employees_v2.role constraint usa valores inglés (post-migration)
+-- ============================================================================
+do $$
+declare
+  spanish_roles bigint;
+begin
+  select count(*) into spanish_roles from public.employees_v2
+    where role in ('Admin operativo','Cajero','Cocinero','Runner');
+  perform pg_temp.assert_count('role_enum: no Spanish roles in employees_v2', spanish_roles, 0);
+end $$;
+
+-- ============================================================================
+-- Test 9: PIN hash en employees_v2 usa bcrypt (prefijo $2a$)
+-- ============================================================================
+do $$
+declare
+  sha256_hashes bigint;
+begin
+  select count(*) into sha256_hashes from public.employees_v2
+    where pin_hash not like '$2%';
+  perform pg_temp.assert_count('pin_hash: all employees_v2 use bcrypt', sha256_hashes, 0);
+end $$;
+
+-- ============================================================================
 -- Summary
 -- ============================================================================
 do $$ begin raise notice '========================================'; end $$;
