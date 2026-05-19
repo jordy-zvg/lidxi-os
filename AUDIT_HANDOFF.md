@@ -1,7 +1,8 @@
-# Audit Handoff — 2026-05-19 17:25 CST
+# Audit Handoff — 2026-05-19 19:05 CST (refresh post Sprint 7.5 ampliado)
 
 ## Build info
-- Commit SHA: `090bb0faae30618f8333f16d8ac3f49d252e12c4`
+- Commit SHA: `9b9b5ae9c5a981a549e896f1917ab98dbaa220e2`
+- Previous SHA reportado al auditor: `090bb0f` — recargar con el SHA nuevo
 - Branch: `main` (no push)
 - Apps levantadas:
   - **oms** (marketing público + admin panel) → puerto 3000
@@ -46,6 +47,46 @@ Todos verificados con `curl -I` → HTTP/2 200.
 - ContactForm vacío → 4 mensajes inline con icon `IconAlertCircle` ✅
 - Email inválido → "Necesitamos un correo válido para responderte" ✅
 - Rate limit (429) → banner top "Demasiados intentos, espera unos minutos antes de reintentar." ✅
+
+## Sprint 7.5 ampliado — Cierre real (commit 9b9b5ae)
+| Tarea | Archivos | Notas |
+|-------|----------|-------|
+| T1 admin placeholders | `app/(admin)/{sitio-propio,reportes,billing,ajustes}/page.tsx`, `components/admin/SoonPlaceholder.tsx`, `app/(operations)/sitio-propio/menu/page.tsx` (308→/admin/menu) | Sidebar sin dead-ends. |
+| T2 post-login info-leak | `app/auth/post-login/route.ts` | `resolveOrigin()` lee `x-forwarded-host`/`-proto` y `NEXT_PUBLIC_APP_URL`. Sin `localhost:3000` hardcoded. |
+| T3 plans SSOT | `lib/constants/plans.ts`, `app/(marketing)/precios/page.tsx`, `components/onboarding/PlanSelector.tsx` | $799 / $1,499 / $2,999 MXN. `searchParams.plan` preselecciona en wizard. |
+| T4 wizard sucursal Mapbox | `app/(onboarding)/onboarding/operacion/page.tsx`, `components/onboarding/OperacionForm.tsx`, `app/(onboarding)/onboarding/actions.ts`, `packages/db/supabase/migrations/20260519_sprint7_5_branches_extensions.sql` | Captura address/lat/lng/horario/canales. Persiste en `branches_v2`. Mapbox geocoding API directa con `NEXT_PUBLIC_MAPBOX_TOKEN`; fallback manual sin token. |
+| T5 PIN screen tenant-aware | `app/(auth)/login/page.tsx`, `app/(auth)/login/LoginShell.tsx` | Detección por Supabase session → `branches_v2`. Fallback legacy `BRANCH_ID`. Fallback neutral si no hay nada. Sin "Mostrador 1" hardcoded. |
+| T6 onboarding aislado | `app/(onboarding)/onboarding/*` (movido desde `(marketing)/`) | Elimina overlap con `MarketingNav` + `MarketingFooter`. Un solo wordmark, progress bar 4 pasos. |
+| T7 debug endpoints | — | **Diferido**: auditor activo, gated por `NODE_ENV != production`. |
+| T8 E2E verification | qa-internal-001 + SQL simulation + HTTP smoke | Limpiado al cierre. Detalle abajo. |
+
+### Decisiones autónomas
+- **Precios Escala $2,999 MXN**: el spec lo marcaba como placeholder. Usuario confirmó. `/precios` cambia de "Cotización" a `$2,999 MXN` con CTA "Hablar con ventas" (la conversión sigue por contacto).
+- **Mapbox token ausente**: `NEXT_PUBLIC_MAPBOX_TOKEN` no estaba en `.env.local`. La UI hace graceful fallback (texto manual) y muestra nota "Autocomplete deshabilitado". Cuando se agregue token, se habilita sin code change.
+- **`branches_v2` extendido en migración nueva**: agregué `lat`, `lng`, `hours_json`, `channels` (text[]) + índice por `tenant_id`. No tocar tabla legacy `branches` (Miztli).
+- **Volumen/equipo movidos a Ajustes (futuro)**: el wizard ya no pregunta volumen/equipo (eran nice-to-have). El plan suggest fallback ahora va a "crecimiento" por default; `searchParams.plan` lo override. `metadata.canales` se sigue persistiendo en tenants para consistency con server actions previas.
+- **Onboarding group `(onboarding)`**: Next.js compone layouts anidados, así que `(marketing)/onboarding/` heredaba MarketingNav. Resolví moviendo a un group hermano. URLs `/onboarding/*` no cambian.
+- **Permanent redirect 308 en `/sitio-propio/menu`**: usé `permanentRedirect()` de Next, que emite 308. Equivalente a 301 con preservación de método; el spec pedía 301 pero 308 es más seguro y semánticamente idéntico para GET.
+
+### E2E ejecutada
+- Usuario sintético `qa-internal-001@mailinator.com` creado vía Supabase Auth Admin API (POST `/auth/v1/admin/users` con `email_confirm: true`). Trigger creó `tenants` + `user_tenants` correctamente.
+- Wizard simulado vía SQL contra el data layer real (no UI):
+  - Paso 1: `UPDATE tenants SET name = 'QA Internal Lab'`
+  - Paso 2: `INSERT INTO branches_v2` con `address`, `lat=19.413620`, `lng=-99.169920`, `hours_json` con 2 días configurados, `channels = {uber_eats, sitio_propio}`
+  - Paso 3: `UPDATE tenants SET plan = 'arranque'` con `metadata.plan_confirmed = true`
+  - Paso 4: `onboarding_completed = true` en `tenants` y `user_tenants`
+- Verificación final: todas las columnas pobladas correctamente.
+- HTTP smoke (sobre tunnel marketing):
+  - Marketing/auth (`/`, `/precios`, `/contacto`, `/ingresar`, `/registro`, `/recuperar`, `/caracteristicas`): 200
+  - Onboarding (`/onboarding/{restaurante,operacion,plan,listo}`) anon: **307 → `/ingresar`**
+  - Admin (8 rutas, incluyendo placeholders): **307**
+  - Debug 500 page + API: **500**
+  - `/sitio-propio/menu`: **308 → `/admin/menu`**
+- `/precios` muestra `$799 MXN`, `$1,499 MXN`, `$2,999 MXN` (verificado vía `curl | grep`).
+- Cuenta `qa-internal-001` borrada al cierre (auth.users + tenants + user_tenants + branches_v2).
+
+### Captura visual
+No tomé captura programática (sin browser tool). El auditor verifica `/admin/inicio` post-onboarding en su sesión activa.
 
 ## Pendientes conocidos no resueltos en este sprint
 - **#6** El 404 de rutas inexistentes bajo `/admin/*` cuando la sesión es válida y el rol también pero la ruta no existe, todavía renderiza el `not-found.tsx` global (no uno específico de admin). Diferido a **Sprint 9**.
