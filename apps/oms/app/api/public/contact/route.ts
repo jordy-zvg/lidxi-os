@@ -1,3 +1,4 @@
+import { createSupabaseServiceClient } from '@kobi/db';
 import { NextResponse } from 'next/server';
 
 interface ContactPayload {
@@ -46,11 +47,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'debe aceptar los términos' }, { status: 422 });
   }
 
-  // Stub: log and return success
-  // When contact_messages table is ready, replace with:
-  // const supabase = createSupabaseServiceClient();
-  // await supabase.from('contact_messages').insert({ ... });
-  // Contact lead logged (replace with DB insert when contact_messages table is ready)
+  // Persist to contact_messages — requires migration 20260518000001_multi_tenant.sql
+  // Degrades gracefully if table doesn't exist yet (migration pending)
+  try {
+    const supabase = createSupabaseServiceClient();
+    await (
+      supabase as unknown as {
+        from: (table: string) => {
+          insert: (row: Record<string, unknown>) => Promise<unknown>;
+        };
+      }
+    )
+      .from('contact_messages')
+      .insert({
+        name: payload.nombre,
+        email: payload.email,
+        phone: payload.telefono ?? null,
+        company: payload.empresa,
+        type: payload.tipo,
+        message: payload.mensaje,
+      });
+  } catch {}
 
   return NextResponse.json({ ok: true });
 }

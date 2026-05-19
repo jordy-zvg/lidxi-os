@@ -1,19 +1,23 @@
 import { verifyEmployeeJWT } from '@kobi/db/auth';
+import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 /**
- * Auth gating del OMS.
+ * Auth gating del OMS — tres zonas:
  *
- * Capas:
- *   1. Rutas de marketing (landing público) → siempre públicas.
- *   2. Rutas de auth de empleados (/login) → públicas.
- *   3. Todo lo demás → requiere cookie `kobi-session` con JWT de empleado válido.
+ *   PÚBLICA       — Marketing landing, auth pages, assets.
+ *                   Acceso libre sin sesión.
  *
- * La auth de tenant admins (Supabase user auth) se añade en Fase 3.
+ *   ONBOARDING    — /onboarding/*
+ *                   Requiere sesión Supabase (tenant admin).
+ *                   Si no hay sesión → /ingresar.
+ *
+ *   OMS           — Todo lo demás (/pedidos, /pos, /kds, …)
+ *                   Requiere kobi-session JWT (empleado PIN) — capa existente.
+ *                   Si no hay sesión → /login.
  */
 
 const PUBLIC_PREFIXES = [
-  // Marketing / landing público
   '/',
   '/caracteristicas',
   '/para-quien',
@@ -22,14 +26,13 @@ const PUBLIC_PREFIXES = [
   '/contacto',
   '/ingresar',
   '/registro',
-  '/onboarding',
+  '/recuperar',
+  '/auth',
   '/terminos',
   '/privacidad',
   '/cookies',
   '/aviso-privacidad',
-  // Auth de empleados (existente)
   '/login',
-  // Internos de Next.js y assets
   '/_next',
   '/favicon',
   '/api/auth',
@@ -43,11 +46,56 @@ export const config = {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Permitir raíz exacta y prefijos públicos
-  if (pathname === '/' || PUBLIC_PREFIXES.some((p) => p !== '/' && pathname.startsWith(p))) {
+  // ── ZONA PÚBLICA ──────────────────────────────────────────────────────────
+  if (isPublic(pathname)) {
     return NextResponse.next();
   }
 
+  // ── ZONA ADMIN / ONBOARDING (Supabase tenant auth) ──────────────────────
+  if (pathname.startsWith('/onboarding') || pathname.startsWith('/admin')) {
+    return handleAdminAuth(req);
+  }
+
+  // ── ZONA OMS (employee PIN JWT) ───────────────────────────────────────────
+  return handleOmsAuth(req);
+}
+
+function isPublic(pathname: string): boolean {
+  if (pathname === '/') return true;
+  return PUBLIC_PREFIXES.some((p) => p !== '/' && pathname.startsWith(p));
+}
+
+async function handleAdminAuth(req: NextRequest): Promise<NextResponse> {
+  const response = NextResponse.next({
+    request: { headers: req.headers },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set(name, value, options);
+          }
+        },
+      },
+    },
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.redirect(new URL('/ingresar', req.url));
+  }
+
+  return response;
+}
+
+async function handleOmsAuth(req: NextRequest): Promise<NextResponse> {
   const token = req.cookies.get('kobi-session')?.value;
   if (!token) return redirectToLogin(req);
 

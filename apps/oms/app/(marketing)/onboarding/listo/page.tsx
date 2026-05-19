@@ -1,22 +1,49 @@
+import { ListoSuccess } from '@/components/onboarding/ListoSuccess';
+import { getNextOnboardingStep } from '@/lib/supabase/onboarding-state';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = { title: '¡Listo! · Onboarding' };
 
-export default function OnboardingListoPage() {
-  return (
-    <div className="rounded-2xl border border-ink/10 bg-white p-8 shadow-sm text-center">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#635BFF]/10">
-        <span className="text-3xl">🎉</span>
-      </div>
-      <h1 className="mb-2 text-xl font-semibold text-[#0A2540]">¡Tu cuenta está lista!</h1>
-      <p className="mb-8 text-sm text-ink/50">Paso 4 de 4 — Ya puedes empezar a operar.</p>
+export default async function OnboardingListoPage() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect('/ingresar');
 
-      {/* Activación disponible en Fase 4 */}
-      <div className="rounded-xl border border-ink/8 bg-[#F6F9FC] p-6">
-        <p className="text-sm text-ink/40">
-          Activación y próximos pasos disponibles en Fase 4 del sprint.
-        </p>
-      </div>
+  const next = await getNextOnboardingStep();
+  if (next && next.step !== 'listo') {
+    redirect(`/onboarding/${next.step}`);
+  }
+
+  const { data: membership } = await supabase
+    .from('user_tenants')
+    .select('tenant_id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (!membership) redirect('/ingresar');
+
+  const { data: tenant } = await supabase
+    .from('tenants')
+    .select('name, trial_ends_at, metadata')
+    .eq('id', membership.tenant_id)
+    .single();
+
+  if (!tenant) redirect('/ingresar');
+
+  const needsSalesContact =
+    (tenant.metadata as Record<string, unknown> | null)?.needs_sales_contact === true;
+
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-8 shadow-sm">
+      <ListoSuccess
+        tenantName={tenant.name as string}
+        trialEndsAt={tenant.trial_ends_at as string}
+        needsSalesContact={needsSalesContact}
+      />
     </div>
   );
 }
