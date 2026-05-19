@@ -9,7 +9,8 @@ const contactSchema = z.object({
   source: z.string().optional(),
 });
 
-// In-memory rate limiting (3 envíos/hora por IP)
+// Rate limit: 3 requests por IP por hora. Cuenta requests válidos e inválidos
+// porque payloads malformados también saturan inbox de soporte (anti-abuse).
 // DEUDA TÉCNICA: Mover a Upstash/Redis cuando el backend multi-instance lo requiera.
 const rateLimit = new Map<string, { count: number; timestamp: number }>();
 const MAX_REQUESTS = 3;

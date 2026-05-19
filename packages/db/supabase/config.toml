@@ -46,7 +46,7 @@ jwt_expiry = 3600
 enable_signup = false  # OMS no acepta signups directos; los empleados se crean por el manager.
 
 [auth.email]
-enable_signup = false
+enable_signup = true
 enable_confirmations = false
 
 [edge_runtime]
