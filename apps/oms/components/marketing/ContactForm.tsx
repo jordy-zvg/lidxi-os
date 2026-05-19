@@ -1,5 +1,6 @@
 'use client';
 
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -33,21 +34,27 @@ const INITIAL: FormState = {
 
 function validate(state: FormState): Partial<Record<keyof FormState, string>> {
   const errors: Partial<Record<keyof FormState, string>> = {};
-  if (!state.nombre.trim()) errors.nombre = 'Nombre requerido';
-  if (!state.email.trim()) {
-    errors.email = 'Email requerido';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)) {
-    errors.email = 'Email inválido';
+  if (!state.nombre.trim()) {
+    errors.nombre = 'Este campo es requerido';
+  } else if (state.nombre.trim().length < 2) {
+    errors.nombre = 'Tu nombre debe tener al menos 2 caracteres';
   }
-  if (state.telefono && !/^[\d\s\-\+\(\)]{10,15}$/.test(state.telefono)) {
+  if (!state.email.trim()) {
+    errors.email = 'Este campo es requerido';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)) {
+    errors.email = 'Necesitamos un correo válido para responderte';
+  }
+  if (state.telefono && !/^[\d\s\-+()]{10,15}$/.test(state.telefono)) {
     errors.telefono = 'Formato de teléfono inválido';
   }
-  if (!state.empresa.trim()) errors.empresa = 'Restaurante o empresa requerido';
-  if (!state.tipo) errors.tipo = 'Selecciona un tipo de consulta';
+  if (!state.empresa.trim()) errors.empresa = 'Este campo es requerido';
+  if (!state.tipo) errors.tipo = 'Este campo es requerido';
   if (!state.mensaje.trim()) {
-    errors.mensaje = 'Mensaje requerido';
-  } else if (state.mensaje.trim().length < 20) {
-    errors.mensaje = 'El mensaje debe tener al menos 20 caracteres';
+    errors.mensaje = 'Este campo es requerido';
+  } else if (state.mensaje.trim().length < 10) {
+    errors.mensaje = 'Cuéntanos un poco más, mínimo 10 caracteres';
+  } else if (state.mensaje.trim().length > 2000) {
+    errors.mensaje = 'Por brevedad, mantén tu mensaje bajo 2000 caracteres';
   }
   if (!state.acepto) errors.acepto = 'Debes aceptar para continuar';
   return errors;
@@ -58,6 +65,7 @@ export function ContactForm() {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [serverError, setServerError] = useState('');
 
   useEffect(() => {
     const tipo = searchParams.get('tipo');
@@ -75,6 +83,7 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError('');
     const errs = validate(form);
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -85,8 +94,37 @@ export function ContactForm() {
       const res = await fetch('/api/public/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.nombre,
+          email: form.email,
+          message: form.mensaje,
+          source: `web_contact_form:${form.tipo || 'otro'}`,
+        }),
       });
+      if (res.status === 429) {
+        setServerError('Demasiados intentos, espera unos minutos antes de reintentar.');
+        setStatus('idle');
+        return;
+      }
+      if (res.status === 400) {
+        const body = (await res.json().catch(() => null)) as {
+          details?: Record<string, { _errors?: string[] }>;
+        } | null;
+        const apiErrors: Partial<Record<keyof FormState, string>> = {};
+        const details = body?.details;
+        if (details?.name?._errors?.length) apiErrors.nombre = 'Este campo es requerido';
+        if (details?.email?._errors?.length)
+          apiErrors.email = 'Necesitamos un correo válido para responderte';
+        if (details?.message?._errors?.length)
+          apiErrors.mensaje = 'Cuéntanos un poco más, mínimo 10 caracteres';
+        if (Object.keys(apiErrors).length > 0) {
+          setErrors(apiErrors);
+        } else {
+          setServerError('Revisa los campos del formulario e inténtalo de nuevo.');
+        }
+        setStatus('idle');
+        return;
+      }
       if (!res.ok) throw new Error('Server error');
       setStatus('success');
       setForm(INITIAL);
@@ -109,6 +147,12 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {serverError && (
+        <div className="flex items-start gap-2 rounded-lg border border-[#DC2626]/20 bg-red-50 px-4 py-3 text-sm text-[#DC2626]">
+          <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
+          <span>{serverError}</span>
+        </div>
+      )}
       <Field label="Nombre completo" error={errors.nombre} required>
         <input
           type="text"
@@ -187,7 +231,12 @@ export function ContactForm() {
             .
           </span>
         </label>
-        {errors.acepto && <p className="mt-1 text-xs text-red-500">{errors.acepto}</p>}
+        {errors.acepto && (
+          <p className="mt-1 flex items-center gap-1 text-sm text-[#DC2626]">
+            <IconAlertCircle size={14} className="shrink-0" />
+            <span>{errors.acepto}</span>
+          </p>
+        )}
       </div>
 
       {status === 'error' && (
@@ -226,7 +275,12 @@ function Field({
         {required && <span className="ml-0.5 text-[#635BFF]">*</span>}
       </p>
       {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-1 flex items-center gap-1 text-sm text-[#DC2626]">
+          <IconAlertCircle size={14} className="shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -236,6 +290,8 @@ function inputCls(hasError: boolean) {
     'w-full rounded-lg border px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all',
     'placeholder:text-ink/30',
     'focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20',
-    hasError ? 'border-red-400 bg-red-50/50' : 'border-ink/15 bg-white hover:border-ink/30',
+    hasError
+      ? 'border-b-2 border-b-[#DC2626] border-x-ink/15 border-t-ink/15 bg-red-50/50'
+      : 'border-ink/15 bg-white hover:border-ink/30',
   ].join(' ');
 }

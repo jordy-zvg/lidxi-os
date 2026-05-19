@@ -4,6 +4,7 @@ import { KobiWordmark } from '@kobi/ui';
 import { IconMenu2, IconX } from '@tabler/icons-react';
 import type { Route } from 'next';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const NAV_LINKS = [
@@ -13,20 +14,44 @@ const NAV_LINKS = [
   { label: 'Nosotros', href: '/nosotros' },
 ];
 
+// Routes where the nav must be solid from the start (forms / dark panels).
+const SOLID_NAV_ROUTES = [
+  '/registro',
+  '/ingresar',
+  '/contacto',
+  '/recuperar',
+  '/auth/reset-password',
+];
+
+function isSolidRoute(pathname: string): boolean {
+  if (!pathname) return false;
+  return SOLID_NAV_ROUTES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export function MarketingNav() {
+  const pathname = usePathname() ?? '';
+  const solidRoute = isSolidRoute(pathname);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    if (solidRoute) return;
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [solidRoute]);
+
+  const solid = solidRoute || scrolled;
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-200 ${
-        scrolled ? 'bg-canvas/90 shadow-sm backdrop-blur-md' : 'bg-canvas'
+      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-200 ${
+        solid
+          ? solidRoute
+            ? 'border-b border-ink/10 bg-canvas'
+            : 'border-b border-ink/10 bg-white/80 shadow-sm backdrop-blur-md'
+          : 'border-b border-transparent bg-transparent'
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">

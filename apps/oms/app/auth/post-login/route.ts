@@ -4,8 +4,15 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 // Called after email/password sign-in to determine where to redirect.
 // Checks onboarding_completed and routes accordingly.
+function safeRedirect(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith('/admin/')) return null;
+  return raw;
+}
+
 export async function GET(request: NextRequest) {
-  const { origin } = new URL(request.url);
+  const { origin, searchParams } = new URL(request.url);
+  const redirectTo = safeRedirect(searchParams.get('redirectTo'));
   const cookieStore = cookies();
 
   const supabase = createServerClient(
@@ -53,6 +60,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/onboarding/restaurante`);
   }
 
-  // Onboarding complete — send to admin dashboard (Supabase auth zone).
-  return NextResponse.redirect(`${origin}/admin/inicio`);
+  // Onboarding complete — honor redirectTo if it's a safe /admin/* path.
+  return NextResponse.redirect(`${origin}${redirectTo ?? '/admin/inicio'}`);
 }

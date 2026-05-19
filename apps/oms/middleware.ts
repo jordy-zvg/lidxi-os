@@ -13,7 +13,16 @@ export async function middleware(req: NextRequest) {
   // Zona 1: Panel Administrativo (Supabase Session)
   if (path.startsWith('/admin')) {
     if (!session) {
-      return NextResponse.redirect(new URL('/ingresar', req.url));
+      const url = req.nextUrl.clone();
+      url.pathname = '/ingresar';
+      url.search = '';
+      url.searchParams.set('redirectTo', path);
+      return NextResponse.redirect(url);
+    }
+
+    // /admin/sin-acceso es accesible para cualquier sesión válida (página 403).
+    if (path === '/admin/sin-acceso') {
+      return response;
     }
 
     // Validación de permisos admin
@@ -24,7 +33,7 @@ export async function middleware(req: NextRequest) {
       .single();
 
     if (!userTenants || !['owner', 'admin'].includes(userTenants.role)) {
-      return NextResponse.redirect(new URL('/ingresar?error=no_access', req.url));
+      return NextResponse.redirect(new URL('/admin/sin-acceso', req.url));
     }
     return response;
   }

@@ -2,11 +2,20 @@
 
 import { signIn } from '@/lib/supabase/auth-actions';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+
+function safeRedirectTo(raw: string | null): string | null {
+  if (!raw) return null;
+  // Only allow same-origin internal admin paths to prevent open-redirect.
+  if (!raw.startsWith('/admin/')) return null;
+  return raw;
+}
 
 export function IngresarForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = safeRedirectTo(searchParams.get('redirectTo'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -26,9 +35,10 @@ export function IngresarForm() {
       setError(result.error);
       return;
     }
-    // Check onboarding status on the server — redirect accordingly
-    // After signIn the session cookie is set; let the server route handle the redirect
-    router.push('/auth/post-login');
+    const target = redirectTo
+      ? `/auth/post-login?redirectTo=${encodeURIComponent(redirectTo)}`
+      : '/auth/post-login';
+    router.push(target);
     router.refresh();
   };
 
