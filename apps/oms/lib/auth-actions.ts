@@ -4,7 +4,9 @@ import {
   createSupabaseServiceClient,
   closeShift as dbCloseShift,
   findEmployeeByPin,
+  findEmployeeByPinV2,
   getOpenShiftForEmployee,
+  getOpenShiftForEmployeeV2,
   openShift,
   signEmployeeJWT,
   verifyEmployeeJWT,
@@ -20,18 +22,18 @@ import { getBranchId, getStationId } from './station';
  *   • activatePosStation   — Login del POS. Solo manager/cashier. Crea sesión
  *                            persistente del dispositivo y abre shift del
  *                            empleado tipo 'pos_activation'.
- *   • lookupForClock       — Lookup read-only para el ClockOverlay. Identifica
- *                            al empleado y reporta si hay shift abierto.
- *                            NO escribe nada.
- *   • performClockIn       — Crea un shift tipo 'clock_in' para el empleado.
- *   • performClockOut      — Cierra el shift abierto. Caller debe pasar el id.
+ *                            tenantId (opcional): si se pasa, usa employees_v2
+ *                            (path multi-tenant). Sin él, path legacy (BRANCH_ID env).
+ *   • lookupForClock       — Lookup read-only para el ClockOverlay.
+ *   • performClockIn       — Crea un shift tipo 'clock_in'.
+ *   • performClockOut      — Cierra el shift abierto.
  */
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 const ACTIVATABLE_ROLES: ReadonlySet<Role> = new Set(['manager', 'cashier']);
 const SESSION_COOKIE = 'kobi-session';
-const SESSION_MAX_AGE_S = 60 * 60 * 12; // 12h, alineado con TTL del JWT
+const SESSION_MAX_AGE_S = 60 * 60 * 12;
 
 const setSessionCookie = async (token: string): Promise<void> => {
   cookies().set(SESSION_COOKIE, token, {
@@ -51,11 +53,64 @@ const sanitizePin = (raw: string): string | null => {
 
 export const activatePosStation = async (
   pinRaw: string,
+  tenantId?: string,
 ): Promise<ActionResult<{ employeeName: string }>> => {
   const pin = sanitizePin(pinRaw);
   if (!pin) return { ok: false, error: 'PIN inválido' };
 
   const supabase = createSupabaseServiceClient();
+
+  // --------------------------------------------------------------------------
+  // Path v2: multi-tenant, usa employees_v2
+  // --------------------------------------------------------------------------
+  if (tenantId) {
+    const employee = await findEmployeeByPinV2(supabase, tenantId, pin);
+    if (!employee) return { ok: false, error: 'PIN incorrecto' };
+
+    if (!ACTIVATABLE_ROLES.has(employee.role)) {
+      return { ok: false, error: 'Tu rol no permite activar el POS' };
+    }
+
+    // Cierra shift v2 abierto del mismo empleado (multi-dispositivo defense).
+    const previousOpen = await getOpenShiftForEmployeeV2(supabase, employee.id);
+    if (previousOpen) {
+      await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
+    }
+
+    const newShift = await openShift(supabase, {
+      employeeIdV2: employee.id,
+      branchIdV2: null,
+      type: 'pos_activation',
+    });
+    if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
+
+    // Obtener restaurant_id desde el tenant para el JWT (RLS legacy lo lee).
+    const { data: restaurant } = await supabase
+      .from('restaurants')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+    const restaurantId = (restaurant as { id: string } | null)?.id ?? '';
+
+    const token = await signEmployeeJWT(
+      {
+        sub: employee.id,
+        employee_role: employee.role,
+        branch_id: '',
+        restaurant_id: restaurantId,
+        station_id: getStationId(),
+        pos_session_id: newShift.id,
+      },
+      SESSION_MAX_AGE_S,
+    );
+    await setSessionCookie(token);
+
+    return { ok: true, data: { employeeName: employee.full_name } };
+  }
+
+  // --------------------------------------------------------------------------
+  // Path legacy: single-tenant POS via BRANCH_ID env
+  // --------------------------------------------------------------------------
   const branchId = getBranchId();
   const employee = await findEmployeeByPin(supabase, branchId, pin);
   if (!employee) return { ok: false, error: 'PIN incorrecto' };
@@ -64,7 +119,6 @@ export const activatePosStation = async (
     return { ok: false, error: 'Tu rol no permite activar el POS' };
   }
 
-  // Cierra cualquier shift abierto del mismo empleado (multi-dispositivo defense).
   const previousOpen = await getOpenShiftForEmployee(supabase, employee.id);
   if (previousOpen) {
     await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
@@ -77,7 +131,6 @@ export const activatePosStation = async (
   });
   if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
 
-  // Necesitamos restaurant_id para el JWT (RLS lo lee). Lo sacamos del branch.
   const { data: branch } = await supabase
     .from('branches')
     .select('restaurant_id')
@@ -171,7 +224,11 @@ export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: st
       const claims = await verifyEmployeeJWT(token);
       const employeeId = claims.sub;
       const supabase = createSupabaseServiceClient();
-      const openShiftRow = await getOpenShiftForEmployee(supabase, employeeId);
+
+      // Buscar shift abierto: primero en v2 (nuevo path), luego legacy.
+      const openShiftRow =
+        (await getOpenShiftForEmployeeV2(supabase, employeeId)) ??
+        (await getOpenShiftForEmployee(supabase, employeeId));
 
       if (openShiftRow) {
         const closed = await dbCloseShift(supabase, openShiftRow.id);
@@ -190,15 +247,13 @@ export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: st
 
 // ---------------------------------------------------------------------------
 // Demo fingerprint — identifica al empleado por ID sin verificar PIN.
-// Exclusivo para la simulación de huella en el ClockOverlay demo.
 // ---------------------------------------------------------------------------
 
-const DEMO_EMPLOYEE_ID = '00000000-0000-0000-0000-00000000e001'; // Jorge Vargas (seed)
+const DEMO_EMPLOYEE_ID = '00000000-0000-0000-0000-00000000e001';
 
 export const fingerprintDemoLookup = async (): Promise<ActionResult<LookupForClockResult>> => {
   const supabase = createSupabaseServiceClient();
 
-  // Preferir el último empleado que hizo clock_in; fallback a Jorge Vargas
   const { data: lastShift } = await supabase
     .from('shifts')
     .select('employee_id')

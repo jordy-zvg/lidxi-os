@@ -14,9 +14,10 @@ export interface LoginShellProps {
   stationName: string;
   branch: { id: string; name: string; restaurantName: string };
   lastActivation: { employee_full_name: string; started_at: string } | null;
+  tenantId?: string;
 }
 
-export const LoginShell = ({ stationName, branch, lastActivation }: LoginShellProps) => {
+export const LoginShell = ({ stationName, branch, lastActivation, tenantId }: LoginShellProps) => {
   const router = useRouter();
   const [pin, setPin] = useState('');
   const [shake, setShake] = useState(false);
@@ -28,7 +29,7 @@ export const LoginShell = ({ stationName, branch, lastActivation }: LoginShellPr
     (full: string) => {
       setError(null);
       startTransition(async () => {
-        const r = await activatePosStation(full);
+        const r = await activatePosStation(full, tenantId);
         if (!r.ok) {
           setShake(true);
           setError(r.error);
@@ -40,7 +41,7 @@ export const LoginShell = ({ stationName, branch, lastActivation }: LoginShellPr
         setTimeout(() => router.push('/pedidos'), 200);
       });
     },
-    [router],
+    [router, tenantId],
   );
 
   const onDigit = (d: string) => {

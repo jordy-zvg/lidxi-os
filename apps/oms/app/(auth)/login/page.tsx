@@ -46,6 +46,7 @@ export default async function LoginPage() {
             restaurantName: (tenant?.name as string | undefined) ?? 'Tu restaurante',
           }}
           lastActivation={null}
+          tenantId={membership.tenant_id}
         />
       );
     }

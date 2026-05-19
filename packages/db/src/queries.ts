@@ -26,8 +26,10 @@ export interface EmployeeRow {
 
 export interface ShiftRow {
   id: string;
-  employee_id: string;
-  branch_id: string;
+  employee_id: string | null;
+  employee_id_v2: string | null;
+  branch_id: string | null;
+  branch_id_v2: string | null;
   type: 'clock_in' | 'pos_activation';
   started_at: string;
   ended_at: string | null;
@@ -117,16 +119,17 @@ export const findEmployeeByPinV2 = async (
   return null;
 };
 
-/** Último shift abierto (ended_at IS NULL) del empleado. */
+const SHIFT_SELECT =
+  'id, employee_id, employee_id_v2, branch_id, branch_id_v2, type, started_at, ended_at, break_minutes, auto_closed, created_at';
+
+/** Último shift abierto del empleado legacy (employee_id). */
 export const getOpenShiftForEmployee = async (
   supabase: SupabaseClient,
   employeeId: string,
 ): Promise<ShiftRow | null> => {
   const { data, error } = await supabase
     .from('shifts')
-    .select(
-      'id, employee_id, branch_id, type, started_at, ended_at, break_minutes, auto_closed, created_at',
-    )
+    .select(SHIFT_SELECT)
     .eq('employee_id', employeeId)
     .is('ended_at', null)
     .order('started_at', { ascending: false })
@@ -137,20 +140,45 @@ export const getOpenShiftForEmployee = async (
   return (data as ShiftRow | null) ?? null;
 };
 
-export const openShift = async (
+/** Último shift abierto del empleado v2 (employee_id_v2). */
+export const getOpenShiftForEmployeeV2 = async (
   supabase: SupabaseClient,
-  input: { employeeId: string; branchId: string; type: ShiftRow['type'] },
+  employeeIdV2: string,
 ): Promise<ShiftRow | null> => {
   const { data, error } = await supabase
     .from('shifts')
-    .insert({
-      employee_id: input.employeeId,
-      branch_id: input.branchId,
-      type: input.type,
-    })
-    .select(
-      'id, employee_id, branch_id, type, started_at, ended_at, break_minutes, auto_closed, created_at',
-    )
+    .select(SHIFT_SELECT)
+    .eq('employee_id_v2', employeeIdV2)
+    .is('ended_at', null)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error && !isPostgrestSingleNotFound(error)) return null;
+  return (data as ShiftRow | null) ?? null;
+};
+
+export type OpenShiftInput =
+  | { employeeId: string; branchId: string; type: ShiftRow['type'] }
+  | { employeeIdV2: string; branchIdV2?: string | null; type: ShiftRow['type'] };
+
+export const openShift = async (
+  supabase: SupabaseClient,
+  input: OpenShiftInput,
+): Promise<ShiftRow | null> => {
+  const payload =
+    'employeeId' in input
+      ? { employee_id: input.employeeId, branch_id: input.branchId, type: input.type }
+      : {
+          employee_id_v2: input.employeeIdV2,
+          branch_id_v2: input.branchIdV2 ?? null,
+          type: input.type,
+        };
+
+  const { data, error } = await supabase
+    .from('shifts')
+    .insert(payload)
+    .select(SHIFT_SELECT)
     .single();
   if (error || !data) return null;
   return data as ShiftRow;
@@ -168,9 +196,7 @@ export const closeShift = async (
       auto_closed: opts.autoClosed ?? false,
     })
     .eq('id', shiftId)
-    .select(
-      'id, employee_id, branch_id, type, started_at, ended_at, break_minutes, auto_closed, created_at',
-    )
+    .select(SHIFT_SELECT)
     .single();
   if (error || !data) return null;
   return data as ShiftRow;
