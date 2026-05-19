@@ -36,21 +36,31 @@ export function ResetPasswordForm() {
         return;
       }
 
-      // Implicit flow: Supabase redirects with #access_token=...&type=recovery
-      // supabase-js detects the hash on init; give it one tick.
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setReady(true);
+      // Implicit flow: only accept when hash explicitly signals a recovery token.
+      // Do NOT fall through to checking active sessions — a regular authenticated
+      // user navigating here directly would also have a session, which would let
+      // them change their password without a recovery link (H29).
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      if (hashParams.get('type') === 'recovery' && hashParams.get('access_token')) {
+        // supabase-js parses the hash on init; give it one tick to establish the session.
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          setReady(true);
+          return;
+        }
+        setTimeout(async () => {
+          const { data: d2 } = await supabase.auth.getSession();
+          if (d2.session) {
+            setReady(true);
+          } else {
+            setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
+          }
+        }, 250);
         return;
       }
-      setTimeout(async () => {
-        const { data: d2 } = await supabase.auth.getSession();
-        if (d2.session) {
-          setReady(true);
-        } else {
-          setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
-        }
-      }, 250);
+
+      // No recovery token found in URL — reject regardless of any active session.
+      setError('El enlace expiró o ya fue usado. Solicita uno nuevo.');
     }
 
     resolveSession();

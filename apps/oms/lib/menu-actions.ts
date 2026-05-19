@@ -1,12 +1,13 @@
 'use server';
 
-import { createSupabaseServiceClient } from '@kobi/db';
-import { getBranchId } from './station';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { requireTenant } from '@/lib/supabase/tenant-guard';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export interface MenuItemRow {
   id: string;
+  tenant_id: string;
   restaurant_id: string;
   category: string;
   name: string;
@@ -24,16 +25,15 @@ export interface CategoryGroup {
   count: number;
 }
 
-async function getRestaurantId(): Promise<string> {
-  const supabase = createSupabaseServiceClient();
-  const branchId = getBranchId();
+async function getRestaurantIdForTenant(tenantId: string): Promise<string> {
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
-    .from('branches')
-    .select('restaurant_id')
-    .eq('id', branchId)
+    .from('restaurants')
+    .select('id')
+    .eq('tenant_id', tenantId)
     .single();
-  if (error || !data) throw new Error('Branch no encontrado');
-  return (data as { restaurant_id: string }).restaurant_id;
+  if (error || !data) throw new Error('Restaurante no encontrado para este tenant');
+  return (data as { id: string }).id;
 }
 
 // ---------------------------------------------------------------------------
@@ -44,12 +44,12 @@ export const loadMenuEditorData = async (): Promise<
   ActionResult<{ categories: CategoryGroup[]; items: MenuItemRow[] }>
 > => {
   try {
-    const restaurantId = await getRestaurantId();
-    const supabase = createSupabaseServiceClient();
+    const { tenantId } = await requireTenant();
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
-      .eq('restaurant_id', restaurantId)
+      .eq('tenant_id', tenantId)
       .order('category')
       .order('name');
 
@@ -89,11 +89,13 @@ export const createMenuItem = async (
   input: CreateMenuItemInput,
 ): Promise<ActionResult<MenuItemRow>> => {
   try {
-    const restaurantId = await getRestaurantId();
-    const supabase = createSupabaseServiceClient();
+    const { tenantId } = await requireTenant();
+    const restaurantId = await getRestaurantIdForTenant(tenantId);
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
       .from('menu_items')
       .insert({
+        tenant_id: tenantId,
         restaurant_id: restaurantId,
         category: input.category,
         name: input.name,
@@ -132,11 +134,13 @@ export const updateMenuItem = async (
   input: UpdateMenuItemInput,
 ): Promise<ActionResult<MenuItemRow>> => {
   try {
-    const supabase = createSupabaseServiceClient();
+    const { tenantId } = await requireTenant();
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
       .from('menu_items')
       .update({ ...input, updated_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('tenant_id', tenantId)
       .select('*')
       .single();
 
@@ -153,8 +157,13 @@ export const updateMenuItem = async (
 
 export const deleteMenuItem = async (id: string): Promise<ActionResult<null>> => {
   try {
-    const supabase = createSupabaseServiceClient();
-    const { error } = await supabase.from('menu_items').delete().eq('id', id);
+    const { tenantId } = await requireTenant();
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase
+      .from('menu_items')
+      .delete()
+      .eq('id', id)
+      .eq('tenant_id', tenantId);
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: null };
   } catch (e) {

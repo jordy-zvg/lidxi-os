@@ -3,7 +3,8 @@
 import { type EmployeeRole, inviteEmployee } from '@/app/admin/equipo/actions';
 import { Button } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 
 const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
   { value: 'manager', label: 'Gerente' },
@@ -16,6 +17,20 @@ function randomPin(): string {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+function DrawerFooter({ onClose, success }: { onClose: () => void; success?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <footer className="shrink-0 border-t border-line px-5 py-4 flex items-center justify-end gap-3">
+      <Button type="button" variant="secondary" onClick={onClose} disabled={pending}>
+        Cancelar
+      </Button>
+      <Button type="submit" disabled={pending || success}>
+        {pending ? 'Guardando…' : 'Crear empleado'}
+      </Button>
+    </footer>
+  );
+}
+
 interface InviteEmployeeDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -24,7 +39,7 @@ interface InviteEmployeeDrawerProps {
 export function InviteEmployeeDrawer({ open, onClose }: InviteEmployeeDrawerProps) {
   const [pin, setPin] = useState(randomPin);
   const [pinVisible, setPinVisible] = useState(true);
-  const [state, action, pending] = useActionState(inviteEmployee, {});
+  const [state, action] = useFormState(inviteEmployee, {});
 
   useEffect(() => {
     if (!open) return;
@@ -171,14 +186,7 @@ export function InviteEmployeeDrawer({ open, onClose }: InviteEmployeeDrawerProp
             </section>
           </div>
 
-          <footer className="shrink-0 border-t border-line px-5 py-4 flex items-center justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={pending}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={pending || state.success}>
-              {pending ? 'Guardando…' : 'Crear empleado'}
-            </Button>
-          </footer>
+          <DrawerFooter onClose={onClose} success={state.success} />
         </form>
       </dialog>
     </>
