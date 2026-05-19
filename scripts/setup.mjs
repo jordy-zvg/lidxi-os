@@ -5,7 +5,7 @@
  * Correr después de clonar el repo: pnpm setup
  */
 
-import { existsSync, symlinkSync, unlinkSync } from 'fs';
+import { existsSync, symlinkSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 

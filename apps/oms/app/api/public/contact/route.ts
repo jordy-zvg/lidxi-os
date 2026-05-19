@@ -1,73 +1,60 @@
-import { createSupabaseServiceClient } from '@kobi/db';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-interface ContactPayload {
-  nombre: string;
-  email: string;
-  telefono?: string;
-  empresa: string;
-  tipo: string;
-  mensaje: string;
-  acepto: boolean;
-}
+const contactSchema = z.object({
+  name: z.string().min(2).max(80),
+  email: z.string().email(),
+  message: z.string().min(10).max(2000),
+  source: z.string().optional(),
+});
 
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+// In-memory rate limiting (3 envíos/hora por IP)
+// DEUDA TÉCNICA: Mover a Upstash/Redis cuando el backend multi-instance lo requiera.
+const rateLimit = new Map<string, { count: number; timestamp: number }>();
+const MAX_REQUESTS = 3;
+const TIME_WINDOW = 60 * 60 * 1000;
 
-// TODO: conectar a tabla contact_messages cuando Fase 3 cree la migration
-// TODO: disparar notificación por email vía Resend o similar
-export async function POST(request: Request) {
-  let body: unknown;
+export async function POST(req: Request) {
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
-  }
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+    const now = Date.now();
+    const userLimit = rateLimit.get(ip);
 
-  const payload = body as Partial<ContactPayload>;
-
-  // Server-side validation
-  if (!payload.nombre?.trim()) {
-    return NextResponse.json({ error: 'nombre requerido' }, { status: 422 });
-  }
-  if (!payload.email?.trim() || !isValidEmail(payload.email)) {
-    return NextResponse.json({ error: 'email inválido' }, { status: 422 });
-  }
-  if (!payload.empresa?.trim()) {
-    return NextResponse.json({ error: 'empresa requerida' }, { status: 422 });
-  }
-  if (!payload.tipo?.trim()) {
-    return NextResponse.json({ error: 'tipo requerido' }, { status: 422 });
-  }
-  if (!payload.mensaje?.trim() || payload.mensaje.trim().length < 20) {
-    return NextResponse.json({ error: 'mensaje muy corto' }, { status: 422 });
-  }
-  if (!payload.acepto) {
-    return NextResponse.json({ error: 'debe aceptar los términos' }, { status: 422 });
-  }
-
-  // Persist to contact_messages — requires migration 20260518000001_multi_tenant.sql
-  // Degrades gracefully if table doesn't exist yet (migration pending)
-  try {
-    const supabase = createSupabaseServiceClient();
-    await (
-      supabase as unknown as {
-        from: (table: string) => {
-          insert: (row: Record<string, unknown>) => Promise<unknown>;
-        };
+    if (userLimit && now - userLimit.timestamp < TIME_WINDOW) {
+      if (userLimit.count >= MAX_REQUESTS) {
+        return NextResponse.json(
+          { error: 'Has alcanzado el límite de envíos. Intenta más tarde.' },
+          { status: 429 },
+        );
       }
-    )
-      .from('contact_messages')
-      .insert({
-        name: payload.nombre,
-        email: payload.email,
-        phone: payload.telefono ?? null,
-        company: payload.empresa,
-        type: payload.tipo,
-        message: payload.mensaje,
-      });
-  } catch {}
+      userLimit.count += 1;
+    } else {
+      rateLimit.set(ip, { count: 1, timestamp: now });
+    }
 
-  return NextResponse.json({ ok: true });
+    const body = await req.json();
+    const parsed = contactSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.format() },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase.from('contact_messages').insert({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      message: parsed.data.message,
+      source: parsed.data.source || 'web_contact_form',
+    });
+
+    if (error) throw error;
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('[Contact API] Error:', error);
+    return NextResponse.json({ error: 'Error procesando la solicitud' }, { status: 500 });
+  }
 }

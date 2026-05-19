@@ -14,12 +14,12 @@ const MOCK_KPIS = {
   asistencia: `${MOCK_EMPLOYEES.filter((e) => e.onShift).length} de ${MOCK_EMPLOYEES.length}`,
 };
 
-export const PersonalScreen = () => {
+export const EquipoScreen = () => {
   const [selected, setSelected] = useState<MockEmployee | null>(null);
 
   return (
     <div className="flex flex-col gap-section-sm h-full">
-      <h1 className="text-xl font-medium text-ink shrink-0">Personal</h1>
+      <h1 className="text-xl font-medium text-ink shrink-0">Equipo</h1>
 
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-card-gap shrink-0">
