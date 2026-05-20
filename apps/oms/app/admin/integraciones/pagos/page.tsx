@@ -64,8 +64,8 @@ export default async function PagosIntegracionPage() {
         {currentMode === 'test' && (
           <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
             ⚠ Antes de activar producción: confirma que tu cuenta Mercado Pago está aprobada para
-            recibir pagos, que el webhook en `kobi.mx/api/webhooks/mercado-pago` está configurado, y
-            que has corrido una preference de prueba exitosa.
+            recibir pagos, que el webhook está configurado (`/api/webhooks/mercado-pago`) en el
+            panel de Mercado Pago, y que has corrido una preference de prueba exitosa.
           </p>
         )}
       </section>

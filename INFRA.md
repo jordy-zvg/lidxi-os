@@ -1,13 +1,28 @@
-# INFRA — Mapa de variables × servicio × entorno
+# INFRA — Mapa de variables × servicio × entorno (fase Railway-only)
 
 Snapshot Sprint 8 prep. Cada celda muestra **dónde se configura** la variable.
 Valores reales viven en `SPRINT8_SECRETS.md` (gitignored) y se inyectan a
 Railway como env vars del service correspondiente.
 
+**Fase actual**: MVP/demo hospedado en Railway con URLs nativas (`*.up.railway.app`). El dominio propio (`kobi.mx`) está diferido al demo — ver `SPRINT8_RUNBOOK.md` → sección DIFERIDO.
+
 Convenciones:
 - ✅ = la app o el servicio lee la variable
 - ⚠️ = secret (NUNCA exponer al cliente, no usar prefijo `NEXT_PUBLIC_`)
 - (prod) / (staging) sufijos indican el entorno; cada uno tiene su propia copia
+
+---
+
+## Política de URLs (cableada en código)
+
+| Patrón | Quién la usa | Notas |
+|---|---|---|
+| `NEXT_PUBLIC_APP_URL` | Cada app, **para apuntar a sí misma** | En OMS → URL de Railway del OMS. En storefront → URL de Railway del storefront. |
+| `NEXT_PUBLIC_OMS_URL` | Storefront, para cross-app | Apunta a la URL del OMS (webhook target). |
+| `NEXT_PUBLIC_STOREFRONT_URL` | OMS, para cross-app | Apunta a la URL del storefront (tracking links, etc.). |
+| `x-forwarded-host` / `req.url` | Server actions / middleware en runtime | Fallback robusto vía headers cuando la env no aplica. |
+
+**Promesa migratoria**: migrar de `*.up.railway.app` → `kobi.mx` después = cambiar estas 3 vars en Railway, sin tocar código.
 
 ---
 
@@ -20,7 +35,7 @@ Convenciones:
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | ✅ | ✅ | URL del proyecto |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ✅ | ✅ | Anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` ⚠️ | ✅ | ✅ | — | Solo server-side. Bypassea RLS |
-| `JWT_SECRET` ⚠️ | ✅ | ✅ | ✅ | Mismo valor que el JWT secret de Supabase; firma los JWTs de empleados |
+| `JWT_SECRET` ⚠️ | ✅ | ✅ | ✅ | Mismo valor que el JWT secret de Supabase; firma JWTs de empleados |
 
 En Railway: cada service tiene su propia copia (prod usa `*_PROD`, staging usa `*_STAGING`).
 
@@ -39,9 +54,9 @@ En Railway: cada service tiene su propia copia (prod usa `*_PROD`, staging usa `
 | Variable | OMS | Storefront | Clock | Notas |
 |---|:-:|:-:|:-:|---|
 | `RESEND_API_KEY` ⚠️ | ✅ | — | — | Envío de correo transaccional |
-| `RESEND_FROM_EMAIL` | ✅ | — | — | `hola@kobi.mx` (verificado en Resend) |
+| `RESEND_FROM_EMAIL` | ✅ | — | — | Ruta A: `onboarding@resend.dev` · Ruta B: `noreply@kobi.mx` |
 
-DKIM/SPF/DMARC en Cloudflare → zona kobi.mx.
+DKIM/SPF/DMARC: **solo Ruta B** requiere DNS en Cloudflare → zona `kobi.mx`. En Ruta A no se necesita DNS.
 
 ### Sentry
 
@@ -60,14 +75,6 @@ DKIM/SPF/DMARC en Cloudflare → zona kobi.mx.
 |---|:-:|:-:|---|
 | `NEXT_PUBLIC_MAPBOX_TOKEN` | ✅ | ✅ | Wizard (geocoder) + tracking storefront |
 
-### Cloudflare (no se inyecta en runtime; uso operativo)
-
-| Variable | Donde se usa | Notas |
-|---|---|---|
-| `CLOUDFLARE_ACCOUNT_ID` | CLI/script | DNS automation |
-| `CLOUDFLARE_API_TOKEN` ⚠️ | CLI/script | Zone:DNS:Edit en kobi.mx |
-| `CLOUDFLARE_ZONE_ID` | CLI/script | Zona kobi.mx |
-
 ### Railway (no se inyecta en runtime; uso operativo)
 
 | Variable | Donde se usa | Notas |
@@ -76,15 +83,17 @@ DKIM/SPF/DMARC en Cloudflare → zona kobi.mx.
 | `RAILWAY_PROJECT_ID` | CLI/CI | Project del monorepo |
 | `RAILWAY_SERVICE_ID_OMS` | CLI/CI | Service oms |
 | `RAILWAY_SERVICE_ID_STOREFRONT` | CLI/CI | Service storefront |
+| `RAILWAY_OMS_URL` | docs/op | `https://<oms>.up.railway.app` |
+| `RAILWAY_STOREFRONT_URL` | docs/op | `https://<storefront>.up.railway.app` |
 
-### URLs públicas
+### URLs públicas (en runtime, set en Railway env vars de cada service)
 
-| Variable | OMS | Storefront | Clock | Valor prod |
-|---|:-:|:-:|:-:|---|
-| `NEXT_PUBLIC_APP_URL` | ✅ | ✅ | ✅ | `https://kobi.mx` |
-| `NEXT_PUBLIC_OMS_URL` | ✅ | ✅ | ✅ | `https://kobi.mx` |
-| `NEXT_PUBLIC_STOREFRONT_URL` | ✅ | ✅ | — | `https://pedidos.kobi.mx` (o subdomain por tenant) |
-| `NEXT_PUBLIC_CLOCK_URL` | ✅ | — | ✅ | `https://reloj.kobi.mx` |
+| Variable | OMS service | Storefront service | Valor (fase Railway) |
+|---|:-:|:-:|---|
+| `NEXT_PUBLIC_APP_URL` | ✅ | ✅ | Cada service apunta a su propia `*.up.railway.app` |
+| `NEXT_PUBLIC_OMS_URL` | ✅ | ✅ | `RAILWAY_OMS_URL` |
+| `NEXT_PUBLIC_STOREFRONT_URL` | ✅ | ✅ | `RAILWAY_STOREFRONT_URL` |
+| `NEXT_PUBLIC_CLOCK_URL` | ✅ | — | (si se despliega clock) |
 
 ---
 
@@ -92,10 +101,10 @@ DKIM/SPF/DMARC en Cloudflare → zona kobi.mx.
 
 | Servicio | Configuración manual |
 |---|---|
-| Cloudflare DNS | A/CNAME records para subdominios + 3 registros DKIM/SPF/DMARC de Resend |
-| Mercado Pago | Webhook URL: `https://kobi.mx/api/webhooks/mercado-pago`, eventos `payment.created`, `payment.updated` + firma secreta |
-| Resend | Dominio kobi.mx verificado, sender `hola@kobi.mx` aprobado |
-| Supabase | Site URL: `https://kobi.mx`, Redirect URLs: `https://kobi.mx/**`, `https://pedidos.kobi.mx/**` |
+| Mercado Pago | Webhook URL: `${RAILWAY_OMS_URL}/api/webhooks/mercado-pago`, eventos `payment.created`, `payment.updated` + firma secreta |
+| Resend (Ruta A) | Sender `onboarding@resend.dev` — nada que configurar |
+| Resend (Ruta B) | Dominio `kobi.mx` verificado en Resend (3 DNS records en Cloudflare aunque el hosting siga en Railway) |
+| Supabase | Site URL: `RAILWAY_OMS_URL`. Redirect URLs: `${RAILWAY_OMS_URL}/**`, `${RAILWAY_STOREFRONT_URL}/**` |
 | Sentry | 2 proyectos (kobi-oms, kobi-storefront) con sourcemaps habilitados |
 
 ---
@@ -106,7 +115,21 @@ DKIM/SPF/DMARC en Cloudflare → zona kobi.mx.
 |---|---|
 | Supabase | Proyectos separados (`*_PROD` vs `*_STAGING`). Schemas idénticos, data sintética en staging. |
 | Mercado Pago | Mismas credenciales pero `tenants.payment_mode` se setea por entorno (staging siempre `'test'`). |
-| Resend | Mismo dominio pero subdomain `staging.kobi.mx` requiere su propia verificación. |
+| Resend | Mismo dominio (o `resend.dev` si Ruta A) pero el `from` opcionalmente puede diferir entre prod y staging. |
 | Sentry | Misma org, environments separados (`production` vs `staging`) en el mismo proyecto. |
-| Mapbox | Mismo token (no requiere scoping por entorno en el plan free). |
-| Cloudflare | Misma zona, subdomain dedicado para staging. |
+| Mapbox | Mismo token. |
+| Railway | Services duplicados (`oms-prod`, `oms-staging`, `storefront-prod`, `storefront-staging`). |
+
+---
+
+## Migración futura a `kobi.mx` (diferida, ver SPRINT8_RUNBOOK.md)
+
+Cuando llegue el demo:
+1. Activar custom domains en Railway por service.
+2. Configurar Cloudflare DNS (CNAME por subdominio).
+3. Cambiar `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_OMS_URL`, `NEXT_PUBLIC_STOREFRONT_URL` en Railway de `*.up.railway.app` → `https://www.kobi.mx`, `https://app.kobi.mx`, `https://tienda.kobi.mx`.
+4. Si email en Ruta A → migrar a Ruta B (verificar dominio en Resend).
+5. Reconfigurar webhook URL en Mercado Pago panel.
+6. Actualizar Site URL + Redirect URLs en Supabase.
+
+Cero refactor de código requerido por la disciplina de env vars (Sprint 8 prep Tarea 1).

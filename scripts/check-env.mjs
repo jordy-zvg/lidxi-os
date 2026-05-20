@@ -19,8 +19,19 @@ const secretsPath = resolve(repoRoot, 'SPRINT8_SECRETS.md');
 
 // Definición canónica de slots requeridos por servicio. Mantener sincronizado
 // con SPRINT8_SECRETS.md.example.
+// Fase Railway-only: NO se valida Cloudflare (diferido al demo con kobi.mx).
 const REQUIRED = [
-  { service: 'Cloudflare', vars: ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ZONE_ID'] },
+  {
+    service: 'Railway',
+    vars: [
+      'RAILWAY_TOKEN',
+      'RAILWAY_PROJECT_ID',
+      'RAILWAY_SERVICE_ID_OMS',
+      'RAILWAY_SERVICE_ID_STOREFRONT',
+      'RAILWAY_OMS_URL',
+      'RAILWAY_STOREFRONT_URL',
+    ],
+  },
   {
     service: 'Supabase prod',
     vars: [
@@ -62,16 +73,7 @@ const REQUIRED = [
     ],
   },
   { service: 'Mapbox', vars: ['NEXT_PUBLIC_MAPBOX_TOKEN'] },
-  {
-    service: 'Railway',
-    vars: [
-      'RAILWAY_TOKEN',
-      'RAILWAY_PROJECT_ID',
-      'RAILWAY_SERVICE_ID_OMS',
-      'RAILWAY_SERVICE_ID_STOREFRONT',
-    ],
-  },
-  { service: 'Internas', vars: ['JWT_SECRET_PROD', 'JWT_SECRET_STAGING', 'NEXT_PUBLIC_APP_URL_PROD'] },
+  { service: 'Internas', vars: ['JWT_SECRET_PROD', 'JWT_SECRET_STAGING'] },
 ];
 
 const COLOR = { green: '\x1b[32m', red: '\x1b[31m', yellow: '\x1b[33m', dim: '\x1b[2m', reset: '\x1b[0m' };

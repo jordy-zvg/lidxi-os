@@ -62,7 +62,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'http://localhost:3001';
+  // Self-reference: cada app usa NEXT_PUBLIC_APP_URL para apuntar a sí misma.
+  // En storefront, esta var debe apuntar al hostname público del storefront.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
   const preference = new Preference(client);
 
   try {
