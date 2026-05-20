@@ -15,6 +15,10 @@ out/
 .env.*.local
 !.env.example
 
+# Sprint secrets (plantilla .example SÍ versionada, archivo real con creds NO)
+SPRINT8_SECRETS.md
+!SPRINT8_SECRETS.md.example
+
 # Logs
 *.log
 npm-debug.log*

@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Iniciar sesión' };
 
+// IngresarForm usa useSearchParams (lee ?redirectTo) → no es estática.
+export const dynamic = 'force-dynamic';
+
 export default function IngresarPage() {
   return (
     <div className="flex min-h-screen">

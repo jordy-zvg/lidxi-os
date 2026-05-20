@@ -1,6 +1,8 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServiceClient } from '@kobi/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const runtime = 'nodejs';
 
 const contactSchema = z.object({
   name: z.string().min(2).max(80),
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient();
+    const supabase = createSupabaseServiceClient();
     const { error } = await supabase.from('contact_messages').insert({
       name: parsed.data.name,
       email: parsed.data.email,

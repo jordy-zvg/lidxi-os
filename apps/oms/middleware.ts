@@ -5,14 +5,17 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const { supabase, response } = createClient(req, res);
 
+  // getUser() valida el JWT contra Supabase Auth server (firma + expiración).
+  // getSession() solo decodifica la cookie sin verificarla — un atacante con
+  // cookie manipulada pasaría. Sprint 8 Fase 4: migrado a getUser().
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
   const path = req.nextUrl.pathname;
 
   // Zona 1: Panel Administrativo (Supabase Session)
   if (path.startsWith('/admin')) {
-    if (!session) {
+    if (!user) {
       const url = req.nextUrl.clone();
       url.pathname = '/ingresar';
       url.search = '';
@@ -30,13 +33,13 @@ export async function middleware(req: NextRequest) {
     const { data: rows } = await supabase
       .from('user_tenants')
       .select('role, created_at')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
     const userTenants = rows?.[0] ?? null;
     if (rows && rows.length > 1) {
       console.warn(
-        `[middleware.admin-guard] User ${session.user.id} has ${rows.length} memberships. Using first by created_at.`,
+        `[middleware.admin-guard] User ${user.id} has ${rows.length} memberships. Using first by created_at.`,
       );
     }
 
@@ -48,7 +51,7 @@ export async function middleware(req: NextRequest) {
 
   // Zona 2: Onboarding (Supabase Session)
   if (path.startsWith('/onboarding')) {
-    if (!session) {
+    if (!user) {
       return NextResponse.redirect(new URL('/ingresar', req.url));
     }
     return response;
