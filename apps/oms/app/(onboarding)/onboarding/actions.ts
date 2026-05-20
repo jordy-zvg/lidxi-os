@@ -18,7 +18,8 @@ async function getTenantId(): Promise<string> {
     .order('created_at', { ascending: true });
 
   const membership = resolveSingleMembership(memberships, 'onboarding.getTenantId', user.id);
-  if (!membership) redirect('/ingresar');
+  // Autenticado sin membership → /admin/sin-acceso para evitar loop.
+  if (!membership) redirect('/admin/sin-acceso');
   return membership.tenant_id as string;
 }
 
@@ -173,7 +174,7 @@ export async function completeOnboarding() {
     .order('created_at', { ascending: true });
 
   const membership = resolveSingleMembership(memberships, 'onboarding.completeOnboarding', user.id);
-  if (!membership) redirect('/ingresar');
+  if (!membership) redirect('/admin/sin-acceso');
   const tenant_id = membership.tenant_id as string;
 
   await supabase

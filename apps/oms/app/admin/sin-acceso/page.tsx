@@ -9,8 +9,8 @@ export default function SinAccesoPage() {
       </div>
       <h1 className="text-3xl font-semibold text-[#0A2540]">Sin acceso al panel</h1>
       <p className="mt-3 max-w-md text-sm text-ink/60">
-        Tu cuenta no tiene permisos de administrador para este tenant. Pide al dueño del restaurante
-        que te invite con un rol válido.
+        Tu cuenta no tiene un restaurante asociado o el rol no permite entrar al panel. Contacta a
+        soporte en hola@kobi.mx o pide al dueño del restaurante que te invite.
       </p>
       <div className="mt-8 flex gap-3">
         <Link

@@ -26,7 +26,7 @@ export default async function OnboardingListoPage() {
     .order('created_at', { ascending: true });
   const membership = resolveSingleMembership(rows, 'onboarding.listo.page', user.id);
 
-  if (!membership) redirect('/ingresar');
+  if (!membership) redirect('/admin/sin-acceso');
 
   const { data: tenant } = await supabase
     .from('tenants')

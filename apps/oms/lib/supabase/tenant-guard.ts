@@ -31,7 +31,10 @@ export async function requireTenant(): Promise<TenantContext> {
   if (error) redirect('/ingresar');
 
   const data = resolveSingleMembership(rows, 'tenant-guard.requireTenant', user.id);
-  if (!data) redirect('/ingresar');
+  // Sin membership = cuenta autenticada pero sin tenant. Redirige a /admin/sin-acceso
+  // (no /ingresar) para evitar loop: ya está logueado, /ingresar lo dejaría re-loguear
+  // y volver al mismo lugar.
+  if (!data) redirect('/admin/sin-acceso');
 
   // Supabase infers foreign-key joins as arrays; cast via unknown since it's a many-to-one.
   const tenants = data.tenants as unknown as { name: string } | null;
