@@ -35,7 +35,7 @@ export function MarketingFooter() {
               El sistema operativo de la cocina moderna. Conecta tu POS, tus marketplaces y tu
               cocina en una sola plataforma.
             </p>
-            <p className="text-xs text-white/40">ventas@kobi.com.mx</p>
+            <p className="text-xs text-white/40">ventas@kobi.mx</p>
           </div>
 
           {/* Link columns */}

@@ -19,8 +19,8 @@ export default function AvisoPrivacidadPage() {
         </p>
         <p className="mt-3 leading-relaxed">
           Para consultas urgentes, escríbenos a{' '}
-          <a href="mailto:legal@kobi.com.mx" className="font-medium underline">
-            legal@kobi.com.mx
+          <a href="mailto:legal@kobi.mx" className="font-medium underline">
+            legal@kobi.mx
           </a>{' '}
           y te respondemos en menos de 48 horas.
         </p>

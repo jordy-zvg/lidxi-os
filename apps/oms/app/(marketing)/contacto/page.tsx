@@ -18,8 +18,8 @@ const CONTACT_INFO = [
     items: [
       {
         icon: <IconMail size={16} />,
-        label: 'ventas@kobi.com.mx',
-        href: 'mailto:ventas@kobi.com.mx',
+        label: 'ventas@kobi.mx',
+        href: 'mailto:ventas@kobi.mx',
       },
       {
         icon: <IconBrandWhatsapp size={16} />,
@@ -34,8 +34,8 @@ const CONTACT_INFO = [
     items: [
       {
         icon: <IconMail size={16} />,
-        label: 'soporte@kobi.com.mx',
-        href: 'mailto:soporte@kobi.com.mx',
+        label: 'soporte@kobi.mx',
+        href: 'mailto:soporte@kobi.mx',
       },
     ],
     note: '24/7 para planes Crecimiento y Escala',
@@ -45,8 +45,8 @@ const CONTACT_INFO = [
     items: [
       {
         icon: <IconMail size={16} />,
-        label: 'prensa@kobi.com.mx',
-        href: 'mailto:prensa@kobi.com.mx',
+        label: 'prensa@kobi.mx',
+        href: 'mailto:prensa@kobi.mx',
       },
     ],
     note: undefined,

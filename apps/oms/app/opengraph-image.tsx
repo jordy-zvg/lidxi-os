@@ -65,7 +65,7 @@ export default function OgImage() {
           color: 'rgba(255, 255, 255, 0.5)',
         }}
       >
-        kobi.com.mx
+        kobi.mx
       </div>
     </div>,
     { ...size },

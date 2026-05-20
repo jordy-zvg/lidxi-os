@@ -63,7 +63,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: '¿Tienen descuentos para asociaciones de restaurantes?',
-    answer: 'Sí. Escríbenos a ventas@kobi.com.mx con el detalle de tu asociación.',
+    answer: 'Sí. Escríbenos a ventas@kobi.mx con el detalle de tu asociación.',
   },
 ];
 

@@ -2,7 +2,7 @@ import { KobiWordmark } from '@kobi/ui';
 
 /**
  * Landing genérica de Kobi (cuando la app se sirve sin un dominio de cliente
- * mapeado). En producción esto vive en kobi.com.mx y es sustituido por la
+ * mapeado). En producción esto vive en kobi.mx y es sustituido por la
  * página de marketing.
  */
 export default function RootLandingPage() {

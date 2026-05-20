@@ -241,8 +241,7 @@ export function ContactForm() {
 
       {status === 'error' && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-          Ocurrió un error al enviar. Inténtalo de nuevo o escríbenos directamente a
-          ventas@kobi.com.mx
+          Ocurrió un error al enviar. Inténtalo de nuevo o escríbenos directamente a ventas@kobi.mx
         </p>
       )}
 

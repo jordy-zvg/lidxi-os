@@ -5,7 +5,25 @@ import './globals.css';
 
 // URL pública canónica de la app: leer de env para no requerir refactor al
 // migrar de *.up.railway.app → kobi.mx (basta con cambiar la env var).
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+// En producción la env var es OBLIGATORIA: sin ella, OG tags y metadataBase
+// apuntarían a localhost en builds desplegados — un bug sutil con impacto en
+// SEO/social previews. El build falla explícitamente para evitarlo.
+function getAppUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'NEXT_PUBLIC_APP_URL es requerida en producción. ' +
+          'Sin ella, los Open Graph tags y metadataBase apuntarían a localhost. ' +
+          'Configúrala en las variables de entorno del servicio (Railway).',
+      );
+    }
+    return 'http://localhost:3000';
+  }
+  return url;
+}
+
+const APP_URL = getAppUrl();
 
 export const metadata: Metadata = {
   title: { default: 'Kobi', template: '%s · Kobi' },

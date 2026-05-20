@@ -217,7 +217,7 @@ export default function NosotrosPage() {
             </div>
             <p className="mt-6 text-sm text-ink/40">
               Si tu operación quiere probar Kobi en su etapa temprana,{' '}
-              <a href="mailto:ventas@kobi.com.mx" className="text-[#635BFF] hover:underline">
+              <a href="mailto:ventas@kobi.mx" className="text-[#635BFF] hover:underline">
                 escríbenos
               </a>
               .

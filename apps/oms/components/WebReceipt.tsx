@@ -113,7 +113,7 @@ export const WebReceipt = ({ order }: WebReceiptProps) => {
       <hr style={{ borderTop: '1px dashed #000', margin: '8px 0 6px' }} />
       <div style={{ textAlign: 'center', fontSize: 10, color: '#666' }}>
         <div>Gracias por su compra</div>
-        <div>Powered by Kobi · kobi.com.mx</div>
+        <div>Powered by Kobi · kobi.mx</div>
       </div>
     </div>
   );
