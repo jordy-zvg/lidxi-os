@@ -45,7 +45,6 @@ supabase/.temp/
 supabase/.branches/
 
 # Generated types
-packages/db/src/types.gen.ts
 
 # Misc
 *.tsbuildinfo
