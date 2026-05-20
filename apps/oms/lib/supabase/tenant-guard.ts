@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { resolveSingleMembership } from './membership';
 import { createSupabaseServerClient } from './server';
 
 export interface TenantContext {
@@ -21,13 +22,16 @@ export async function requireTenant(): Promise<TenantContext> {
 
   if (!user) redirect('/ingresar');
 
-  const { data, error } = await supabase
+  const { data: rows, error } = await supabase
     .from('user_tenants')
-    .select('tenant_id, role, tenants(name)')
+    .select('tenant_id, role, created_at, tenants(name)')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
 
-  if (error || !data) redirect('/ingresar');
+  if (error) redirect('/ingresar');
+
+  const data = resolveSingleMembership(rows, 'tenant-guard.requireTenant', user.id);
+  if (!data) redirect('/ingresar');
 
   // Supabase infers foreign-key joins as arrays; cast via unknown since it's a many-to-one.
   const tenants = data.tenants as unknown as { name: string } | null;

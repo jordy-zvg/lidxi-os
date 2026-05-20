@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/ingresar`);
   }
 
-  const { data: membership } = await (
+  const { data: rows } = await (
     supabase as unknown as {
       from: (table: string) => {
         select: (cols: string) => {
@@ -62,16 +62,26 @@ export async function GET(request: NextRequest) {
             col: string,
             val: string,
           ) => {
-            single: () => Promise<{ data: { onboarding_completed: boolean } | null }>;
+            order: (
+              col: string,
+              opts: { ascending: boolean },
+            ) => Promise<{ data: Array<{ onboarding_completed: boolean }> | null }>;
           };
         };
       };
     }
   )
     .from('user_tenants')
-    .select('onboarding_completed')
+    .select('onboarding_completed, created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
+
+  if (rows && rows.length > 1) {
+    console.warn(
+      `[post-login] User ${user.id} has ${rows.length} memberships. Using first by created_at.`,
+    );
+  }
+  const membership = rows?.[0] ?? null;
 
   if (!membership?.onboarding_completed) {
     return NextResponse.redirect(`${origin}/onboarding/restaurante`);

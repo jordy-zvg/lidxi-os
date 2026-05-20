@@ -1,6 +1,7 @@
 export const metadata = { title: 'Iniciar sesión' };
 
 import { getBranchId } from '@/lib/station';
+import { resolveSingleMembership } from '@/lib/supabase/membership';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
   createSupabaseServiceClient,
@@ -17,11 +18,12 @@ export default async function LoginPage() {
   } = await userClient.auth.getUser();
 
   if (user) {
-    const { data: membership } = await userClient
+    const { data: rows } = await userClient
       .from('user_tenants')
-      .select('tenant_id')
+      .select('tenant_id, created_at')
       .eq('user_id', user.id)
-      .single();
+      .order('created_at', { ascending: true });
+    const membership = resolveSingleMembership(rows, 'login.tenantDetect', user.id);
     if (membership?.tenant_id) {
       const { data: tenant } = await userClient
         .from('tenants')

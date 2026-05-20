@@ -1,5 +1,6 @@
 'use server';
 
+import { resolveSingleMembership } from '@/lib/supabase/membership';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -10,12 +11,13 @@ async function getTenantId(): Promise<string> {
   } = await supabase.auth.getUser();
   if (!user) redirect('/ingresar');
 
-  const { data: membership } = await supabase
+  const { data: memberships } = await supabase
     .from('user_tenants')
-    .select('tenant_id')
+    .select('tenant_id, created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
 
+  const membership = resolveSingleMembership(memberships, 'onboarding.getTenantId', user.id);
   if (!membership) redirect('/ingresar');
   return membership.tenant_id as string;
 }
@@ -164,12 +166,13 @@ export async function completeOnboarding() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/ingresar');
 
-  const { data: membership } = await supabase
+  const { data: memberships } = await supabase
     .from('user_tenants')
-    .select('tenant_id')
+    .select('tenant_id, created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
 
+  const membership = resolveSingleMembership(memberships, 'onboarding.completeOnboarding', user.id);
   if (!membership) redirect('/ingresar');
   const tenant_id = membership.tenant_id as string;
 

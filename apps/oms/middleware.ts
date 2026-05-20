@@ -25,12 +25,20 @@ export async function middleware(req: NextRequest) {
       return response;
     }
 
-    // Validación de permisos admin
-    const { data: userTenants } = await supabase
+    // Validación de permisos admin (defensiva: si hay múltiples memberships,
+    // tomamos la primera por created_at ASC para no reventar).
+    const { data: rows } = await supabase
       .from('user_tenants')
-      .select('role')
+      .select('role, created_at')
       .eq('user_id', session.user.id)
-      .single();
+      .order('created_at', { ascending: true });
+
+    const userTenants = rows?.[0] ?? null;
+    if (rows && rows.length > 1) {
+      console.warn(
+        `[middleware.admin-guard] User ${session.user.id} has ${rows.length} memberships. Using first by created_at.`,
+      );
+    }
 
     if (!userTenants || !['owner', 'admin'].includes(userTenants.role)) {
       return NextResponse.redirect(new URL('/admin/sin-acceso', req.url));

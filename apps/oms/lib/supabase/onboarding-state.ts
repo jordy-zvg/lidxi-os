@@ -1,3 +1,4 @@
+import { resolveSingleMembership } from './membership';
 import { createSupabaseServerClient } from './server';
 
 export type OnboardingStep = 'restaurante' | 'operacion' | 'plan' | 'listo';
@@ -12,12 +13,17 @@ export async function getNextOnboardingStep(): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: membership } = await supabase
+  const { data: rows } = await supabase
     .from('user_tenants')
-    .select('tenant_id, onboarding_completed')
+    .select('tenant_id, onboarding_completed, created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
 
+  const membership = resolveSingleMembership(
+    rows,
+    'onboarding-state.getNextOnboardingStep',
+    user.id,
+  );
   if (!membership) return null;
   if (membership.onboarding_completed) return null;
 

@@ -1,4 +1,5 @@
 import { OperacionForm } from '@/components/onboarding/OperacionForm';
+import { resolveSingleMembership } from '@/lib/supabase/membership';
 import { getNextOnboardingStep } from '@/lib/supabase/onboarding-state';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
@@ -18,11 +19,12 @@ export default async function OnboardingOperacionPage() {
     redirect(`/onboarding/${next.step}`);
   }
 
-  const { data: membership } = await supabase
+  const { data: rows } = await supabase
     .from('user_tenants')
-    .select('tenant_id')
+    .select('tenant_id, created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: true });
+  const membership = resolveSingleMembership(rows, 'onboarding.operacion.page', user.id);
 
   let branchName: string | undefined;
   if (membership) {
