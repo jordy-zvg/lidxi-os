@@ -50,7 +50,7 @@ export default function InicioAdminPage() {
                 href={'/admin/equipo' as Route}
                 className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#635BFF] shadow-sm border border-ink/5 hover:bg-gray-50"
               >
-                Invitar equipo →
+                Agregar equipo →
               </Link>
               <Link
                 href={'/admin/menu' as Route}

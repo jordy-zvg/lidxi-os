@@ -1,105 +1,171 @@
 'use client';
 
+import { type ChannelRow, disconnectChannel, saveChannelConnection } from '@/lib/channel-actions';
+import type { CHANNEL_SCHEMAS, ChannelId } from '@/lib/channel-schemas';
 import { StatusPill } from '@kobi/ui';
-import { IconLink, IconLoader2, IconUnlink } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconLink, IconUnlink, IconX } from '@tabler/icons-react';
+import { useState, useTransition } from 'react';
 
-interface Integracion {
-  id: string;
-  nombre: string;
-  color: string;
-  estado: 'connected' | 'disconnected' | 'pending';
-  store_id: string | null;
-  ultima_sync: string | null;
-  comision: number;
-  pedidos_hoy: number;
+interface IntegracionesScreenProps {
+  channels: ChannelRow[];
+  schemas: typeof CHANNEL_SCHEMAS;
 }
 
-const MOCK_INTEGRACIONES: Integracion[] = [
-  {
-    id: 'eats',
-    nombre: 'Uber Eats',
-    color: '#06C167',
-    estado: 'connected',
-    store_id: 'UE-48291-MX',
-    ultima_sync: '14:32',
-    comision: 0.28,
-    pedidos_hoy: 9,
-  },
-  {
-    id: 'rappi',
-    nombre: 'Rappi',
-    color: '#FF441F',
-    estado: 'connected',
-    store_id: 'RP-77821',
-    ultima_sync: '14:30',
-    comision: 0.27,
-    pedidos_hoy: 5,
-  },
-  {
-    id: 'didi',
-    nombre: 'Didi Food',
-    color: '#FF6E14',
-    estado: 'disconnected',
-    store_id: null,
-    ultima_sync: null,
-    comision: 0.25,
-    pedidos_hoy: 0,
-  },
-  {
-    id: 'direct',
-    nombre: 'Uber Direct',
-    color: '#000000',
-    estado: 'connected',
-    store_id: 'UD-MZTL-001',
-    ultima_sync: '14:35',
-    comision: 0.072,
-    pedidos_hoy: 8,
-  },
-  {
-    id: 'stripe',
-    nombre: 'Stripe · pagos sitio propio',
-    color: '#5469D4',
-    estado: 'connected',
-    store_id: 'acct_1QxMZL…',
-    ultima_sync: '14:35',
-    comision: 0.029,
-    pedidos_hoy: 8,
-  },
-];
-
-// Ticket promedio mock para calcular comisión del día
-const TICKET_PROM_CENTS = 34800;
-
-function fmtComision(comision: number): string {
-  return `${(comision * 100).toFixed(1)}%`;
+function statusLabel(s: ChannelRow['status']): string {
+  return s === 'connected'
+    ? 'Conectado'
+    : s === 'pending'
+      ? 'Pendiente'
+      : s === 'error'
+        ? 'Error'
+        : 'Desconectado';
 }
 
-function fmtPago(pedidos: number, comision: number): string {
-  const monto = (pedidos * TICKET_PROM_CENTS * comision) / 100;
-  return `$${Math.round(monto).toLocaleString('es-MX')}`;
+function statusVariant(s: ChannelRow['status']): 'ok' | 'warn' | 'danger' {
+  if (s === 'connected') return 'ok';
+  if (s === 'pending') return 'warn';
+  if (s === 'error') return 'danger';
+  return 'danger';
 }
 
-// ---------------------------------------------------------------------------
-// Modal OAuth simulado
-// ---------------------------------------------------------------------------
+export const IntegracionesScreen = ({ channels, schemas }: IntegracionesScreenProps) => {
+  const [editing, setEditing] = useState<ChannelId | null>(null);
 
-interface OAuthModalProps {
-  nombre: string;
-  onSuccess: (storeId: string) => void;
+  return (
+    <div className="flex flex-col gap-section-sm overflow-y-auto pb-6">
+      <div className="shrink-0">
+        <h1 className="text-xl font-medium text-ink">Integraciones</h1>
+        <p className="mt-1 text-sm text-ink-400 max-w-xl">
+          Guarda las credenciales que cada canal te pidió. La conexión real se activará cuando la
+          integración esté disponible — por ahora las credenciales quedan listas y aisladas en tu
+          tenant.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-card-gap">
+        {channels.map((ch) => {
+          const schema = schemas[ch.channel];
+          return (
+            <div
+              key={ch.channel}
+              className="bg-surface border border-line rounded-lg p-card-sm space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    style={{ background: schema.brand }}
+                  >
+                    {schema.label[0]}
+                  </div>
+                  <span className="font-medium text-sm text-ink">{schema.label}</span>
+                </div>
+                <StatusPill variant={statusVariant(ch.status)}>{statusLabel(ch.status)}</StatusPill>
+              </div>
+
+              {ch.status !== 'disconnected' && (
+                <div className="space-y-1 text-xs">
+                  {schema.fields
+                    .filter((f) => f.type === 'text' && ch.credentials[f.name])
+                    .map((f) => (
+                      <div key={f.name} className="flex justify-between">
+                        <span className="text-ink-400">{f.label}</span>
+                        <span className="font-mono text-ink-300 truncate max-w-[140px]">
+                          {ch.credentials[f.name]}
+                        </span>
+                      </div>
+                    ))}
+                  {ch.last_error && (
+                    <p className="text-danger-text text-xs mt-1 line-clamp-2">{ch.last_error}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                {ch.status === 'disconnected' ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(ch.channel)}
+                    className="flex-1 h-8 rounded bg-brand text-white text-xs font-medium hover:bg-brand-hover transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <IconLink size={13} />
+                    Conectar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(ch.channel)}
+                      className="flex-1 h-8 rounded border border-line-2 text-xs font-medium text-ink-200 hover:bg-surface-2 transition-colors"
+                    >
+                      Editar
+                    </button>
+                    <DisconnectButton channel={ch.channel} />
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {editing && (
+        <ChannelFormDrawer
+          channel={editing}
+          schema={schemas[editing]}
+          existing={channels.find((c) => c.channel === editing)?.credentials ?? {}}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+function DisconnectButton({ channel }: { channel: ChannelId }) {
+  const [pending, startTransition] = useTransition();
+  const onClick = () => {
+    if (!confirm('¿Desconectar este canal? Las credenciales se borran de la base de datos.'))
+      return;
+    startTransition(async () => {
+      await disconnectChannel(channel);
+    });
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={pending}
+      className="h-8 px-3 rounded border border-line-2 text-xs font-medium text-danger-text hover:bg-surface-2 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+    >
+      <IconUnlink size={13} />
+      Desconectar
+    </button>
+  );
+}
+
+interface ChannelFormDrawerProps {
+  channel: ChannelId;
+  schema: (typeof CHANNEL_SCHEMAS)[ChannelId];
+  existing: Record<string, string>;
   onClose: () => void;
 }
 
-const OAuthModal = ({ nombre, onSuccess, onClose }: OAuthModalProps) => {
-  const [phase, setPhase] = useState<'loading' | 'success'>('loading');
+function ChannelFormDrawer({ channel, schema, existing, onClose }: ChannelFormDrawerProps) {
+  const [values, setValues] = useState<Record<string, string>>(() => ({ ...existing }));
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
-  useState(() => {
-    const id = setTimeout(() => {
-      setPhase('success');
-      setTimeout(() => onSuccess('DF-44821'), 1500);
-    }, 2000);
-    return () => clearTimeout(id);
-  });
+  const handleSave = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await saveChannelConnection(channel, values);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      onClose();
+    });
+  };
 
   return (
     <>
@@ -111,213 +177,85 @@ const OAuthModal = ({ nombre, onSuccess, onClose }: OAuthModalProps) => {
       />
       <dialog
         open
-        className="fixed inset-0 z-50 m-auto w-80 h-fit p-0 rounded-xl bg-surface border border-line shadow-lg flex flex-col items-center text-center p-8 gap-4"
+        aria-label={`Configurar ${schema.label}`}
+        className="fixed right-0 top-0 bottom-0 z-50 w-[440px] m-0 p-0 bg-surface border-l border-line shadow-lg flex flex-col overflow-hidden"
       >
-        {phase === 'loading' ? (
-          <>
-            <IconLoader2 size={32} className="text-brand animate-spin" />
-            <div>
-              <p className="font-medium text-sm text-ink">Conectando con {nombre}</p>
-              <p className="text-xs text-ink-400 mt-1">Redirigiendo para autorización…</p>
+        <header className="shrink-0 border-b border-line px-5 py-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-7 w-7 flex items-center justify-center rounded text-ink-300 hover:bg-surface-2"
+          >
+            <IconX size={16} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-6 w-6 rounded flex items-center justify-center text-white text-[10px] font-bold"
+              style={{ background: schema.brand }}
+            >
+              {schema.label[0]}
             </div>
-          </>
-        ) : (
-          <>
-            <div className="h-10 w-10 rounded-full bg-ok-soft flex items-center justify-center">
-              <IconLink size={20} className="text-ok" />
+            <span className="font-medium text-sm text-ink">Conectar {schema.label}</span>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <p className="text-xs text-ink-400">
+            Captura las credenciales que {schema.label} te proporcionó. Se guardan cifradas a nivel
+            de fila (RLS) y solo tu tenant puede leerlas.
+          </p>
+
+          {error && (
+            <div className="rounded-md bg-danger-soft border border-danger px-4 py-2.5 text-sm text-danger-text">
+              {error}
             </div>
-            <div>
-              <p className="font-medium text-sm text-ink">Conexión exitosa</p>
-              <p className="font-mono text-xs text-ink-400 mt-1">Store ID: DF-44821</p>
+          )}
+
+          {schema.fields.map((f) => (
+            <div key={f.name}>
+              <label
+                className="block text-xs font-semibold uppercase tracking-wider text-ink-400 mb-1"
+                htmlFor={`f-${f.name}`}
+              >
+                {f.label}
+                {f.required && ' *'}
+              </label>
+              <input
+                id={`f-${f.name}`}
+                type={f.type}
+                placeholder={f.placeholder}
+                value={values[f.name] ?? ''}
+                onChange={(e) => setValues((prev) => ({ ...prev, [f.name]: e.target.value }))}
+                className="w-full h-9 rounded-md border border-line-2 bg-canvas px-3 text-sm font-mono text-ink focus:outline-none focus:border-brand"
+              />
             </div>
-          </>
-        )}
+          ))}
+
+          <div className="rounded-lg bg-warn-soft border border-warn px-3 py-2.5 text-xs text-warn-text">
+            La conexión se marca como <strong>Pendiente</strong> al guardar. La activación real con
+            la API del canal llegará cuando obtengamos acceso de partner.
+          </div>
+        </div>
+
+        <footer className="shrink-0 border-t border-line px-5 py-4 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={pending}
+            className="h-9 px-4 rounded-md border border-line-2 text-sm text-ink-200 hover:bg-surface-2 disabled:opacity-40"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={pending}
+            className="h-9 px-4 rounded-md bg-brand text-white text-sm font-medium hover:bg-brand-hover disabled:opacity-40"
+          >
+            {pending ? 'Guardando…' : 'Guardar credenciales'}
+          </button>
+        </footer>
       </dialog>
     </>
   );
-};
-
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
-
-export const IntegracionesScreen = () => {
-  const [integraciones, setIntegraciones] = useState<Integracion[]>(MOCK_INTEGRACIONES);
-  const [oauthTarget, setOauthTarget] = useState<string | null>(null);
-
-  const handleConnect = (id: string) => setOauthTarget(id);
-
-  const handleOAuthSuccess = (id: string, storeId: string) => {
-    setIntegraciones((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              estado: 'connected',
-              store_id: storeId,
-              ultima_sync: new Date().toLocaleTimeString('es-MX', {
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-            }
-          : i,
-      ),
-    );
-    setOauthTarget(null);
-  };
-
-  const connected = integraciones.filter((i) => i.id !== 'stripe');
-  const oauthInteg = integraciones.find((i) => i.id === oauthTarget);
-
-  // Ahorro vs todo en Eats
-  const eatsFee = 0.28;
-  const totalPedidosHoy = connected.reduce((s, i) => s + i.pedidos_hoy, 0);
-  const comisionReal = connected.reduce(
-    (s, i) => s + i.pedidos_hoy * TICKET_PROM_CENTS * i.comision,
-    0,
-  );
-  const comisionSiTodoEats = totalPedidosHoy * TICKET_PROM_CENTS * eatsFee;
-  const ahorroHoy = Math.round((comisionSiTodoEats - comisionReal) / 100);
-
-  return (
-    <div className="flex flex-col gap-section-sm overflow-y-auto pb-6">
-      <h1 className="text-xl font-medium text-ink shrink-0">Integraciones</h1>
-
-      {/* Cards */}
-      <div className="grid grid-cols-3 gap-card-gap">
-        {integraciones.map((integ) => (
-          <div
-            key={integ.id}
-            className="bg-surface border border-line rounded-lg p-card-sm space-y-3"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div
-                  className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
-                  style={{ background: integ.color }}
-                >
-                  {integ.nombre[0]}
-                </div>
-                <span className="font-medium text-sm text-ink">{integ.nombre}</span>
-              </div>
-              <StatusPill
-                variant={
-                  integ.estado === 'connected'
-                    ? 'ok'
-                    : integ.estado === 'pending'
-                      ? 'warn'
-                      : 'danger'
-                }
-              >
-                {integ.estado === 'connected'
-                  ? 'Conectado'
-                  : integ.estado === 'pending'
-                    ? 'Verificando'
-                    : 'Desconectado'}
-              </StatusPill>
-            </div>
-
-            {integ.estado === 'connected' && (
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-ink-400">Store ID</span>
-                  <span className="font-mono text-ink-300">{integ.store_id}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-ink-400">Última sync</span>
-                  <span className="font-mono text-ink-300">{integ.ultima_sync}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-ink-400">Comisión</span>
-                  <span className="font-mono text-ink-200">{fmtComision(integ.comision)}</span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-2 pt-1">
-              {integ.estado === 'connected' ? (
-                <button
-                  type="button"
-                  className="flex-1 h-8 rounded border border-line-2 text-xs font-medium text-ink-200 hover:bg-surface-2 transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <IconUnlink size={13} />
-                  Reconectar
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleConnect(integ.id)}
-                  className="flex-1 h-8 rounded bg-brand text-white text-xs font-medium hover:bg-brand-hover transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <IconLink size={13} />
-                  Conectar
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Resumen de comisiones */}
-      <div className="bg-surface border border-line rounded-lg p-card">
-        <h2 className="text-sm font-semibold text-ink mb-4">Resumen de comisiones · hoy</h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-ink-400 border-b border-line">
-              {['Canal', 'Comisión', 'Pedidos hoy', 'Comisión pagada hoy'].map((h) => (
-                <th
-                  key={h}
-                  className="text-left py-row-header-y px-row-x font-medium whitespace-nowrap"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {connected.map((i) => (
-              <tr key={i.id}>
-                <td className="py-row-y px-row-x font-medium text-ink">{i.nombre}</td>
-                <td className="py-row-y px-row-x font-mono text-ink-200">
-                  {fmtComision(i.comision)}
-                </td>
-                <td className="py-row-y px-row-x font-mono text-ink-300">
-                  {i.estado === 'connected' ? i.pedidos_hoy : '—'}
-                </td>
-                <td className="py-2.5 font-mono text-ink-300">
-                  {i.estado === 'connected' && i.pedidos_hoy > 0
-                    ? fmtPago(i.pedidos_hoy, i.comision)
-                    : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="mt-4 pt-4 border-t border-line flex items-center justify-between">
-          <div>
-            <p className="text-xs text-ink-400">Ahorro vs. todo en Uber Eats</p>
-            <p className="font-mono text-xl font-semibold text-ok-text mt-0.5">
-              +${ahorroHoy.toLocaleString('es-MX')} este mes (estimado)
-            </p>
-          </div>
-          <div className="text-xs text-ink-400 text-right max-w-[200px] leading-relaxed">
-            Al diversificar canales reduces tu comisión promedio de 28% a{' '}
-            {totalPedidosHoy > 0
-              ? `${((comisionReal / (totalPedidosHoy * TICKET_PROM_CENTS)) * 100).toFixed(1)}%`
-              : '—'}
-          </div>
-        </div>
-      </div>
-
-      {/* OAuth modal */}
-      {oauthTarget && oauthInteg && (
-        <OAuthModal
-          nombre={oauthInteg.nombre}
-          onSuccess={(storeId) => handleOAuthSuccess(oauthTarget, storeId)}
-          onClose={() => setOauthTarget(null)}
-        />
-      )}
-    </div>
-  );
-};
+}

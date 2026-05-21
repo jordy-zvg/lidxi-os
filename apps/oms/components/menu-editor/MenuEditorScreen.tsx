@@ -88,12 +88,37 @@ export const MenuEditorScreen = () => {
     );
   }
 
+  // Categorías sugeridas para tenants nuevos sin items.
+  const SUGGESTED_CATEGORIES = ['Entradas', 'Platos fuertes', 'Bebidas', 'Postres'];
+  const editorCategories = categoryNames.length > 0 ? categoryNames : SUGGESTED_CATEGORIES;
+
   if (categories.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-        <IconPackage size={40} className="text-ink-500" />
-        <p className="text-base font-medium text-ink">No hay categorías configuradas</p>
-        <p className="text-sm text-ink-400">Contacta al admin para configurar el catálogo.</p>
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
+          <IconPackage size={40} className="text-ink-500" />
+          <p className="text-base font-medium text-ink">Tu menú está vacío</p>
+          <p className="text-sm text-ink-400 max-w-sm">
+            Agrega tu primer item para empezar. Puedes organizarlo en categorías como entradas,
+            platos fuertes, bebidas y postres.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSelectedItem('new' as unknown as MenuItemRow)}
+            className="mt-2 inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-brand text-white text-sm font-medium hover:bg-brand-hover transition-colors"
+          >
+            <IconPlus size={16} /> Crear primer item
+          </button>
+        </div>
+        {editorOpen && (
+          <ItemEditorPanel
+            item={editorItem}
+            categories={editorCategories}
+            onClose={() => setSelectedItem(null)}
+            onSaved={handleSaved}
+            onDeleted={handleDeleted}
+          />
+        )}
       </div>
     );
   }

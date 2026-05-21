@@ -3,15 +3,16 @@
 import { Button } from '@kobi/ui';
 import { IconUserPlus } from '@tabler/icons-react';
 import { useState } from 'react';
+import { AddEmployeeDrawer } from './AddEmployeeDrawer';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeSlideOver } from './EmployeeSlideOver';
-import { InviteEmployeeDrawer } from './InviteEmployeeDrawer';
 
 export interface EmployeeRecord {
   id: string;
   name: string;
   role: string;
   status: 'activo' | 'pausado';
+  fingerprint_enrolled: boolean;
 }
 
 interface EquipoScreenProps {
@@ -20,7 +21,7 @@ interface EquipoScreenProps {
 
 export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
   const [selected, setSelected] = useState<EmployeeRecord | null>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const active = employees.filter((e) => e.status === 'activo');
 
@@ -28,9 +29,9 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
     <div className="flex flex-col gap-section-sm h-full">
       <div className="flex items-center justify-between shrink-0">
         <h1 className="text-xl font-medium text-ink">Equipo</h1>
-        <Button onClick={() => setInviteOpen(true)} size="sm">
+        <Button onClick={() => setAddOpen(true)} size="sm">
           <IconUserPlus size={16} className="mr-1.5" />
-          Invitar empleado
+          Agregar empleado
         </Button>
       </div>
 
@@ -58,7 +59,7 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
         <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center">
           <p className="text-sm font-medium text-ink">No hay empleados todavía</p>
           <p className="text-xs text-ink-400 max-w-xs">
-            Invita a tu primer empleado con el botón de arriba. Recibirá un PIN para acceder al POS.
+            Agrega a tu primer empleado con el botón de arriba. Recibirá un PIN para acceder al POS.
           </p>
         </div>
       ) : (
@@ -70,7 +71,7 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
       )}
 
       <EmployeeSlideOver employee={selected} onClose={() => setSelected(null)} />
-      <InviteEmployeeDrawer open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <AddEmployeeDrawer open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
   );
 };

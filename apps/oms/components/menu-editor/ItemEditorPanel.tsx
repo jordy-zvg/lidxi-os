@@ -75,12 +75,12 @@ export const ItemEditorPanel = ({
         let finalPhotoUrl = photoKey ? photoUrl : null;
         let finalPhotoKey = photoKey;
 
-        // Upload imagen si hay archivo pendiente
+        // Upload imagen si hay archivo pendiente.
+        // tenant_id se resuelve dentro de uploadMenuImage via requireTenant().
         if (pendingFile) {
           setUploadProgress(0);
           const tempId = item?.id ?? `new-${Date.now()}`;
-          const restaurantId = item?.restaurant_id ?? 'unknown';
-          const uploaded = await uploadMenuImage(pendingFile, restaurantId, tempId);
+          const uploaded = await uploadMenuImage(pendingFile, tempId);
           finalPhotoUrl = uploaded.url;
           finalPhotoKey = uploaded.key;
           setUploadProgress(100);
@@ -167,7 +167,7 @@ export const ItemEditorPanel = ({
           />
         </div>
 
-        {/* Categoría */}
+        {/* Categoría (typeahead: sugerencias existentes + categoría libre) */}
         <div>
           <label
             className="block text-xs font-semibold uppercase tracking-wider text-ink-400 mb-1"
@@ -175,18 +175,21 @@ export const ItemEditorPanel = ({
           >
             Categoría *
           </label>
-          <select
+          <input
             id="item-cat"
+            type="text"
+            list="item-cat-options"
             value={category}
+            maxLength={40}
             onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ej. Entradas, Bebidas, Postres"
             className="w-full h-9 rounded-md border border-line-2 bg-canvas px-3 text-sm text-ink focus:outline-none focus:border-brand"
-          >
+          />
+          <datalist id="item-cat-options">
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <option key={c} value={c} />
             ))}
-          </select>
+          </datalist>
         </div>
 
         {/* Precio */}

@@ -11,7 +11,7 @@ export default async function EquipoPage() {
 
   const { data } = await supabase
     .from('employees_v2')
-    .select('id, name, role, status')
+    .select('id, name, role, status, fingerprint_enrolled')
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true });
 
@@ -20,6 +20,7 @@ export default async function EquipoPage() {
     name: e.name as string,
     role: e.role as string,
     status: (e.status ?? 'activo') as 'activo' | 'pausado',
+    fingerprint_enrolled: Boolean(e.fingerprint_enrolled),
   }));
 
   return <EquipoScreen employees={employees} />;
