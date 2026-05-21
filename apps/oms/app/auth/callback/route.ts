@@ -1,3 +1,4 @@
+import { resolveOriginFromRequest } from '@/lib/supabase/origin';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -5,7 +6,11 @@ import { type NextRequest, NextResponse } from 'next/server';
 // Handles Supabase email confirmation redirect.
 // Supabase sends user here with ?code=... after clicking the email link.
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  // Importante: no usar `new URL(request.url).origin` directo — detrás del
+  // proxy de Railway eso puede reportar `localhost:3000` (host interno).
+  // resolveOriginFromRequest prioriza x-forwarded-host del proxy.
+  const origin = resolveOriginFromRequest(request);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/onboarding/restaurante';
 

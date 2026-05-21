@@ -1,3 +1,4 @@
+import { resolveOriginFromRequest } from '@/lib/supabase/origin';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -9,25 +10,10 @@ function safeRedirect(raw: string | null): string | null {
   return raw;
 }
 
-// Resolve the public origin honoring proxy headers (Cloudflare tunnel, Vercel, etc.)
-// to avoid leaking the internal hostname (`localhost:3000`) in Location headers.
-function resolveOrigin(request: NextRequest): string {
-  const envOverride = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
-  if (envOverride && /^https?:\/\//.test(envOverride)) return envOverride;
-
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  const forwardedProto = request.headers.get('x-forwarded-proto');
-  const host = forwardedHost ?? request.headers.get('host');
-  if (host) {
-    const proto = forwardedProto ?? (host.startsWith('localhost') ? 'http' : 'https');
-    return `${proto}://${host}`;
-  }
-
-  return new URL(request.url).origin;
-}
-
 export async function GET(request: NextRequest) {
-  const origin = resolveOrigin(request);
+  // Helper centralizado: headers PRIMERO (no env var, que es susceptible al
+  // inlining de NEXT_PUBLIC_* en build-time con valor stale).
+  const origin = resolveOriginFromRequest(request);
   const { searchParams } = new URL(request.url);
   const redirectTo = safeRedirect(searchParams.get('redirectTo'));
   const cookieStore = cookies();
