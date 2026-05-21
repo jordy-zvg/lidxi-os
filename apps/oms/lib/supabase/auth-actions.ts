@@ -1,6 +1,7 @@
 'use server';
 
 import { resolveSingleMembership } from './membership';
+import { resolveRequestOrigin } from './origin';
 import { createSupabaseServerClient } from './server';
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
@@ -11,12 +12,13 @@ export async function signUp(
   fullName: string,
 ): Promise<AuthResult> {
   const supabase = createSupabaseServerClient();
+  const origin = resolveRequestOrigin();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
   if (error) {
@@ -47,10 +49,11 @@ export async function signInWithGoogle(): Promise<
   { ok: true; url: string } | { ok: false; error: string }
 > {
   const supabase = createSupabaseServerClient();
+  const origin = resolveRequestOrigin();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${origin}/auth/callback`,
     },
   });
   if (error || !data.url) {
@@ -61,8 +64,9 @@ export async function signInWithGoogle(): Promise<
 
 export async function sendPasswordResetEmail(email: string): Promise<AuthResult> {
   const supabase = createSupabaseServerClient();
+  const origin = resolveRequestOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/auth/reset-password`,
+    redirectTo: `${origin}/auth/reset-password`,
   });
   if (error) return { ok: false, error: error.message };
   return { ok: true };
