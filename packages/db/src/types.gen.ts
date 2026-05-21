@@ -705,6 +705,77 @@ export type Database = {
           },
         ]
       }
+      order_payments: {
+        Row: {
+          amount_cents: number
+          cash_received_cents: number | null
+          change_given_cents: number | null
+          created_at: string
+          employee_id_v2: string | null
+          id: string
+          method: string
+          notes: string | null
+          order_id: string
+          shift_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          amount_cents: number
+          cash_received_cents?: number | null
+          change_given_cents?: number | null
+          created_at?: string
+          employee_id_v2?: string | null
+          id?: string
+          method: string
+          notes?: string | null
+          order_id: string
+          shift_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          amount_cents?: number
+          cash_received_cents?: number | null
+          change_given_cents?: number | null
+          created_at?: string
+          employee_id_v2?: string | null
+          id?: string
+          method?: string
+          notes?: string | null
+          order_id?: string
+          shift_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_employee_id_v2_fkey"
+            columns: ["employee_id_v2"]
+            isOneToOne: false
+            referencedRelation: "employees_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_payments_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           accepted_at: string | null
@@ -1042,12 +1113,21 @@ export type Database = {
           branch_id: string | null
           branch_id_v2: string | null
           break_minutes: number
+          card_total_cents: number | null
+          cash_counted_cents: number | null
+          cash_difference_cents: number | null
+          cash_expected_cents: number | null
+          closed_at: string | null
+          closed_by_employee_id_v2: string | null
           created_at: string
           employee_id: string | null
           employee_id_v2: string | null
           ended_at: string | null
           id: string
+          orders_count: number | null
           started_at: string
+          tenant_id: string | null
+          total_sold_cents: number | null
           type: string
         }
         Insert: {
@@ -1055,12 +1135,21 @@ export type Database = {
           branch_id?: string | null
           branch_id_v2?: string | null
           break_minutes?: number
+          card_total_cents?: number | null
+          cash_counted_cents?: number | null
+          cash_difference_cents?: number | null
+          cash_expected_cents?: number | null
+          closed_at?: string | null
+          closed_by_employee_id_v2?: string | null
           created_at?: string
           employee_id?: string | null
           employee_id_v2?: string | null
           ended_at?: string | null
           id?: string
+          orders_count?: number | null
           started_at?: string
+          tenant_id?: string | null
+          total_sold_cents?: number | null
           type?: string
         }
         Update: {
@@ -1068,12 +1157,21 @@ export type Database = {
           branch_id?: string | null
           branch_id_v2?: string | null
           break_minutes?: number
+          card_total_cents?: number | null
+          cash_counted_cents?: number | null
+          cash_difference_cents?: number | null
+          cash_expected_cents?: number | null
+          closed_at?: string | null
+          closed_by_employee_id_v2?: string | null
           created_at?: string
           employee_id?: string | null
           employee_id_v2?: string | null
           ended_at?: string | null
           id?: string
+          orders_count?: number | null
           started_at?: string
+          tenant_id?: string | null
+          total_sold_cents?: number | null
           type?: string
         }
         Relationships: [
@@ -1092,6 +1190,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shifts_closed_by_employee_id_v2_fkey"
+            columns: ["closed_by_employee_id_v2"]
+            isOneToOne: false
+            referencedRelation: "employees_v2"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shifts_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
@@ -1103,6 +1208,13 @@ export type Database = {
             columns: ["employee_id_v2"]
             isOneToOne: false
             referencedRelation: "employees_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shifts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

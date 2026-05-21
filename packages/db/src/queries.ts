@@ -26,6 +26,7 @@ export interface EmployeeRow {
 
 export interface ShiftRow {
   id: string;
+  tenant_id: string | null;
   employee_id: string | null;
   employee_id_v2: string | null;
   branch_id: string | null;
@@ -33,6 +34,7 @@ export interface ShiftRow {
   type: 'clock_in' | 'pos_activation';
   started_at: string;
   ended_at: string | null;
+  closed_at: string | null;
   break_minutes: number;
   auto_closed: boolean;
   created_at: string;
@@ -120,7 +122,7 @@ export const findEmployeeByPinV2 = async (
 };
 
 const SHIFT_SELECT =
-  'id, employee_id, employee_id_v2, branch_id, branch_id_v2, type, started_at, ended_at, break_minutes, auto_closed, created_at';
+  'id, tenant_id, employee_id, employee_id_v2, branch_id, branch_id_v2, type, started_at, ended_at, closed_at, break_minutes, auto_closed, created_at';
 
 /** Último shift abierto del empleado legacy (employee_id). */
 export const getOpenShiftForEmployee = async (
@@ -159,8 +161,13 @@ export const getOpenShiftForEmployeeV2 = async (
 };
 
 export type OpenShiftInput =
-  | { employeeId: string; branchId: string; type: ShiftRow['type'] }
-  | { employeeIdV2: string; branchIdV2?: string | null; type: ShiftRow['type'] };
+  | { employeeId: string; branchId: string; type: ShiftRow['type']; tenantId?: string }
+  | {
+      employeeIdV2: string;
+      branchIdV2?: string | null;
+      type: ShiftRow['type'];
+      tenantId: string;
+    };
 
 export const openShift = async (
   supabase: SupabaseClient,
@@ -168,11 +175,17 @@ export const openShift = async (
 ): Promise<ShiftRow | null> => {
   const payload =
     'employeeId' in input
-      ? { employee_id: input.employeeId, branch_id: input.branchId, type: input.type }
+      ? {
+          employee_id: input.employeeId,
+          branch_id: input.branchId,
+          type: input.type,
+          tenant_id: input.tenantId ?? null,
+        }
       : {
           employee_id_v2: input.employeeIdV2,
           branch_id_v2: input.branchIdV2 ?? null,
           type: input.type,
+          tenant_id: input.tenantId,
         };
 
   const { data, error } = await supabase

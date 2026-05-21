@@ -80,6 +80,7 @@ export const activatePosStation = async (
     const newShift = await openShift(supabase, {
       employeeIdV2: employee.id,
       branchIdV2: null,
+      tenantId,
       type: 'pos_activation',
     });
     if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
@@ -96,6 +97,7 @@ export const activatePosStation = async (
       {
         sub: employee.id,
         employee_role: employee.role,
+        tenant_id: tenantId,
         branch_id: '',
         restaurant_id: restaurantId,
         station_id: getStationId(),
@@ -124,25 +126,32 @@ export const activatePosStation = async (
     await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
   }
 
-  const newShift = await openShift(supabase, {
-    employeeId: employee.id,
-    branchId,
-    type: 'pos_activation',
-  });
-  if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
-
+  // Path legacy: derivar tenant_id desde restaurant.tenant_id (Sprint 7.7
+  // pobló restaurants.tenant_id via 20260521000001_unify_tenant_model.sql).
   const { data: branch } = await supabase
     .from('branches')
-    .select('restaurant_id')
+    .select('restaurant_id, restaurants(tenant_id)')
     .eq('id', branchId)
     .single();
   if (!branch) return { ok: false, error: 'Branch no encontrado' };
   const restaurantId = (branch as { restaurant_id: string }).restaurant_id;
+  const legacyTenantId =
+    (branch as unknown as { restaurants: { tenant_id: string | null } | null }).restaurants
+      ?.tenant_id ?? '';
+
+  const newShift = await openShift(supabase, {
+    employeeId: employee.id,
+    branchId,
+    tenantId: legacyTenantId || undefined,
+    type: 'pos_activation',
+  });
+  if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
 
   const token = await signEmployeeJWT(
     {
       sub: employee.id,
       employee_role: employee.role,
+      tenant_id: legacyTenantId,
       branch_id: branchId,
       restaurant_id: restaurantId,
       station_id: getStationId(),

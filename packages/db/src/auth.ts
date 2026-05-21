@@ -11,9 +11,10 @@ import { type JWTPayload, SignJWT, jwtVerify } from 'jose';
  */
 
 export interface EmployeeClaims extends JWTPayload {
-  sub: string; // employee_id
+  sub: string; // employee_id (employees_v2.id en path multi-tenant)
   role: 'authenticated';
   employee_role: Role;
+  tenant_id: string; // tenant del empleado — usado por código operativo para filtrar
   branch_id: string;
   restaurant_id: string;
   station_id?: string; // identificador de la estación POS activada
