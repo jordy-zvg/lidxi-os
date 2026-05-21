@@ -1,12 +1,15 @@
-import { PageStub } from '@kobi/ui';
+import { CheckoutClient } from '@/components/checkout/CheckoutClient';
+import { loadTenantBySlug } from '@/lib/storefront-actions';
+import { notFound } from 'next/navigation';
 
-export default function CheckoutPage() {
-  return (
-    <main className="mx-auto max-w-xl px-6 py-16">
-      <PageStub
-        title="Checkout"
-        description="Stripe Checkout Session redirigirá aquí tras pago exitoso."
-      />
-    </main>
-  );
+export const dynamic = 'force-dynamic';
+
+export default async function CheckoutPage({
+  params,
+}: {
+  params: { restaurantSlug: string };
+}) {
+  const tenant = await loadTenantBySlug(params.restaurantSlug);
+  if (!tenant) notFound();
+  return <CheckoutClient tenant={tenant} />;
 }

@@ -124,8 +124,8 @@ export const MenuEditorScreen = () => {
   }
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden">
-      {/* Columna 1 — Categorías */}
+    <div className="flex flex-col md:flex-row h-full min-h-0 overflow-hidden">
+      {/* Columna 1 — Categorías (sidebar desktop, top-bar mobile) */}
       <CategorySidebar
         categories={categories}
         active={activeCategory}
@@ -136,19 +136,23 @@ export const MenuEditorScreen = () => {
       {/* Columna 2 — Items */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header sticky */}
-        <div className="sticky top-0 bg-canvas border-b border-line px-6 py-4 flex items-center justify-between shrink-0 z-10">
-          <h2 className="text-xl font-semibold text-ink">{activeCategory ?? 'Todos'}</h2>
+        <div className="sticky top-0 bg-canvas border-b border-line px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3 shrink-0 z-10">
+          <h2 className="text-base sm:text-xl font-semibold text-ink truncate">
+            {activeCategory ?? 'Todos'}
+          </h2>
           <button
             type="button"
             onClick={() => setSelectedItem('new' as unknown as MenuItemRow)}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-md bg-brand text-white text-sm font-medium hover:bg-brand-hover transition-colors"
+            className="flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-md bg-brand text-white text-xs sm:text-sm font-medium hover:bg-brand-hover transition-colors shrink-0"
           >
-            <IconPlus size={16} /> Nuevo item
+            <IconPlus size={16} />
+            <span className="hidden sm:inline">Nuevo item</span>
+            <span className="sm:hidden">Nuevo</span>
           </button>
         </div>
 
         {/* Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6">
           {visibleItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
               <IconPackage size={36} className="text-ink-500" />

@@ -288,6 +288,111 @@ export type Database = {
         }
         Relationships: []
       }
+      deliveries: {
+        Row: {
+          assigned_at: string | null
+          cancel_reason: string | null
+          canceled_at: string | null
+          courier_lat: number | null
+          courier_lng: number | null
+          courier_name: string | null
+          courier_phone: string | null
+          courier_vehicle: string | null
+          created_at: string
+          delivered_at: string | null
+          dropoff_address: Json | null
+          dropoff_arrived_at: string | null
+          dropoff_eta: string | null
+          external_id: string | null
+          id: string
+          order_id: string
+          picked_up_at: string | null
+          pickup_address: Json | null
+          pickup_arrived_at: string | null
+          pickup_eta: string | null
+          provider: string
+          quote_currency: string
+          quote_fee_cents: number
+          raw_payload: Json
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          courier_lat?: number | null
+          courier_lng?: number | null
+          courier_name?: string | null
+          courier_phone?: string | null
+          courier_vehicle?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dropoff_address?: Json | null
+          dropoff_arrived_at?: string | null
+          dropoff_eta?: string | null
+          external_id?: string | null
+          id?: string
+          order_id: string
+          picked_up_at?: string | null
+          pickup_address?: Json | null
+          pickup_arrived_at?: string | null
+          pickup_eta?: string | null
+          provider: string
+          quote_currency?: string
+          quote_fee_cents?: number
+          raw_payload?: Json
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          courier_lat?: number | null
+          courier_lng?: number | null
+          courier_name?: string | null
+          courier_phone?: string | null
+          courier_vehicle?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dropoff_address?: Json | null
+          dropoff_arrived_at?: string | null
+          dropoff_eta?: string | null
+          external_id?: string | null
+          id?: string
+          order_id?: string
+          picked_up_at?: string | null
+          pickup_address?: Json | null
+          pickup_arrived_at?: string | null
+          pickup_eta?: string | null
+          provider?: string
+          quote_currency?: string
+          quote_fee_cents?: number
+          raw_payload?: Json
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_provider_connections: {
         Row: {
           connected_at: string | null
@@ -349,6 +454,7 @@ export type Database = {
           plate: string | null
           route_geometry: string | null
           status: string
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -367,6 +473,7 @@ export type Database = {
           plate?: string | null
           route_geometry?: string | null
           status?: string
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -385,6 +492,7 @@ export type Database = {
           plate?: string | null
           route_geometry?: string | null
           status?: string
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -393,6 +501,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_tracking_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

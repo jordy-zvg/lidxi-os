@@ -36,7 +36,7 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-card-gap shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-card-gap shrink-0">
         {[
           { label: 'Total empleados', value: String(employees.length) },
           { label: 'Activos', value: String(active.length), highlight: true },
@@ -63,7 +63,7 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-card-gap flex-1 content-start overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-card-gap flex-1 content-start overflow-y-auto">
           {employees.map((emp) => (
             <EmployeeCard key={emp.id} employee={emp} onEdit={() => setSelected(emp)} />
           ))}

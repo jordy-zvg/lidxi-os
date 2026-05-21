@@ -76,7 +76,13 @@ const REQUIRED = [
   { service: 'Internas', vars: ['JWT_SECRET_PROD', 'JWT_SECRET_STAGING'] },
 ];
 
-const COLOR = { green: '\x1b[32m', red: '\x1b[31m', yellow: '\x1b[33m', dim: '\x1b[2m', reset: '\x1b[0m' };
+const COLOR = {
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  dim: '\x1b[2m',
+  reset: '\x1b[0m',
+};
 const isTTY = process.stdout.isTTY;
 const c = (color, s) => (isTTY ? `${COLOR[color]}${s}${COLOR.reset}` : s);
 
@@ -91,7 +97,10 @@ function parseSecrets(text) {
     const m = /^([A-Z][A-Z0-9_]*)=(.*)$/.exec(t);
     if (!m) continue;
     const [, k, vRaw] = m;
-    const v = vRaw.split('#')[0].trim().replace(/^["']|["']$/g, '');
+    const v = vRaw
+      .split('#')[0]
+      .trim()
+      .replace(/^["']|["']$/g, '');
     out[k] = v;
   }
   return out;
@@ -134,7 +143,10 @@ if (missingCount === 0) {
   process.exit(0);
 } else {
   console.log(
-    c('red', `✗ ${missingCount} de ${total} variables faltantes. No arrancar Sprint 8 hasta completar.`),
+    c(
+      'red',
+      `✗ ${missingCount} de ${total} variables faltantes. No arrancar Sprint 8 hasta completar.`,
+    ),
   );
   for (const { service, missing } of missingByService) {
     console.log(c('dim', `  · ${service}: ${missing.join(', ')}`));

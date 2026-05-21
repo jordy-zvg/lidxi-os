@@ -243,6 +243,9 @@ importers:
       '@kobi/shared':
         specifier: workspace:*
         version: link:../shared
+      mercadopago:
+        specifier: 2.0.15
+        version: 2.0.15
       stripe:
         specifier: 17.2.0
         version: 17.2.0

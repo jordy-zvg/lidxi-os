@@ -1,7 +1,31 @@
 export const metadata = { title: 'Tienda directa' };
 
-import { PageStub } from '@kobi/ui';
+import { SitioPropioScreen } from '@/components/sitio-propio/SitioPropioScreen';
+import { loadDirectOrders, loadSitioPropioMetrics } from '@/lib/delivery-actions';
+import { type DeliveryProviderRow, loadDeliveryProviders } from '@/lib/delivery-provider-actions';
+import { DELIVERY_PROVIDER_SCHEMAS } from '@/lib/delivery-provider-schemas';
 
-export default function SitioPropioPage() {
-  return <PageStub title="Sitio propio" description="Configuración del storefront público." />;
+export const dynamic = 'force-dynamic';
+
+export default async function SitioPropioOperationsPage() {
+  // En la zona de operación NO se gestionan credenciales (eso vive en /admin).
+  // Sólo inbox + tracking + métricas.
+  const [providers, ordersRes, metricsRes]: [
+    DeliveryProviderRow[],
+    Awaited<ReturnType<typeof loadDirectOrders>>,
+    Awaited<ReturnType<typeof loadSitioPropioMetrics>>,
+  ] = await Promise.all([
+    loadDeliveryProviders().catch(() => []),
+    loadDirectOrders(),
+    loadSitioPropioMetrics(),
+  ]);
+  return (
+    <SitioPropioScreen
+      providers={providers}
+      providerSchemas={DELIVERY_PROVIDER_SCHEMAS}
+      orders={ordersRes.ok ? ordersRes.data : []}
+      metrics={metricsRes.ok ? metricsRes.data : null}
+      showCredentials={false}
+    />
+  );
 }

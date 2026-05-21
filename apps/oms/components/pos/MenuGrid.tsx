@@ -39,9 +39,9 @@ export const MenuGrid = ({ items, qtyMap, onAdd }: MenuGridProps) => {
         ))}
       </div>
 
-      {/* Grid de platillos */}
+      {/* Grid de platillos — responsive: 2 cols mobile, 3 tablet, 4+ desktop */}
       <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-3 gap-3 pb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 pb-4">
           {visible.map((item) => (
             <MenuItem
               key={item.id}
@@ -51,7 +51,7 @@ export const MenuGrid = ({ items, qtyMap, onAdd }: MenuGridProps) => {
             />
           ))}
           {visible.length === 0 && (
-            <div className="col-span-3 py-16 text-center text-sm text-ink-400">
+            <div className="col-span-2 sm:col-span-3 xl:col-span-4 py-16 text-center text-sm text-ink-400">
               Sin platillos en esta categoría
             </div>
           )}

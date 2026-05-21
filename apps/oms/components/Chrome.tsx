@@ -1,25 +1,34 @@
-import { KobiWordmark, Sidebar, Topbar } from '@kobi/ui';
+import { KobiWordmark, Topbar } from '@kobi/ui';
 import type { ReactNode } from 'react';
 import { Breadcrumb } from './Breadcrumb';
 import { ChromeSidebarNav } from './ChromeSidebarNav';
 import { ClockOverlayProvider } from './ClockOverlayProvider';
 import { EntradaSalidaButton } from './EntradaSalidaButton';
+import { DesktopSidebar, MobileNavButton, MobileNavDrawer, MobileNavProvider } from './MobileNav';
 import { SessionMenu } from './SessionMenu';
 
 export const Chrome = ({ children }: { children: ReactNode }) => (
-  <ClockOverlayProvider>
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar brand={<KobiWordmark size="md" />}>
-        <ChromeSidebarNav />
-      </Sidebar>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar
-          breadcrumbs={<Breadcrumb />}
-          actions={<EntradaSalidaButton />}
-          session={<SessionMenu />}
-        />
-        <main className="flex-1 overflow-y-auto bg-canvas p-6">{children}</main>
+  <MobileNavProvider>
+    <ClockOverlayProvider>
+      <div className="flex h-screen overflow-hidden">
+        <DesktopSidebar brand={<KobiWordmark size="md" />}>
+          <ChromeSidebarNav />
+        </DesktopSidebar>
+        <MobileNavDrawer />
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+          <Topbar
+            breadcrumbs={
+              <div className="flex items-center gap-2">
+                <MobileNavButton />
+                <Breadcrumb />
+              </div>
+            }
+            actions={<EntradaSalidaButton />}
+            session={<SessionMenu />}
+          />
+          <main className="flex-1 overflow-y-auto bg-canvas p-3 sm:p-4 lg:p-6">{children}</main>
+        </div>
       </div>
-    </div>
-  </ClockOverlayProvider>
+    </ClockOverlayProvider>
+  </MobileNavProvider>
 );

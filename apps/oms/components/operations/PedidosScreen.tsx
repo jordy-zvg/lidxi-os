@@ -53,9 +53,9 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
   const [closingShift, setClosingShift] = useState(false);
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-3 sm:gap-4">
       {/* Header con info del turno + cierre */}
-      <header className="flex items-center justify-between gap-4 border-b border-line pb-3">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-3">
         <div>
           <h1 className="text-lg font-semibold text-ink">Pedidos en curso</h1>
           <p className="text-xs text-ink-400 mt-0.5">
@@ -63,7 +63,7 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
             <span className="font-mono">{formatTime(shift.started_at)}</span>
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between sm:justify-end gap-3">
           {summary && (
             <div className="text-right">
               <p className="text-[11px] text-ink-400">Vendido en el turno</p>

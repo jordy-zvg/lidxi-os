@@ -216,9 +216,9 @@ export const CajaScreen = () => {
         <p className="text-sm text-ink-300 mt-0.5">Cuenta el dinero sin ver el total del sistema</p>
       </div>
 
-      <div className="flex-1 flex gap-5 min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-5 min-h-0">
         {/* ── Columna izquierda ── */}
-        <div className="flex-[55] flex flex-col gap-4 overflow-y-auto">
+        <div className="lg:flex-[55] flex flex-col gap-4 overflow-y-auto">
           {/* Billetes */}
           <div className="bg-surface border border-line rounded-lg p-card">
             <h2 className="text-sm font-semibold text-ink mb-4">Billetes</h2>
@@ -395,7 +395,7 @@ export const CajaScreen = () => {
 
         {/* ── Columna derecha ── */}
         <div
-          className={`flex-[45] flex flex-col gap-4 overflow-y-auto transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`lg:flex-[45] flex flex-col gap-4 overflow-y-auto transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none hidden lg:flex'}`}
         >
           {/* Ventas del sistema */}
           <div className="bg-surface border border-line rounded-lg p-card space-y-3">

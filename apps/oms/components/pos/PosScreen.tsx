@@ -120,10 +120,12 @@ export const PosScreen = () => {
   }
 
   return (
-    <div className="flex h-full gap-4 min-h-0">
+    <div className="flex h-full flex-col md:flex-row gap-3 md:gap-4 min-h-0">
       {/* Columna izquierda — Menú */}
-      <div className="flex-[55] min-w-0 flex flex-col min-h-0">
-        <h1 className="text-xl font-medium text-ink shrink-0 mb-3">Punto de venta</h1>
+      <div className="flex-1 md:flex-[55] min-w-0 flex flex-col min-h-0">
+        <h1 className="text-lg md:text-xl font-medium text-ink shrink-0 mb-2 md:mb-3">
+          Punto de venta
+        </h1>
 
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
@@ -156,7 +158,7 @@ export const PosScreen = () => {
       </div>
 
       {/* Columna derecha — Ticket */}
-      <div className="flex-[45] min-h-0">
+      <div className="md:flex-[45] md:max-w-[440px] min-h-0">
         <Ticket
           lines={lines}
           customerName={customerName}

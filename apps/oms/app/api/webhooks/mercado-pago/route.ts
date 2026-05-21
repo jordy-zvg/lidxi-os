@@ -59,6 +59,7 @@ const STATUS_TO_PAYMENT_STATUS: Record<string, string> = {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const signature = req.headers.get('x-signature');
+  const isMockMp = req.headers.get('x-mock-mp') === 'true';
 
   // Parse defensivo (si JSON inválido, igualmente loggeamos para audit).
   let payload: Record<string, unknown> = {};
@@ -68,6 +69,33 @@ export async function POST(req: NextRequest) {
     // Sigue: la fila queda con error y signature_valid=false.
   }
 
+  // Si viene del flujo mock (storefront → este webhook con `_mock` adjunto),
+  // sintetizamos el payload de MP para que el resto del handler funcione.
+  const mockEvent = payload._mock as
+    | {
+        status: string;
+        paymentId: string;
+        orderId: string;
+        tenantId: string | null;
+        rawStatus: string;
+        amount: number;
+        currency: string;
+      }
+    | undefined;
+  if (isMockMp && mockEvent) {
+    payload = {
+      id: mockEvent.paymentId,
+      type: 'payment',
+      action: 'payment.created',
+      data: {
+        id: mockEvent.paymentId,
+        status: mockEvent.rawStatus,
+        external_reference: mockEvent.orderId,
+        metadata: { tenant_id: mockEvent.tenantId },
+      },
+    };
+  }
+
   const eventId =
     (payload.id as string | number | undefined)?.toString() ??
     `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -75,7 +103,8 @@ export async function POST(req: NextRequest) {
     (payload.type as string | undefined) ?? (payload.action as string | undefined) ?? 'unknown';
 
   const supabase = createSupabaseServiceClient();
-  const signatureValid = verifySignature(rawBody, signature);
+  // Para mocks aceptamos sin firma; para MP real exigimos HMAC válido.
+  const signatureValid = isMockMp ? true : verifySignature(rawBody, signature);
 
   // Audit log SIEMPRE primero (M3): grabar antes de procesar.
   const insertPayload: PaymentEventInsert = {

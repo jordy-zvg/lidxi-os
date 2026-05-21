@@ -11,7 +11,8 @@
     "./uber-eats": "./src/uber-eats/index.ts",
     "./rappi": "./src/rappi/index.ts",
     "./didi-food": "./src/didi-food/index.ts",
-    "./stripe": "./src/stripe/index.ts"
+    "./stripe": "./src/stripe/index.ts",
+    "./mercado-pago": "./src/mercado-pago/index.ts"
   },
   "scripts": {
     "lint": "biome check .",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@kobi/shared": "workspace:*",
+    "mercadopago": "2.0.15",
     "stripe": "17.2.0"
   },
   "devDependencies": {

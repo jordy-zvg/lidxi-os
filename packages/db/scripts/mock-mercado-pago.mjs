@@ -39,7 +39,10 @@ try {
     const eq = t.indexOf('=');
     if (eq < 0) continue;
     const k = t.slice(0, eq).trim();
-    const v = t.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const v = t
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (k && !(k in process.env)) process.env[k] = v;
   }
 } catch {}
@@ -49,7 +52,9 @@ const status = process.argv[3] ?? 'approved';
 
 if (!orderId) {
   console.error('Usage: pnpm mock:mercado-pago <orderId> [status]');
-  console.error("  status: approved | pending | rejected | cancelled | refunded (default: approved)");
+  console.error(
+    '  status: approved | pending | rejected | cancelled | refunded (default: approved)',
+  );
   process.exit(1);
 }
 
@@ -99,6 +104,8 @@ console.log(`[mock-mp] → HTTP ${res.status}`, JSON.stringify(json));
 if (res.status !== 200) process.exit(1);
 console.log('');
 console.log('Verifica el resultado:');
-console.log("  psql ... -c \"SELECT event_id, event_type, derived_status, signature_valid, error,");
+console.log('  psql ... -c "SELECT event_id, event_type, derived_status, signature_valid, error,');
 console.log('              processed_at FROM payment_events ORDER BY received_at DESC LIMIT 3;"');
-console.log("  psql ... -c \"SELECT id, payment_method, payment_ref FROM orders WHERE id='" + orderId + "';\"");
+console.log(
+  `  psql ... -c "SELECT id, payment_method, payment_ref FROM orders WHERE id='${orderId}';"`,
+);
