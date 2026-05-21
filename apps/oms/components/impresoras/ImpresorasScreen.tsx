@@ -1,5 +1,6 @@
 'use client';
 
+import { PreviewBadge } from '@/components/admin/PreviewBadge';
 import { useState } from 'react';
 import { PrinterConfigPanel } from './PrinterConfigPanel';
 import { PrinterListCard } from './PrinterListCard';
@@ -18,7 +19,10 @@ export const ImpresorasScreen = () => {
 
   return (
     <div className="h-full flex flex-col gap-4">
-      <h1 className="text-lg font-semibold text-ink shrink-0">Impresoras</h1>
+      <header className="flex items-center justify-between gap-3 shrink-0">
+        <h1 className="text-lg font-semibold text-ink">Impresoras</h1>
+        <PreviewBadge variant="preview" />
+      </header>
 
       <div className="flex-1 grid grid-cols-5 gap-4 min-h-0">
         {/* Lista — 60% ≈ 3/5 cols */}

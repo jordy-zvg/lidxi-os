@@ -1,5 +1,6 @@
 'use client';
 
+import { PreviewBadge } from '@/components/admin/PreviewBadge';
 import { Button, Toggle } from '@kobi/ui';
 import { useState } from 'react';
 
@@ -133,7 +134,10 @@ export const AutomatizacionScreen = () => {
   return (
     <div className="flex flex-col gap-section-sm h-full">
       <div className="flex items-center justify-between shrink-0">
-        <h1 className="text-xl font-medium text-ink">Automatización</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-medium text-ink">Automatización</h1>
+          <PreviewBadge variant="preview" />
+        </div>
         {toast && (
           <span className="text-xs text-ok-text bg-ok-soft px-3 py-1.5 rounded-full">{toast}</span>
         )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { PreviewBadge } from '@/components/admin/PreviewBadge';
 import { cents, formatMXN } from '@kobi/shared';
 import { useState } from 'react';
 import { HEATMAP_DATA, HEATMAP_PEAK } from './mock-heatmap';
@@ -106,7 +107,10 @@ export const ReportesScreen = () => {
     <div className="flex flex-col gap-section-sm overflow-y-auto pb-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-medium text-ink">Reportes</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-medium text-ink">Reportes</h1>
+          <PreviewBadge variant="preview" />
+        </div>
         <div className="flex items-center gap-2">
           {PERIODOS.map((p) => (
             <button

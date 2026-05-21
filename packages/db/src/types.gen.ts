@@ -288,6 +288,50 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_provider_connections: {
+        Row: {
+          connected_at: string | null
+          created_at: string
+          credentials: Json
+          id: string
+          last_error: string | null
+          provider: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string
+          credentials?: Json
+          id?: string
+          last_error?: string | null
+          provider: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string
+          credentials?: Json
+          id?: string
+          last_error?: string | null
+          provider?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_provider_connections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_tracking: {
         Row: {
           courier_lat: number | null

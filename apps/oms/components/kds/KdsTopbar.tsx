@@ -1,4 +1,4 @@
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconEye } from '@tabler/icons-react';
 import Link from 'next/link';
 
 interface KpiProps {
@@ -35,6 +35,10 @@ export const KdsTopbar = ({
       <span className="text-sm font-medium text-dark-ink-300">KDS</span>
       <div className="w-px h-4 bg-dark-line" />
       <span className="text-sm font-medium text-dark-ink">{stationName}</span>
+      <span className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-amber-300">
+        <IconEye size={11} />
+        Vista previa · datos de ejemplo
+      </span>
     </div>
 
     <div className="flex-1 flex items-center justify-center gap-6">

@@ -1,12 +1,12 @@
-import { SoonPlaceholder } from '@/components/admin/SoonPlaceholder';
-
 export const metadata = { title: 'Sitio propio' };
 
-export default function SitioPropioAdminPage() {
-  return (
-    <SoonPlaceholder
-      title="Sitio propio"
-      description="Editor del sitio web público de tu restaurante: dominio, hero, galería, horarios y CTA de pedido. Lo liberamos en la próxima ola."
-    />
-  );
+import { SitioPropioScreen } from '@/components/sitio-propio/SitioPropioScreen';
+import { type DeliveryProviderRow, loadDeliveryProviders } from '@/lib/delivery-provider-actions';
+import { DELIVERY_PROVIDER_SCHEMAS } from '@/lib/delivery-provider-schemas';
+
+export const dynamic = 'force-dynamic';
+
+export default async function SitioPropioAdminPage() {
+  const providers: DeliveryProviderRow[] = await loadDeliveryProviders();
+  return <SitioPropioScreen providers={providers} providerSchemas={DELIVERY_PROVIDER_SCHEMAS} />;
 }
