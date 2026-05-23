@@ -18,7 +18,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/types.gen.ts || echo 'Supabase CLI no disponible o stack no levantado. Corre pnpm db:start primero.'",
-    "demo-reset": "node scripts/demo-reset.mjs"
+    "demo-reset": "node scripts/demo-reset.mjs",
+    "seed-demo": "node scripts/seed-demo.mjs"
   },
   "dependencies": {
     "@kobi/shared": "workspace:*",

@@ -34,12 +34,26 @@ export function DeliveryTrackingPanel({
 }: DeliveryTrackingPanelProps) {
   const [delivery, setDelivery] = useState<DeliveryRow>(initialDelivery);
 
-  // Poll cada 4s mientras la delivery esté activa.
+  // Poll cada 4s mientras la delivery esté activa. Solo setState si algo
+  // perceptible cambió (status, courier lat/lng, eta) para evitar
+  // re-renders que parpadeen visiblemente.
   useEffect(() => {
     if (delivery.status === 'delivered' || delivery.status === 'canceled') return;
     const id = setInterval(async () => {
       const r = await syncDelivery(delivery.id);
-      if (r.ok) setDelivery(r.data);
+      if (!r.ok) return;
+      setDelivery((prev) => {
+        if (
+          prev.status === r.data.status &&
+          prev.courier_lat === r.data.courier_lat &&
+          prev.courier_lng === r.data.courier_lng &&
+          prev.dropoff_eta === r.data.dropoff_eta &&
+          prev.courier_name === r.data.courier_name
+        ) {
+          return prev;
+        }
+        return r.data;
+      });
     }, 4_000);
     return () => clearInterval(id);
   }, [delivery.id, delivery.status]);
@@ -103,11 +117,11 @@ export function DeliveryTrackingPanel({
             >
               <div className="flex flex-col items-center sm:w-full">
                 <div
-                  className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-mono font-medium border ${
+                  className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-mono font-medium border transition-all duration-300 ${
                     reached
                       ? 'bg-brand border-brand text-white'
                       : 'bg-canvas border-line-2 text-ink-400'
-                  } ${active ? 'ring-2 ring-brand/30' : ''}`}
+                  } ${active ? 'ring-2 ring-brand/30 scale-110' : ''}`}
                 >
                   {idx + 1}
                 </div>
@@ -276,23 +290,19 @@ function DeliveryMap({ delivery }: { delivery: DeliveryRow }) {
         >
           Cliente
         </text>
-        {/* courier marker (animado, pulsa) */}
-        <g>
-          <circle
-            cx={courierXY.x}
-            cy={courierXY.y}
-            r="5"
-            fill="currentColor"
-            className="text-brand/20 animate-ping"
-            style={{ transformOrigin: `${courierXY.x}px ${courierXY.y}px` }}
-          />
-          <circle
-            cx={courierXY.x}
-            cy={courierXY.y}
-            r="2.5"
-            fill="currentColor"
-            className="text-brand"
-          />
+        {/*
+          courier marker: usamos translate en un <g> para que la posición
+          sea CSS-transitionable (cx/cy en SVG no lo son). transition: 3.8s
+          es ligeramente menor al periodo de polling (4s) para que la
+          animación termine justo antes del próximo update — el courier se
+          ve moviéndose continuamente, no saltando.
+        */}
+        <g
+          transform={`translate(${courierXY.x} ${courierXY.y})`}
+          style={{ transition: 'transform 3.8s linear' }}
+        >
+          <circle r="5" fill="currentColor" className="text-brand/20 animate-ping" />
+          <circle r="2.5" fill="currentColor" className="text-brand" />
         </g>
       </svg>
       <div className="absolute bottom-1 left-1 text-[9px] text-ink-400 flex items-center gap-1 bg-surface/80 backdrop-blur px-1.5 py-0.5 rounded">

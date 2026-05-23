@@ -62,9 +62,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // Self-reference: cada app usa NEXT_PUBLIC_APP_URL para apuntar a sí misma.
-  // En storefront, esta var debe apuntar al hostname público del storefront.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+  // Self-reference: derivamos el origin del request (más robusto que env var
+  // en builds tempranos en Railway donde NEXT_PUBLIC_APP_URL puede no estar
+  // poblada). Si los headers no traen host, caemos a env var → localhost.
+  const forwardedHost = req.headers.get('x-forwarded-host') ?? req.headers.get('host');
+  const forwardedProto = req.headers.get('x-forwarded-proto');
+  const appUrl = forwardedHost
+    ? `${forwardedProto ?? (forwardedHost.startsWith('localhost') ? 'http' : 'https')}://${forwardedHost}`
+    : (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001');
+  const omsUrl = process.env.NEXT_PUBLIC_OMS_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
   const preference = new Preference(client);
 
   try {
@@ -85,7 +91,7 @@ export async function POST(req: Request) {
           pending: `${appUrl}/pago/pendiente?orderId=${orderId}`,
         },
         auto_return: 'approved',
-        notification_url: `${process.env.NEXT_PUBLIC_OMS_URL ?? 'http://localhost:3000'}/api/webhooks/mercado-pago`,
+        notification_url: `${omsUrl}/api/webhooks/mercado-pago`,
         metadata: { tenant_id: tenantId, mode },
       },
     });

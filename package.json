@@ -23,6 +23,7 @@
     "db:reset": "pnpm --filter @kobi/db db:reset",
     "db:types": "pnpm --filter @kobi/db db:types",
     "db:demo-reset": "pnpm --filter @kobi/db demo-reset",
+    "db:seed-demo": "pnpm --filter @kobi/db seed-demo",
     "mock:uber-direct": "node packages/db/scripts/mock-uber-direct.mjs",
     "mock:mercado-pago": "node packages/db/scripts/mock-mercado-pago.mjs",
     "check:env": "node scripts/check-env.mjs",

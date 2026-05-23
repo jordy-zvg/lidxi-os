@@ -1,5 +1,6 @@
 'use server';
 
+import { resolveOmsBaseUrl, resolveStorefrontOrigin } from '@/lib/origin';
 import { createSupabaseServiceClient } from '@kobi/db';
 import { MercadoPago } from '@kobi/integrations';
 import { revalidatePath } from 'next/cache';
@@ -211,9 +212,12 @@ export async function createDirectOrderAndPreference(
   }
 
   // Crear preference (mock o real según MP_MODE).
+  // storefrontBase se deriva de headers del request (robusto a env vars
+  // faltantes en builds tempranos en Railway). omsBase requiere env var
+  // porque es otro servicio — lanza error explícito si falta en prod.
   const mp = MercadoPago.createMercadoPagoClient();
-  const storefrontBase = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'http://localhost:3001';
-  const omsBase = process.env.NEXT_PUBLIC_OMS_URL ?? 'http://localhost:3000';
+  const storefrontBase = resolveStorefrontOrigin();
+  const omsBase = resolveOmsBaseUrl();
 
   const prefRes = await mp.createPreference({
     orderId,
@@ -253,7 +257,7 @@ export async function triggerMockMercadoPagoWebhook(
   const event = MercadoPago.simulateWebhook(preferenceId, status);
   if (!event) return { ok: false, error: 'Preference no encontrada' };
 
-  const omsBase = process.env.NEXT_PUBLIC_OMS_URL ?? 'http://localhost:3000';
+  const omsBase = resolveOmsBaseUrl();
   // Llamamos al webhook con un header `x-mock-mp: true` para que el endpoint
   // sepa que es un evento simulado (sin firma HMAC).
   try {
