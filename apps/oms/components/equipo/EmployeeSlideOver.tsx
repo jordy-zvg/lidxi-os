@@ -1,8 +1,10 @@
 'use client';
+import { type EmployeeRole, updateEmployee } from '@/app/admin/equipo/actions';
 import type { Role } from '@kobi/shared';
 import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
 import type { EmployeeRecord } from './EquipoScreen';
 
 type PermKey = 'cancel_tickets' | 'discounts' | 'open_cash' | 'view_reports' | 'edit_inventory';
@@ -28,9 +30,12 @@ interface EmployeeSlideOverProps {
 }
 
 export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [name, setName] = useState('');
   const [role, setRole] = useState<Role>('cook');
   const [pin, setPin] = useState('••••');
+  const [pinGenerated, setPinGenerated] = useState(false);
   const [pinVisible, setPinVisible] = useState(false);
   const [perms, setPerms] = useState<Record<PermKey, boolean>>({
     cancel_tickets: false,
@@ -40,12 +45,14 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
     edit_inventory: false,
   });
   const [toast, setToast] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!employee) return;
     setName(employee.name);
     setRole((employee.role as Role) ?? 'cook');
     setPin('••••');
+    setPinGenerated(false);
     setPinVisible(false);
     setPerms({
       cancel_tickets: employee.role === 'manager',
@@ -55,6 +62,7 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
       edit_inventory: employee.role === 'manager',
     });
     setToast(null);
+    setError(null);
   }, [employee]);
 
   useEffect(() => {
@@ -71,6 +79,7 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
   const generatePin = () => {
     const newPin = String(Math.floor(1000 + Math.random() * 9000));
     setPin(newPin);
+    setPinGenerated(true);
     setPinVisible(true);
     setToast(`PIN generado: ${newPin} — guárdalo ahora, no se volverá a mostrar`);
     setTimeout(() => {
@@ -80,6 +89,24 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
   };
 
   const togglePerm = (key: PermKey) => setPerms((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSave = () => {
+    if (!employee) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await updateEmployee(employee.id, {
+        name,
+        role: role as EmployeeRole,
+        ...(pinGenerated ? { pin } : {}),
+      });
+      if (result.ok) {
+        router.refresh();
+        onClose();
+      } else {
+        setError(result.error);
+      }
+    });
+  };
 
   return (
     <>
@@ -188,19 +215,32 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
           </section>
         </div>
 
-        <footer className="shrink-0 border-t border-line px-5 py-4 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            className="text-sm font-medium text-danger-text hover:underline"
-            onClick={onClose}
-          >
-            Suspender empleado
-          </button>
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button onClick={onClose}>Guardar cambios</Button>
+        <footer className="shrink-0 border-t border-line px-5 py-4 flex flex-col gap-3">
+          {error && (
+            <div
+              role="alert"
+              className="bg-danger-soft border border-danger text-danger-text text-sm px-3 py-2 rounded-md"
+            >
+              {error}
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              className="text-sm font-medium text-danger-text hover:underline disabled:opacity-50"
+              onClick={onClose}
+              disabled={isPending}
+            >
+              Suspender empleado
+            </button>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={onClose} disabled={isPending}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={isPending}>
+                {isPending ? 'Guardando…' : 'Guardar cambios'}
+              </Button>
+            </div>
           </div>
         </footer>
       </dialog>

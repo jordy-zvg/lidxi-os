@@ -56,6 +56,57 @@ export async function addEmployee(input: AddEmployeeInput): Promise<AddEmployeeR
   return { ok: true, id: (data as { id: string }).id };
 }
 
+export type UpdateEmployeeResult = { ok: true } | { ok: false; error: string };
+
+export interface UpdateEmployeeInput {
+  name: string;
+  role: EmployeeRole;
+  pin?: string;
+}
+
+export async function updateEmployee(
+  id: string,
+  input: UpdateEmployeeInput,
+): Promise<UpdateEmployeeResult> {
+  if (!id) return { ok: false, error: 'Empleado inválido.' };
+
+  const name = input.name?.trim();
+  if (!name || name.length < 2) return { ok: false, error: 'El nombre es requerido.' };
+  if (!input.role || !VALID_ROLES.includes(input.role)) {
+    return { ok: false, error: 'Selecciona un rol válido.' };
+  }
+  if (input.pin !== undefined && !/^\d{4}$/.test(input.pin)) {
+    return { ok: false, error: 'El PIN debe ser 4 dígitos.' };
+  }
+
+  const { tenantId } = await requireTenant();
+  const supabase = createSupabaseServerClient();
+
+  const patch: Record<string, unknown> = {
+    name,
+    role: input.role,
+    updated_at: new Date().toISOString(),
+  };
+  if (input.pin !== undefined) {
+    patch.pin_hash = await hashPin(input.pin);
+  }
+
+  const { error } = await supabase
+    .from('employees_v2')
+    .update(patch)
+    .eq('id', id)
+    .eq('tenant_id', tenantId);
+
+  if (error) {
+    if (error.code === '23505')
+      return { ok: false, error: 'Ese PIN ya está en uso en este equipo.' };
+    return { ok: false, error: `Error al guardar: ${error.message}` };
+  }
+
+  revalidatePath('/admin/equipo');
+  return { ok: true };
+}
+
 export type EnrollFingerprintResult = { ok: true } | { ok: false; error: string };
 
 export async function enrollFingerprint(employeeId: string): Promise<EnrollFingerprintResult> {
