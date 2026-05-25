@@ -25,4 +25,18 @@ export {
   type BranchWithRestaurant,
   type LastPosActivation,
 } from './queries';
+export {
+  createPairingCode,
+  consumePairingCode,
+  registerDevice,
+  findActiveDeviceByTokenHash,
+  touchDeviceLastSeen,
+  listDevicesForTenant,
+  revokeDevice,
+  type PosDeviceRow,
+  type PosPairingCodeRow,
+  type CreatePairingCodeInput,
+  type ConsumedPairingCode,
+  type RegisterDeviceInput,
+} from './queries-devices';
 export type { Database } from './types';

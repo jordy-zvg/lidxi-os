@@ -1,14 +1,19 @@
 export const metadata = { title: 'Iniciar sesión' };
 
+import { readDeviceCookie } from '@/lib/devices/cookie';
+import { hashDeviceToken } from '@/lib/devices/token';
 import { getBranchId } from '@/lib/station';
 import { resolveSingleMembership } from '@/lib/supabase/membership';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
   createSupabaseServiceClient,
+  findActiveDeviceByTokenHash,
   getBranchWithRestaurant,
   getLastPosActivation,
+  touchDeviceLastSeen,
 } from '@kobi/db';
 import { LoginShell } from './LoginShell';
+import { PairingShell } from './PairingShell';
 
 export default async function LoginPage() {
   // Detect tenant via Supabase session (admin coming from "Abrir la operación").
@@ -54,8 +59,56 @@ export default async function LoginPage() {
     }
   }
 
-  // Legacy path: single-tenant POS via BRANCH_ID env (Miztli demo).
-  const legacyBranchId = getBranchId();
+  // Camino 2: cookie de dispositivo emparejado.
+  // Resuelve tenant por hash del token. Device 'revoked' → tratado como
+  // inexistente (la query filtra status='active') → cae al siguiente camino.
+  const deviceToken = readDeviceCookie();
+  if (deviceToken) {
+    const svc = createSupabaseServiceClient();
+    const device = await findActiveDeviceByTokenHash(svc, hashDeviceToken(deviceToken));
+    if (device) {
+      // Resuelve nombre del tenant + branch para el shell (mismo patrón que admin).
+      const { data: tenant } = await svc
+        .from('tenants')
+        .select('name')
+        .eq('id', device.tenant_id)
+        .single();
+      const { data: branch } = await svc
+        .from('branches_v2')
+        .select('id,name')
+        .eq('tenant_id', device.tenant_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      // Fire-and-forget: actualiza last_seen_at sin bloquear el render.
+      void touchDeviceLastSeen(svc, device.id);
+
+      return (
+        <LoginShell
+          stationName={device.name}
+          branch={{
+            id: (branch?.id as string | undefined) ?? '',
+            name: (branch?.name as string | undefined) ?? 'Sucursal',
+            restaurantName: (tenant?.name as string | undefined) ?? 'Tu restaurante',
+          }}
+          lastActivation={null}
+          tenantId={device.tenant_id}
+        />
+      );
+    }
+  }
+
+  // Camino 3: legacy single-tenant POS via BRANCH_ID env (demo / respaldo).
+  // getBranchId() lanza si no está seteado — tratamos la ausencia como "sin
+  // respaldo legacy" para que el flujo caiga al PairingShell, no a un 500.
+  let legacyBranchId: string | null = null;
+  try {
+    legacyBranchId = getBranchId();
+  } catch {
+    legacyBranchId = null;
+  }
   if (legacyBranchId) {
     const svc = createSupabaseServiceClient();
     const [branch, lastActivation] = await Promise.all([
@@ -77,12 +130,6 @@ export default async function LoginPage() {
     }
   }
 
-  // Neutral fallback: no session, no legacy branch — pure Kobi UI.
-  return (
-    <LoginShell
-      stationName="Kobi"
-      branch={{ id: '', name: '', restaurantName: '' }}
-      lastActivation={null}
-    />
-  );
+  // Camino 4: ni admin, ni device, ni legacy → pantalla de emparejar.
+  return <PairingShell />;
 }

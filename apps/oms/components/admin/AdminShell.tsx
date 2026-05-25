@@ -6,6 +6,7 @@ import {
   IconChartBar,
   IconChefHat,
   IconDeviceDesktop,
+  IconDeviceTablet,
   IconHome,
   IconMenu2,
   IconPlug,
@@ -22,6 +23,7 @@ import { useEffect, useState } from 'react';
 const NAV_ITEMS = [
   { name: 'Inicio', href: '/admin/inicio', icon: IconHome },
   { name: 'Equipo', href: '/admin/equipo', icon: IconUsers },
+  { name: 'Dispositivos', href: '/admin/dispositivos', icon: IconDeviceTablet },
   { name: 'Menú', href: '/admin/menu', icon: IconChefHat },
   { name: 'Sitio propio', href: '/admin/sitio-propio', icon: IconBuildingStore },
   { name: 'Integraciones', href: '/admin/integraciones', icon: IconPlug },
