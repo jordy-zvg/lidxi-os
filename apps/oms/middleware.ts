@@ -61,7 +61,7 @@ export async function middleware(req: NextRequest) {
   const opPaths = ['/pedidos', '/pos', '/kds', '/caja'];
   if (opPaths.some((p) => path.startsWith(p))) {
     // Aquí validamos la cookie de empleado (el token JWT)
-    const empToken = req.cookies.get('kobi_op_token');
+    const empToken = req.cookies.get('kobi-session');
     if (!empToken) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
