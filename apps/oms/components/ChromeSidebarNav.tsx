@@ -3,19 +3,11 @@
 import { SidebarItem, SidebarSection } from '@kobi/ui';
 import {
   IconBuildingStore,
-  IconCalendarStats,
   IconCash,
   IconChartBar,
   IconChefHat,
-  IconClipboardList,
   IconCreditCard,
-  IconPackage,
-  IconPlug,
-  IconPrinter,
-  IconReceipt,
-  IconRobot,
   IconShoppingCart,
-  IconUsers,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import type { ReactElement } from 'react';
@@ -42,28 +34,10 @@ const NAV: NavSection[] = [
     ],
   },
   {
-    title: 'Catálogo',
-    items: [
-      { label: 'Menú', href: '/menu', icon: <IconClipboardList size={16} /> },
-      { label: 'Inventario', href: '/inventario', icon: <IconPackage size={16} /> },
-      { label: 'Tarifas', href: '/tarifas', icon: <IconReceipt size={16} /> },
-    ],
-  },
-  {
     title: 'Reportes',
     items: [
       { label: 'Reportes', href: '/reportes', icon: <IconChartBar size={16} /> },
       { label: 'Caja', href: '/caja', icon: <IconCash size={16} /> },
-    ],
-  },
-  {
-    title: 'Admin',
-    items: [
-      { label: 'Personal', href: '/personal', icon: <IconUsers size={16} /> },
-      { label: 'Timesheet', href: '/timesheet', icon: <IconCalendarStats size={16} /> },
-      { label: 'Impresoras', href: '/impresoras', icon: <IconPrinter size={16} /> },
-      { label: 'Automatización', href: '/automatizacion', icon: <IconRobot size={16} /> },
-      { label: 'Integraciones', href: '/integraciones', icon: <IconPlug size={16} /> },
     ],
   },
 ];

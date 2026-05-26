@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Zona 3: Operación (JWT con PIN - sin bridge de sesión)
-  const opPaths = ['/pedidos', '/pos', '/kds', '/caja'];
+  const opPaths = ['/pedidos', '/pos', '/kds', '/caja', '/reportes', '/sitio-propio'];
   if (opPaths.some((p) => path.startsWith(p))) {
     // Aquí validamos la cookie de empleado (el token JWT)
     const empToken = req.cookies.get('kobi-session');
