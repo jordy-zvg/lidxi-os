@@ -15,11 +15,17 @@ export interface EmployeeRecord {
   fingerprint_enrolled: boolean;
 }
 
-interface EquipoScreenProps {
-  employees: EmployeeRecord[];
+export interface BranchOption {
+  id: string;
+  name: string;
 }
 
-export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
+interface EquipoScreenProps {
+  employees: EmployeeRecord[];
+  branches: BranchOption[];
+}
+
+export const EquipoScreen = ({ employees, branches }: EquipoScreenProps) => {
   const [selected, setSelected] = useState<EmployeeRecord | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -70,7 +76,11 @@ export const EquipoScreen = ({ employees }: EquipoScreenProps) => {
         </div>
       )}
 
-      <EmployeeSlideOver employee={selected} onClose={() => setSelected(null)} />
+      <EmployeeSlideOver
+        employee={selected}
+        branches={branches}
+        onClose={() => setSelected(null)}
+      />
       <AddEmployeeDrawer open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
   );

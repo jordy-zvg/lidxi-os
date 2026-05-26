@@ -60,10 +60,19 @@ export async function requireEmployeeContext(): Promise<EmployeeContext> {
     throw new NoOperationSessionError();
   }
 
+  // Sprint 14: en sesiones v2 (tenant_id presente) el branch_id ahora es
+  // obligatorio — se establece en activatePosStation/activatePosStationWithBranch.
+  // JWTs viejos sin branch_id → forzar re-login. Eso elimina la deuda
+  // Sprint 10 (orders.branch_id elegida arbitrariamente).
+  // El path legacy (sin tenant_id en otra rama) ya no llega aquí.
+  if (!claims.branch_id) {
+    throw new NoOperationSessionError();
+  }
+
   return {
     employeeIdV2: claims.sub,
     tenantId: claims.tenant_id,
-    branchId: claims.branch_id || null,
+    branchId: claims.branch_id,
     restaurantId: claims.restaurant_id,
     role: claims.employee_role,
     shiftId: claims.pos_session_id ?? null,

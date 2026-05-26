@@ -2,7 +2,12 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireTenant } from '@/lib/supabase/tenant-guard';
-import { hashPin } from '@kobi/db';
+import {
+  createSupabaseServiceClient,
+  hashPin,
+  listBranchesForEmployee,
+  setEmployeeBranches,
+} from '@kobi/db';
 import { revalidatePath } from 'next/cache';
 
 export type EmployeeRole = 'manager' | 'cashier' | 'cook' | 'courier';
@@ -16,6 +21,7 @@ export interface AddEmployeeInput {
   role: EmployeeRole;
   pin: string;
   fingerprintEnrolled: boolean;
+  branchIds?: string[];
 }
 
 export async function addEmployee(input: AddEmployeeInput): Promise<AddEmployeeResult> {
@@ -52,8 +58,17 @@ export async function addEmployee(input: AddEmployeeInput): Promise<AddEmployeeR
     return { ok: false, error: `Error al guardar: ${error.message}` };
   }
 
+  const employeeId = (data as { id: string }).id;
+
+  // Asignación opcional a sucursales. Si no se pasa, sin filas → backwards
+  // compat (puede operar en cualquier sucursal activa).
+  if (input.branchIds && input.branchIds.length > 0) {
+    const svc = createSupabaseServiceClient();
+    await setEmployeeBranches(svc, employeeId, tenantId, input.branchIds);
+  }
+
   revalidatePath('/admin/equipo');
-  return { ok: true, id: (data as { id: string }).id };
+  return { ok: true, id: employeeId };
 }
 
 export type UpdateEmployeeResult = { ok: true } | { ok: false; error: string };
@@ -62,6 +77,7 @@ export interface UpdateEmployeeInput {
   name: string;
   role: EmployeeRole;
   pin?: string;
+  branchIds?: string[];
 }
 
 export async function updateEmployee(
@@ -103,8 +119,24 @@ export async function updateEmployee(
     return { ok: false, error: `Error al guardar: ${error.message}` };
   }
 
+  // Asignación opcional a sucursales. undefined = no tocar, [] = limpiar todas.
+  if (input.branchIds !== undefined) {
+    const svc = createSupabaseServiceClient();
+    await setEmployeeBranches(svc, id, tenantId, input.branchIds);
+  }
+
   revalidatePath('/admin/equipo');
   return { ok: true };
+}
+
+/**
+ * Lee las sucursales asignadas a un empleado. Usado por el slide-over para
+ * pre-llenar los checkboxes.
+ */
+export async function getEmployeeBranches(employeeId: string): Promise<string[]> {
+  const { tenantId } = await requireTenant();
+  const supabase = createSupabaseServiceClient();
+  return listBranchesForEmployee(supabase, employeeId, tenantId);
 }
 
 export type EnrollFingerprintResult = { ok: true } | { ok: false; error: string };

@@ -8,6 +8,7 @@ import {
   getOpenShiftForEmployee,
   getOpenShiftForEmployeeV2,
   openShift,
+  resolveCandidateBranches,
   signEmployeeJWT,
   verifyEmployeeJWT,
 } from '@kobi/db';
@@ -51,64 +52,130 @@ const sanitizePin = (raw: string): string | null => {
   return pin;
 };
 
+/**
+ * Resultado de activación v2.
+ *   - activated: sesión emitida, abrir POS.
+ *   - needsBranchSelection: hay 2+ sucursales candidatas, la UI debe pedir
+ *     elección y llamar activatePosStationWithBranch(pin, tenantId, branchId).
+ */
+export type ActivationOutcome =
+  | { kind: 'activated'; employeeName: string }
+  | {
+      kind: 'needsBranchSelection';
+      employeeName: string;
+      branches: { id: string; name: string }[];
+    };
+
+/**
+ * Path v2 común: verifica PIN, resuelve candidatas. Si devuelve activación
+ * directa abre shift/JWT; si necesita selección, no muta nada.
+ *
+ * `forceBranchId` (de pos_devices.branch_id) restringe el set: solo se acepta
+ * si está en candidatas; si no, error explícito.
+ */
+async function activateV2(
+  tenantId: string,
+  pin: string,
+  forceBranchId: string | null,
+  chosenBranchId: string | null,
+): Promise<ActionResult<ActivationOutcome>> {
+  const supabase = createSupabaseServiceClient();
+
+  const employee = await findEmployeeByPinV2(supabase, tenantId, pin);
+  if (!employee) return { ok: false, error: 'PIN incorrecto' };
+  if (!ACTIVATABLE_ROLES.has(employee.role)) {
+    return { ok: false, error: 'Tu rol no permite activar el POS' };
+  }
+
+  const candidates = await resolveCandidateBranches(supabase, employee.id, tenantId);
+  if (candidates.length === 0) {
+    return { ok: false, error: 'No hay sucursales activas asignadas a tu cuenta.' };
+  }
+
+  // Force device branch si la tablet está vinculada a una sucursal específica.
+  let activeBranchId: string | null = null;
+  if (forceBranchId) {
+    if (!candidates.some((b) => b.id === forceBranchId)) {
+      return {
+        ok: false,
+        error: 'Esta tablet está vinculada a una sucursal que no puedes operar.',
+      };
+    }
+    activeBranchId = forceBranchId;
+  } else if (chosenBranchId) {
+    if (!candidates.some((b) => b.id === chosenBranchId)) {
+      return { ok: false, error: 'Sucursal inválida.' };
+    }
+    activeBranchId = chosenBranchId;
+  } else if (candidates.length === 1 && candidates[0]) {
+    // Caso común (1 sucursal): no hay selector, va directo.
+    activeBranchId = candidates[0].id;
+  } else {
+    // 2+ candidatas, no hay forzado ni elección → la UI pide.
+    return {
+      ok: true,
+      data: {
+        kind: 'needsBranchSelection',
+        employeeName: employee.full_name,
+        branches: candidates,
+      },
+    };
+  }
+
+  // Cierra shift v2 abierto del mismo empleado (multi-dispositivo defense).
+  const previousOpen = await getOpenShiftForEmployeeV2(supabase, employee.id);
+  if (previousOpen) {
+    await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
+  }
+
+  const newShift = await openShift(supabase, {
+    employeeIdV2: employee.id,
+    branchIdV2: activeBranchId,
+    tenantId,
+    type: 'pos_activation',
+  });
+  if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
+
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+  const restaurantId = (restaurant as { id: string } | null)?.id ?? '';
+
+  const token = await signEmployeeJWT(
+    {
+      sub: employee.id,
+      employee_role: employee.role,
+      tenant_id: tenantId,
+      branch_id: activeBranchId,
+      restaurant_id: restaurantId,
+      station_id: getStationId(),
+      pos_session_id: newShift.id,
+    },
+    SESSION_MAX_AGE_S,
+  );
+  await setSessionCookie(token);
+
+  return { ok: true, data: { kind: 'activated', employeeName: employee.full_name } };
+}
+
 export const activatePosStation = async (
   pinRaw: string,
   tenantId?: string,
-): Promise<ActionResult<{ employeeName: string }>> => {
+  forceBranchId?: string | null,
+): Promise<ActionResult<ActivationOutcome>> => {
   const pin = sanitizePin(pinRaw);
   if (!pin) return { ok: false, error: 'PIN inválido' };
-
-  const supabase = createSupabaseServiceClient();
 
   // --------------------------------------------------------------------------
   // Path v2: multi-tenant, usa employees_v2
   // --------------------------------------------------------------------------
   if (tenantId) {
-    const employee = await findEmployeeByPinV2(supabase, tenantId, pin);
-    if (!employee) return { ok: false, error: 'PIN incorrecto' };
-
-    if (!ACTIVATABLE_ROLES.has(employee.role)) {
-      return { ok: false, error: 'Tu rol no permite activar el POS' };
-    }
-
-    // Cierra shift v2 abierto del mismo empleado (multi-dispositivo defense).
-    const previousOpen = await getOpenShiftForEmployeeV2(supabase, employee.id);
-    if (previousOpen) {
-      await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
-    }
-
-    const newShift = await openShift(supabase, {
-      employeeIdV2: employee.id,
-      branchIdV2: null,
-      tenantId,
-      type: 'pos_activation',
-    });
-    if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
-
-    // Obtener restaurant_id desde el tenant para el JWT (RLS legacy lo lee).
-    const { data: restaurant } = await supabase
-      .from('restaurants')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .maybeSingle();
-    const restaurantId = (restaurant as { id: string } | null)?.id ?? '';
-
-    const token = await signEmployeeJWT(
-      {
-        sub: employee.id,
-        employee_role: employee.role,
-        tenant_id: tenantId,
-        branch_id: '',
-        restaurant_id: restaurantId,
-        station_id: getStationId(),
-        pos_session_id: newShift.id,
-      },
-      SESSION_MAX_AGE_S,
-    );
-    await setSessionCookie(token);
-
-    return { ok: true, data: { employeeName: employee.full_name } };
+    return activateV2(tenantId, pin, forceBranchId ?? null, null);
   }
+
+  const supabase = createSupabaseServiceClient();
 
   // --------------------------------------------------------------------------
   // Path legacy: single-tenant POS via BRANCH_ID env
@@ -161,7 +228,23 @@ export const activatePosStation = async (
   );
   await setSessionCookie(token);
 
-  return { ok: true, data: { employeeName: employee.full_name } };
+  return { ok: true, data: { kind: 'activated', employeeName: employee.full_name } };
+};
+
+/**
+ * Segunda fase: el usuario eligió sucursal en el selector. Repite la
+ * verificación de PIN (no confiamos en estado de cliente) y activa con
+ * la branch elegida.
+ */
+export const activatePosStationWithBranch = async (
+  pinRaw: string,
+  tenantId: string,
+  branchId: string,
+): Promise<ActionResult<ActivationOutcome>> => {
+  const pin = sanitizePin(pinRaw);
+  if (!pin) return { ok: false, error: 'PIN inválido' };
+  if (!tenantId || !branchId) return { ok: false, error: 'Falta tenant o sucursal.' };
+  return activateV2(tenantId, pin, null, branchId);
 };
 
 export interface LookupForClockResult {

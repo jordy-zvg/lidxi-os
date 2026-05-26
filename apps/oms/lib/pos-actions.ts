@@ -80,19 +80,22 @@ export const createSaleOrder = async (
   const supabase = createSupabaseServiceClient();
   const now = new Date().toISOString();
 
-  // Resolver branch_id legítimo del tenant (orders.branch_id es NOT NULL FK).
-  // Si el JWT trae branch_id usamos ese; si no, tomamos cualquier branch del
-  // tenant. Migración futura: hacer branch_id nullable o derivar de branches_v2.
-  let branchId = ctx.branchId;
-  if (!branchId) {
-    const { data: anyBranch } = await supabase
-      .from('branches')
-      .select('id, restaurants!inner(tenant_id)')
-      .eq('restaurants.tenant_id', ctx.tenantId)
-      .limit(1)
-      .maybeSingle();
-    branchId = (anyBranch as { id: string } | null)?.id ?? null;
-    if (!branchId) return { ok: false, error: 'No hay sucursal configurada para este tenant.' };
+  // Sprint 14: ctx.branchId ahora es la sucursal V2 explícita de la sesión
+  // (employee-context la garantiza desde el JWT post-activación).
+  // orders.branch_id es FK NOT NULL a la tabla legacy `branches`, así que
+  // necesitamos un branch_id legacy "shim" para satisfacer la FK. orders.branch_id_v2
+  // lleva el identificador real (FK a branches_v2). Cuando todos los callers escriban
+  // v2 podemos hacer branch_id legacy nullable (ticket aparte).
+  const branchIdV2 = ctx.branchId;
+  const { data: legacyBranchRow } = await supabase
+    .from('branches')
+    .select('id, restaurants!inner(tenant_id)')
+    .eq('restaurants.tenant_id', ctx.tenantId)
+    .limit(1)
+    .maybeSingle();
+  const legacyBranchId = (legacyBranchRow as { id: string } | null)?.id ?? null;
+  if (!legacyBranchId) {
+    return { ok: false, error: 'No hay sucursal legacy configurada para satisfacer la FK.' };
   }
 
   // Si se cobra al crear (modo mostrador clásico), marcamos delivered de una.
@@ -107,7 +110,8 @@ export const createSaleOrder = async (
     .from('orders')
     .insert({
       tenant_id: ctx.tenantId,
-      branch_id: branchId,
+      branch_id: legacyBranchId,
+      branch_id_v2: branchIdV2,
       channel: 'mostrador',
       status: initialStatus,
       customer_name: input.customerName || 'Mostrador',

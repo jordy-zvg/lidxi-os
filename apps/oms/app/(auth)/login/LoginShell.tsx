@@ -1,7 +1,7 @@
 'use client';
 
 import { HoraEnVivo } from '@/components/HoraEnVivo';
-import { activatePosStation } from '@/lib/auth-actions';
+import { activatePosStation, activatePosStationWithBranch } from '@/lib/auth-actions';
 import { formatTimeMX } from '@kobi/shared';
 import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@kobi/ui';
 import { IconInfoCircle } from '@tabler/icons-react';
@@ -15,21 +15,36 @@ export interface LoginShellProps {
   branch: { id: string; name: string; restaurantName: string };
   lastActivation: { employee_full_name: string; started_at: string } | null;
   tenantId?: string;
+  /** Si la tablet está vinculada a una sucursal específica, fuerza esa. */
+  deviceBranchId?: string | null;
 }
 
-export const LoginShell = ({ stationName, branch, lastActivation, tenantId }: LoginShellProps) => {
+interface PendingBranchChoice {
+  pin: string;
+  employeeName: string;
+  branches: { id: string; name: string }[];
+}
+
+export const LoginShell = ({
+  stationName,
+  branch,
+  lastActivation,
+  tenantId,
+  deviceBranchId,
+}: LoginShellProps) => {
   const router = useRouter();
   const [pin, setPin] = useState('');
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [branchChoice, setBranchChoice] = useState<PendingBranchChoice | null>(null);
 
   const submit = useCallback(
     (full: string) => {
       setError(null);
       startTransition(async () => {
-        const r = await activatePosStation(full, tenantId);
+        const r = await activatePosStation(full, tenantId, deviceBranchId ?? null);
         if (!r.ok) {
           setShake(true);
           setError(r.error);
@@ -37,11 +52,39 @@ export const LoginShell = ({ stationName, branch, lastActivation, tenantId }: Lo
           setTimeout(() => setShake(false), 320);
           return;
         }
+        if (r.data.kind === 'needsBranchSelection') {
+          // 2+ sucursales candidatas; pedir elección sin perder el PIN.
+          setBranchChoice({
+            pin: full,
+            employeeName: r.data.employeeName,
+            branches: r.data.branches,
+          });
+          setPin('');
+          return;
+        }
         setSuccess(true);
         setTimeout(() => router.push('/pedidos'), 200);
       });
     },
-    [router, tenantId],
+    [router, tenantId, deviceBranchId],
+  );
+
+  const handleBranchPick = useCallback(
+    (branchId: string) => {
+      if (!branchChoice || !tenantId) return;
+      setError(null);
+      startTransition(async () => {
+        const r = await activatePosStationWithBranch(branchChoice.pin, tenantId, branchId);
+        if (!r.ok) {
+          setError(r.error);
+          setBranchChoice(null);
+          return;
+        }
+        setSuccess(true);
+        setTimeout(() => router.push('/pedidos'), 200);
+      });
+    },
+    [branchChoice, tenantId, router],
   );
 
   const onDigit = (d: string) => {
@@ -115,34 +158,73 @@ export const LoginShell = ({ stationName, branch, lastActivation, tenantId }: Lo
             </section>
           </Card>
 
-          <Card padding="lg" className="flex flex-col items-center gap-6 p-8">
-            <header className="text-center space-y-1">
-              <Eyebrow>Inicia sesión en Kobi</Eyebrow>
-              <h2 className="text-lg font-medium text-ink">Ingresa tu PIN</h2>
-              <p className="text-[13px] text-ink-300">Solo gerentes y cajeros autorizados</p>
-            </header>
+          {branchChoice ? (
+            <Card padding="lg" className="flex flex-col gap-5 p-8">
+              <header className="text-center space-y-1">
+                <Eyebrow>{`Hola, ${branchChoice.employeeName.split(' ')[0] ?? ''}`}</Eyebrow>
+                <h2 className="text-lg font-medium text-ink">¿En qué sucursal vas a operar?</h2>
+                <p className="text-[13px] text-ink-300">Selecciona para abrir tu turno</p>
+              </header>
+              <div className="flex flex-col gap-2">
+                {branchChoice.branches.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => handleBranchPick(b.id)}
+                    disabled={pending || success}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-line bg-canvas hover:border-brand text-sm font-medium text-ink disabled:opacity-60"
+                  >
+                    {b.name}
+                  </button>
+                ))}
+              </div>
+              {error && (
+                <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setBranchChoice(null);
+                  setError(null);
+                }}
+                disabled={pending || success}
+                className="text-xs text-ink-400 hover:text-ink-200 disabled:opacity-60"
+              >
+                ← Volver al PIN
+              </button>
+            </Card>
+          ) : (
+            <Card padding="lg" className="flex flex-col items-center gap-6 p-8">
+              <header className="text-center space-y-1">
+                <Eyebrow>Inicia sesión en Kobi</Eyebrow>
+                <h2 className="text-lg font-medium text-ink">Ingresa tu PIN</h2>
+                <p className="text-[13px] text-ink-300">Solo gerentes y cajeros autorizados</p>
+              </header>
 
-            <PinDots value={pin} shake={shake} success={success} />
+              <PinDots value={pin} shake={shake} success={success} />
 
-            <Keypad
-              onDigit={onDigit}
-              onBackspace={onBackspace}
-              onClear={onClear}
-              disabled={pending || success}
-              size="md"
-            />
+              <Keypad
+                onDigit={onDigit}
+                onBackspace={onBackspace}
+                onClear={onClear}
+                disabled={pending || success}
+                size="md"
+              />
 
-            {error && (
-              <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
-                {error}
-              </p>
-            )}
+              {error && (
+                <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
+                  {error}
+                </p>
+              )}
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[11px] text-ink-400">
-              <IconInfoCircle size={13} />
-              Activar el POS también registra tu hora de entrada
-            </span>
-          </Card>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[11px] text-ink-400">
+                <IconInfoCircle size={13} />
+                Activar el POS también registra tu hora de entrada
+              </span>
+            </Card>
+          )}
         </div>
       </div>
     </div>

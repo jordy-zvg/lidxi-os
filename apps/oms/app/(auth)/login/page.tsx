@@ -95,6 +95,7 @@ export default async function LoginPage() {
           }}
           lastActivation={null}
           tenantId={device.tenant_id}
+          deviceBranchId={device.branch_id}
         />
       );
     }

@@ -1,11 +1,11 @@
 'use client';
-import { type EmployeeRole, updateEmployee } from '@/app/admin/equipo/actions';
+import { type EmployeeRole, getEmployeeBranches, updateEmployee } from '@/app/admin/equipo/actions';
 import type { Role } from '@kobi/shared';
 import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import type { EmployeeRecord } from './EquipoScreen';
+import type { BranchOption, EmployeeRecord } from './EquipoScreen';
 
 type PermKey = 'cancel_tickets' | 'discounts' | 'open_cash' | 'view_reports' | 'edit_inventory';
 
@@ -26,10 +26,11 @@ const ROLE_OPTIONS = [
 
 interface EmployeeSlideOverProps {
   employee: EmployeeRecord | null;
+  branches: BranchOption[];
   onClose: () => void;
 }
 
-export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps) => {
+export const EmployeeSlideOver = ({ employee, branches, onClose }: EmployeeSlideOverProps) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState('');
@@ -44,6 +45,8 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
     view_reports: false,
     edit_inventory: false,
   });
+  const [branchIds, setBranchIds] = useState<Set<string>>(new Set());
+  const [branchesLoaded, setBranchesLoaded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +66,18 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
     });
     setToast(null);
     setError(null);
-  }, [employee]);
+    setBranchesLoaded(false);
+    setBranchIds(new Set());
+    // Cargar asignación actual de sucursales — solo si hay >1 (caso multi-sucursal).
+    if (branches.length > 1) {
+      getEmployeeBranches(employee.id).then((ids) => {
+        setBranchIds(new Set(ids));
+        setBranchesLoaded(true);
+      });
+    } else {
+      setBranchesLoaded(true);
+    }
+  }, [employee, branches.length]);
 
   useEffect(() => {
     if (!employee) return;
@@ -90,6 +104,15 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
 
   const togglePerm = (key: PermKey) => setPerms((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  const toggleBranch = (branchId: string) => {
+    setBranchIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(branchId)) next.delete(branchId);
+      else next.add(branchId);
+      return next;
+    });
+  };
+
   const handleSave = () => {
     if (!employee) return;
     setError(null);
@@ -98,6 +121,8 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
         name,
         role: role as EmployeeRole,
         ...(pinGenerated ? { pin } : {}),
+        // Solo enviar branchIds si hay multi-sucursal Y ya cargamos.
+        ...(branches.length > 1 && branchesLoaded ? { branchIds: Array.from(branchIds) } : {}),
       });
       if (result.ok) {
         router.refresh();
@@ -191,6 +216,36 @@ export const EmployeeSlideOver = ({ employee, onClose }: EmployeeSlideOverProps)
               </Button>
             </div>
           </section>
+
+          {/* Sucursales — solo se muestra con 2+ */}
+          {branches.length > 1 && (
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-400 mb-3">
+                Sucursales asignadas
+              </h3>
+              <div className="bg-canvas rounded-lg border border-line px-3">
+                {branches.map((b) => (
+                  <label
+                    key={b.id}
+                    className="flex items-center justify-between py-2.5 border-b border-line last:border-b-0 cursor-pointer"
+                  >
+                    <span className="text-sm text-ink-200">{b.name}</span>
+                    <input
+                      type="checkbox"
+                      checked={branchIds.has(b.id)}
+                      onChange={() => toggleBranch(b.id)}
+                      disabled={!branchesLoaded}
+                      className="h-4 w-4 accent-brand"
+                    />
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-ink-400 mt-2">
+                Si no marcas ninguna, el empleado podrá operar en cualquier sucursal activa (default
+                backwards compat).
+              </p>
+            </section>
+          )}
 
           {/* Permisos */}
           <section>

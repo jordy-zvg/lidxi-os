@@ -39,4 +39,20 @@ export {
   type ConsumedPairingCode,
   type RegisterDeviceInput,
 } from './queries-devices';
+export {
+  listBranchesForTenant,
+  listActiveBranchesForTenant,
+  createBranch,
+  updateBranch,
+  countBranchUsage,
+  type BranchV2Row,
+  type CreateBranchInput,
+  type UpdateBranchInput,
+} from './queries-branches';
+export {
+  listBranchesForEmployee,
+  setEmployeeBranches,
+  resolveCandidateBranches,
+  type EmployeeBranchRow,
+} from './queries-employee-branches';
 export type { Database } from './types';

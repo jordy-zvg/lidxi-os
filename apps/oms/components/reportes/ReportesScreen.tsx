@@ -87,8 +87,19 @@ function KpiCard({
 // Component
 // ---------------------------------------------------------------------------
 
-export const ReportesScreen = () => {
+export interface ReportesBranch {
+  id: string;
+  name: string;
+}
+
+interface ReportesScreenProps {
+  branches: ReportesBranch[];
+}
+
+export const ReportesScreen = ({ branches }: ReportesScreenProps) => {
   const [periodo, setPeriodo] = useState('Este mes');
+  // 'all' = vista consolidada del tenant.
+  const [branchFilter, setBranchFilter] = useState<string>('all');
 
   const maxPedidos = HEATMAP_PEAK.pedidos;
   const picoCelda = HEATMAP_PEAK;
@@ -111,7 +122,22 @@ export const ReportesScreen = () => {
           <h1 className="text-xl font-medium text-ink">Reportes</h1>
           <PreviewBadge variant="preview" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {branches.length > 1 && (
+            <select
+              value={branchFilter}
+              onChange={(e) => setBranchFilter(e.target.value)}
+              aria-label="Filtrar por sucursal"
+              className="h-8 px-3 rounded-md text-sm bg-surface border border-line-2 text-ink-200"
+            >
+              <option value="all">Todas las sucursales (consolidado)</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          )}
           {PERIODOS.map((p) => (
             <button
               key={p}
@@ -128,6 +154,15 @@ export const ReportesScreen = () => {
           ))}
         </div>
       </div>
+
+      {/* Banner: filtro de sucursal NO filtra los mock data todavía */}
+      {branches.length > 1 && branchFilter !== 'all' && (
+        <div className="bg-surface border border-line-2 rounded-md px-4 py-2 text-xs text-ink-400">
+          Filtro "{branches.find((b) => b.id === branchFilter)?.name}" seleccionado, pero los datos
+          siguen siendo de ejemplo (placeholder). Cuando los reportes calculen sobre data real, este
+          filtro tendrá efecto.
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-card-gap">
