@@ -1,7 +1,10 @@
+import { validateEnv } from '@/lib/validate-env';
 import { inter, jetbrainsMono } from '@kobi/tokens/fonts';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
+
+validateEnv();
 
 // URL pública canónica de la app: leer de env para no requerir refactor al
 // migrar de *.up.railway.app → kobi.mx (basta con cambiar la env var).

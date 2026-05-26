@@ -11,8 +11,19 @@ export const createSupabaseServerClient = () => {
       cookies: {
         getAll: () => cookieStore.getAll(),
         setAll: (cookiesToSet) => {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+          try {
+            for (const { name, value, options } of cookiesToSet) {
+              cookieStore.set(name, value, options);
+            }
+          } catch (err) {
+            // "Cookies can only be modified..." error en Server Components read-only.
+            // Loguear y continuar — si la cookie es crítica, la siguiente request
+            // detectará la falta de sesión.
+            if (err instanceof Error && err.message.includes('Cookies can only be modified')) {
+              console.warn('[Supabase SSR] No se pudo actualizar cookies en contexto read-only');
+            } else {
+              throw err;
+            }
           }
         },
       },
