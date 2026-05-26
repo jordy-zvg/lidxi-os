@@ -11,6 +11,8 @@ const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
 ];
 
+const REQUIRED_IN_PRODUCTION = ['NEXT_PUBLIC_APP_URL'];
+
 export function validateEnv(): void {
   const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
 
@@ -19,5 +21,15 @@ export function validateEnv(): void {
     throw new Error(
       `Faltan variables de entorno críticas:\n${list}\n\nSin ellas, la app no puede arrancar. Revisa tu archivo .env.local o la configuración del servicio (Railway, Vercel, etc.).`,
     );
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    const missingProd = REQUIRED_IN_PRODUCTION.filter((key) => !process.env[key]);
+    if (missingProd.length > 0) {
+      const list = missingProd.map((k) => `  • ${k}`).join('\n');
+      throw new Error(
+        `Faltan variables de entorno requeridas en producción:\n${list}\n\nRevisa la configuración del servicio (Railway, Vercel, etc.).`,
+      );
+    }
   }
 }
