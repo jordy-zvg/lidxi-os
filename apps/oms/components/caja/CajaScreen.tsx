@@ -1,41 +1,16 @@
 'use client';
 
-import { formatMXN } from '@kobi/shared';
-import { type CentsMXN, cents } from '@kobi/shared';
-import { Button, StatusPill } from '@kobi/ui';
+import { type CentsMXN, cents, formatMXN } from '@kobi/shared';
+import { Button } from '@kobi/ui';
 import { IconPrinter, IconReceipt } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
-import { useState } from 'react';
-import { closeShiftAndSignOut } from '../../lib/auth-actions';
-
-// ---------------------------------------------------------------------------
-// Mock data del turno actual
-// ---------------------------------------------------------------------------
-
-const MOCK_TURNO = {
-  ventas_brutas: cents(1284700),
-  efectivo_esperado: cents(843200),
-  terminal_esperado: cents(441500),
-  por_canal: {
-    direct: cents(387400),
-    eats: cents(489200),
-    rappi: cents(267100),
-    didi: cents(141000),
-    mostrador: cents(0),
-  },
-  hora_inicio: '11:08',
-  hora_fin: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-};
+import { useState, useTransition } from 'react';
+import { type ShiftSummary, endShiftAndSignOut } from '../../lib/operations/shift-actions';
 
 // ---------------------------------------------------------------------------
 // Denominaciones
 // ---------------------------------------------------------------------------
 
-// Paleta desaturada — mantiene asociación visual (verde=$1000, marrón=$500,
-// magenta=$200, coral=$100, naranja=$50, azul=$20) pero alejada del rojo
-// Miztli (#E11D2E). El $100 en particular pasa de rojo brillante a coral
-// oscuro, perceptualmente distinto.
+// Paleta desaturada — mantiene asociación visual pero alejada del rojo Miztli.
 const BILLETES = [
   { valor: 1000, color: '#4A7C59' },
   { valor: 500, color: '#8B6F47' },
@@ -59,21 +34,6 @@ const TERMINALES = [
   { key: 'vales', label: 'Vales de despensa' },
 ];
 
-const CH_COLORS: Record<string, string> = {
-  direct: 'var(--brand)',
-  eats: 'var(--ch-eats)',
-  rappi: 'var(--ch-rappi)',
-  didi: 'var(--ch-didi)',
-  mostrador: 'var(--ch-mostrador)',
-};
-const CH_LABELS: Record<string, string> = {
-  direct: 'Uber Direct',
-  eats: 'Uber Eats',
-  rappi: 'Rappi',
-  didi: 'Didi Food',
-  mostrador: 'Mostrador',
-};
-
 const TOLERANCIA = 5000; // $50 MXN en centavos
 
 // ---------------------------------------------------------------------------
@@ -84,92 +44,42 @@ function fmt(c: CentsMXN): string {
   return formatMXN(c);
 }
 
-function diffClass(diff: number): 'ok' | 'danger' {
-  return Math.abs(diff) <= TOLERANCIA ? 'ok' : 'danger';
-}
+const PILL_CLS: Record<string, string> = {
+  ok: 'bg-ok-soft text-ok-text',
+  danger: 'bg-danger-soft text-danger-text',
+  warn: 'bg-warn-soft text-warn-text',
+};
 
-// ---------------------------------------------------------------------------
-// Mini Donut SVG
-// ---------------------------------------------------------------------------
-
-function DonutChart({
-  slices,
-}: {
-  slices: { label: string; value: number; color: string }[];
-}) {
-  const total = slices.reduce((s, x) => s + x.value, 0);
-  if (total === 0) return null;
-  const r = 44;
-  const cx = 50;
-  const cy = 50;
-  const circumference = 2 * Math.PI * r;
-  let offset = 0;
-
-  return (
-    <div className="flex items-center gap-6">
-      <svg
-        width={100}
-        height={100}
-        viewBox="0 0 100 100"
-        className="shrink-0"
-        role="img"
-        aria-label="Distribución por canal"
-      >
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--line)" strokeWidth={12} />
-        {slices
-          .filter((s) => s.value > 0)
-          .map((slice) => {
-            const pct = slice.value / total;
-            const dash = pct * circumference;
-            const el = (
-              <circle
-                key={slice.label}
-                cx={cx}
-                cy={cy}
-                r={r}
-                fill="none"
-                stroke={slice.color}
-                strokeWidth={12}
-                strokeDasharray={`${dash} ${circumference - dash}`}
-                strokeDashoffset={-offset}
-                style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
-              />
-            );
-            offset += dash;
-            return el;
-          })}
-        <circle cx={cx} cy={cy} r={30} fill="var(--surface)" />
-      </svg>
-      <div className="space-y-1.5">
-        {slices.map((s) => (
-          <div key={s.label} className="flex items-center gap-2 text-xs">
-            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: s.color }} />
-            <span className="text-ink-200">{s.label}</span>
-            <span className="font-mono text-ink-300 ml-auto pl-3">
-              {total > 0 ? `${Math.round((s.value / total) * 100)}%` : '—'}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+/**
+ * Estado del arqueo: cuadrado (dentro de tolerancia, verde), faltante (rojo)
+ * o sobrante (amarillo). No bloquea el cierre — solo informa.
+ */
+function diffState(diff: number): { label: string; cls: string } {
+  if (Math.abs(diff) <= TOLERANCIA) return { label: 'Cuadrado', cls: 'ok' };
+  if (diff < 0) return { label: 'Faltante · revisar', cls: 'danger' };
+  return { label: 'Sobrante · revisar', cls: 'warn' };
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export const CajaScreen = () => {
-  const router = useRouter();
+export const CajaScreen = ({ summary }: { summary: ShiftSummary }) => {
   const [isPending, startTransition] = useTransition();
 
-  // Billetes y monedas
   const [billetes, setBilletes] = useState<Record<number, string>>({});
   const [monedas, setMonedas] = useState<Record<number, string>>({});
   const [terminales, setTerminales] = useState<Record<string, string>>({});
   const [tipElectronic, setTipElectronic] = useState('');
   const [tipCash, setTipCash] = useState('');
   const [revealed, setRevealed] = useState(false);
+
+  // Esperado en caja = fondo inicial + ventas en efectivo del turno.
+  const openingFloat = summary.opening_float_cents;
+  const cashSales = summary.cash_total_cents;
+  const expectedCash = openingFloat + cashSales;
+  const cardExpected = summary.card_total_cents;
+  const grossSales = summary.total_sold_cents;
 
   const totalBilletes = BILLETES.reduce((sum, b) => {
     const qty = Number(billetes[b.valor] ?? 0);
@@ -190,21 +100,18 @@ export const CajaScreen = () => {
   const efectivoDeclaredCents = cents(efectivoDeclared);
   const terminalDeclaredCents = cents(totalTerminales);
 
-  const efectivoDiff = efectivoDeclared - MOCK_TURNO.efectivo_esperado;
-  const terminalDiff = totalTerminales - MOCK_TURNO.terminal_esperado;
+  const efectivoDiff = efectivoDeclared - expectedCash;
+  const terminalDiff = totalTerminales - cardExpected;
+  const efectivoState = diffState(efectivoDiff);
+  const terminalState = diffState(terminalDiff);
 
   const handleCerrarTurno = () => {
+    // Persiste el arqueo (esperado = fondo + efectivo) y cierra sesión.
+    // No se bloquea por diferencia — el gerente decide al revisar el corte.
     startTransition(async () => {
-      await closeShiftAndSignOut();
-      router.push('/login');
+      await endShiftAndSignOut(efectivoDeclaredCents);
     });
   };
-
-  const donutSlices = Object.entries(MOCK_TURNO.por_canal).map(([key, val]) => ({
-    label: CH_LABELS[key] ?? key,
-    value: val,
-    color: CH_COLORS[key] ?? 'var(--ink-5)',
-  }));
 
   return (
     <div className="h-full flex flex-col gap-section-sm">
@@ -217,7 +124,7 @@ export const CajaScreen = () => {
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-5 min-h-0">
-        {/* ── Columna izquierda ── */}
+        {/* ── Columna izquierda: conteo físico ── */}
         <div className="lg:flex-[55] flex flex-col gap-4 overflow-y-auto">
           {/* Billetes */}
           <div className="bg-surface border border-line rounded-lg p-card">
@@ -256,25 +163,23 @@ export const CajaScreen = () => {
             <div className="mt-4 pt-4 border-t border-line">
               <h3 className="text-xs font-semibold text-ink-400 mb-3">Monedas</h3>
               <div className="flex gap-3 flex-wrap">
-                {MONEDAS.map((m) => {
-                  return (
-                    <div key={m.valor} className="flex items-center gap-1.5">
-                      <div className="h-7 w-7 rounded-full bg-canvas border border-line flex items-center justify-center shrink-0">
-                        <span className="text-[10px] font-semibold text-ink-200">{m.label}</span>
-                      </div>
-                      <input
-                        type="number"
-                        min="0"
-                        value={monedas[m.valor] ?? ''}
-                        onChange={(e) =>
-                          setMonedas((prev) => ({ ...prev, [m.valor]: e.target.value }))
-                        }
-                        placeholder="0"
-                        className="w-14 h-7 rounded border border-line-2 bg-canvas px-1.5 text-sm font-mono text-ink text-right focus:outline-none focus:border-brand"
-                      />
+                {MONEDAS.map((m) => (
+                  <div key={m.valor} className="flex items-center gap-1.5">
+                    <div className="h-7 w-7 rounded-full bg-canvas border border-line flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-semibold text-ink-200">{m.label}</span>
                     </div>
-                  );
-                })}
+                    <input
+                      type="number"
+                      min="0"
+                      value={monedas[m.valor] ?? ''}
+                      onChange={(e) =>
+                        setMonedas((prev) => ({ ...prev, [m.valor]: e.target.value }))
+                      }
+                      placeholder="0"
+                      className="w-14 h-7 rounded border border-line-2 bg-canvas px-1.5 text-sm font-mono text-ink text-right focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -306,7 +211,7 @@ export const CajaScreen = () => {
             </div>
           </div>
 
-          {/* Propinas del turno */}
+          {/* Propinas del turno (declaración) */}
           <div className="bg-surface border border-line rounded-lg p-card">
             <div className="mb-4">
               <h3 className="text-base font-medium text-ink">Propinas del turno</h3>
@@ -337,9 +242,6 @@ export const CajaScreen = () => {
                     className="flex-1 h-9 rounded border border-line-2 bg-canvas px-2 font-mono text-sm text-ink text-right focus:outline-none focus:border-brand"
                   />
                 </div>
-                <p className="text-xs text-ink-400">
-                  Incluye propinas del datáfono y del sitio propio.
-                </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -363,9 +265,6 @@ export const CajaScreen = () => {
                     className="flex-1 h-9 rounded border border-line-2 bg-canvas px-2 font-mono text-sm text-ink text-right focus:outline-none focus:border-brand"
                   />
                 </div>
-                <p className="text-xs text-ink-400">
-                  Propinas físicas separadas del efectivo de ventas.
-                </p>
               </div>
             </div>
 
@@ -393,7 +292,7 @@ export const CajaScreen = () => {
           </Button>
         </div>
 
-        {/* ── Columna derecha ── */}
+        {/* ── Columna derecha: sistema + arqueo ── */}
         <div
           className={`lg:flex-[45] flex flex-col gap-4 overflow-y-auto transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none hidden lg:flex'}`}
         >
@@ -402,15 +301,19 @@ export const CajaScreen = () => {
             <h2 className="text-sm font-semibold text-ink">Ventas del sistema</h2>
             <div className="flex justify-between text-sm">
               <span className="text-ink-200">Ventas brutas del turno</span>
-              <span className="font-mono text-ink">{fmt(MOCK_TURNO.ventas_brutas)}</span>
+              <span className="font-mono text-ink">{fmt(cents(grossSales))}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-ink-200">Efectivo esperado en caja</span>
-              <span className="font-mono text-ink">{fmt(MOCK_TURNO.efectivo_esperado)}</span>
+              <span className="text-ink-200">Fondo inicial</span>
+              <span className="font-mono text-ink">{fmt(cents(openingFloat))}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-ink-200">Terminal esperada</span>
-              <span className="font-mono text-ink">{fmt(MOCK_TURNO.terminal_esperado)}</span>
+              <span className="text-ink-200">Ventas en efectivo</span>
+              <span className="font-mono text-ink">{fmt(cents(cashSales))}</span>
+            </div>
+            <div className="flex justify-between text-sm pt-2 border-t border-line">
+              <span className="font-medium text-ink">Esperado en caja</span>
+              <span className="font-mono font-semibold text-ink">{fmt(cents(expectedCash))}</span>
             </div>
           </div>
 
@@ -418,8 +321,8 @@ export const CajaScreen = () => {
           <div className="bg-surface border border-line rounded-lg p-card space-y-2">
             <h2 className="text-sm font-semibold text-ink mb-3">Diferencia de efectivo</h2>
             <div className="flex justify-between text-sm">
-              <span className="text-ink-400">Esperado</span>
-              <span className="font-mono text-ink">{fmt(MOCK_TURNO.efectivo_esperado)}</span>
+              <span className="text-ink-400">Esperado (fondo + efectivo)</span>
+              <span className="font-mono text-ink">{fmt(cents(expectedCash))}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-ink-400">Declarado</span>
@@ -436,11 +339,11 @@ export const CajaScreen = () => {
               </span>
             </div>
             <div className="mt-2">
-              <StatusPill variant={diffClass(efectivoDiff)}>
-                {Math.abs(efectivoDiff) <= TOLERANCIA
-                  ? 'Dentro de tolerancia'
-                  : 'Fuera de tolerancia · revisar'}
-              </StatusPill>
+              <span
+                className={`inline-block px-2 py-1 rounded text-xs font-medium ${PILL_CLS[efectivoState.cls]}`}
+              >
+                {efectivoState.label}
+              </span>
             </div>
           </div>
 
@@ -449,7 +352,7 @@ export const CajaScreen = () => {
             <h2 className="text-sm font-semibold text-ink mb-3">Diferencia de terminal</h2>
             <div className="flex justify-between text-sm">
               <span className="text-ink-400">Esperado</span>
-              <span className="font-mono text-ink">{fmt(MOCK_TURNO.terminal_esperado)}</span>
+              <span className="font-mono text-ink">{fmt(cents(cardExpected))}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-ink-400">Declarado</span>
@@ -466,18 +369,12 @@ export const CajaScreen = () => {
               </span>
             </div>
             <div className="mt-2">
-              <StatusPill variant={diffClass(terminalDiff)}>
-                {Math.abs(terminalDiff) <= TOLERANCIA
-                  ? 'Dentro de tolerancia'
-                  : 'Fuera de tolerancia · revisar'}
-              </StatusPill>
+              <span
+                className={`inline-block px-2 py-1 rounded text-xs font-medium ${PILL_CLS[terminalState.cls]}`}
+              >
+                {terminalState.label}
+              </span>
             </div>
-          </div>
-
-          {/* Distribución por canal */}
-          <div className="bg-surface border border-line rounded-lg p-card">
-            <h2 className="text-sm font-semibold text-ink mb-4">Distribución por canal</h2>
-            <DonutChart slices={donutSlices} />
           </div>
 
           {/* Resumen propinas */}
@@ -502,14 +399,6 @@ export const CajaScreen = () => {
                 </span>
               </div>
             </div>
-            {revealed && tipElectronic && Math.abs(Number.parseFloat(tipElectronic) - 284) > 1 && (
-              <div className="mt-3 p-3 bg-warn-soft rounded-md">
-                <p className="text-xs text-warn-text">
-                  Las propinas electrónicas declaradas (${tipElectronic}) no coinciden con lo
-                  registrado por el sistema ($284.00). Revisa antes de cerrar.
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Footer acciones */}

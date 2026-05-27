@@ -16,10 +16,16 @@ export interface ShiftInfo {
 export interface ShiftSummary {
   shift_id: string;
   started_at: string;
+  opening_float_cents: number;
   cash_total_cents: number;
   card_total_cents: number;
   total_sold_cents: number;
   orders_count: number;
+}
+
+export interface ShiftCashState {
+  opening_float_cents: number;
+  opening_float_set: boolean;
 }
 
 /**
@@ -82,7 +88,7 @@ export async function loadShiftSummary(): Promise<ShiftResult<ShiftSummary>> {
   const [shiftRes, paymentsRes] = await Promise.all([
     supabase
       .from('shifts')
-      .select('id, started_at')
+      .select('id, started_at, opening_float_cents')
       .eq('id', ctx.shiftId)
       .eq('tenant_id', ctx.tenantId)
       .maybeSingle(),
@@ -94,7 +100,11 @@ export async function loadShiftSummary(): Promise<ShiftResult<ShiftSummary>> {
   ]);
 
   if (!shiftRes.data) return { ok: false, error: 'Turno no encontrado' };
-  const shift = shiftRes.data as { id: string; started_at: string };
+  const shift = shiftRes.data as {
+    id: string;
+    started_at: string;
+    opening_float_cents: number | null;
+  };
   const payments = (paymentsRes.data ?? []) as {
     method: string;
     amount_cents: number;
@@ -115,12 +125,68 @@ export async function loadShiftSummary(): Promise<ShiftResult<ShiftSummary>> {
     data: {
       shift_id: shift.id,
       started_at: shift.started_at,
+      opening_float_cents: shift.opening_float_cents ?? 0,
       cash_total_cents: cash,
       card_total_cents: card,
       total_sold_cents: cash + card,
       orders_count: orderIds.size,
     },
   };
+}
+
+/**
+ * Estado del fondo de caja del turno activo (para el gate de apertura y la caja).
+ */
+export async function getShiftCashState(): Promise<ShiftResult<ShiftCashState>> {
+  let ctx: Awaited<ReturnType<typeof requireEmployeeContext>>;
+  try {
+    ctx = await requireEmployeeContext();
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Sin sesión' };
+  }
+  if (!ctx.shiftId) return { ok: false, error: 'No hay turno activo' };
+
+  const supabase = createSupabaseServiceClient();
+  const { data } = await supabase
+    .from('shifts')
+    .select('opening_float_cents, opening_float_set')
+    .eq('id', ctx.shiftId)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle();
+  if (!data) return { ok: false, error: 'Turno no encontrado' };
+  const row = data as { opening_float_cents: number | null; opening_float_set: boolean | null };
+  return {
+    ok: true,
+    data: {
+      opening_float_cents: row.opening_float_cents ?? 0,
+      opening_float_set: row.opening_float_set ?? false,
+    },
+  };
+}
+
+/**
+ * Captura el fondo inicial del turno (apertura de caja). Marca opening_float_set
+ * para que el gate no vuelva a pedirlo en este turno.
+ */
+export async function setShiftOpeningFloat(cents: number): Promise<ShiftResult<null>> {
+  if (!Number.isFinite(cents) || cents < 0) return { ok: false, error: 'Monto inválido' };
+
+  let ctx: Awaited<ReturnType<typeof requireEmployeeContext>>;
+  try {
+    ctx = await requireEmployeeContext();
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Sin sesión' };
+  }
+  if (!ctx.shiftId) return { ok: false, error: 'No hay turno activo' };
+
+  const supabase = createSupabaseServiceClient();
+  const { error } = await supabase
+    .from('shifts')
+    .update({ opening_float_cents: Math.round(cents), opening_float_set: true })
+    .eq('id', ctx.shiftId)
+    .eq('tenant_id', ctx.tenantId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data: null };
 }
 
 /**
@@ -142,8 +208,9 @@ export async function closeShiftAndCheckout(
   if (!summary.ok) return summary;
 
   const supabase = createSupabaseServiceClient();
-  const difference =
-    cashCountedCents !== null ? cashCountedCents - summary.data.cash_total_cents : null;
+  // Esperado en caja = fondo inicial + ventas en efectivo del turno.
+  const expectedCash = summary.data.opening_float_cents + summary.data.cash_total_cents;
+  const difference = cashCountedCents !== null ? cashCountedCents - expectedCash : null;
   const now = new Date().toISOString();
 
   const { error } = await supabase
@@ -152,7 +219,7 @@ export async function closeShiftAndCheckout(
       ended_at: now,
       closed_at: now,
       closed_by_employee_id_v2: ctx.employeeIdV2,
-      cash_expected_cents: summary.data.cash_total_cents,
+      cash_expected_cents: expectedCash,
       cash_counted_cents: cashCountedCents,
       cash_difference_cents: difference,
       card_total_cents: summary.data.card_total_cents,

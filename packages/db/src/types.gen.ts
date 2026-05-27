@@ -134,6 +134,7 @@ export type Database = {
           lng: number | null
           name: string
           phone: string | null
+          status: string
           tenant_id: string | null
         }
         Insert: {
@@ -147,6 +148,7 @@ export type Database = {
           lng?: number | null
           name: string
           phone?: string | null
+          status?: string
           tenant_id?: string | null
         }
         Update: {
@@ -160,6 +162,7 @@ export type Database = {
           lng?: number | null
           name?: string
           phone?: string | null
+          status?: string
           tenant_id?: string | null
         }
         Relationships: [
@@ -569,6 +572,52 @@ export type Database = {
           },
         ]
       }
+      employee_branches: {
+        Row: {
+          branch_id_v2: string
+          created_at: string
+          employee_id_v2: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          branch_id_v2: string
+          created_at?: string
+          employee_id_v2: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          branch_id_v2?: string
+          created_at?: string
+          employee_id_v2?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_branches_branch_id_v2_fkey"
+            columns: ["branch_id_v2"]
+            isOneToOne: false
+            referencedRelation: "branches_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_branches_employee_id_v2_fkey"
+            columns: ["employee_id_v2"]
+            isOneToOne: false
+            referencedRelation: "employees_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           active: boolean
@@ -939,6 +988,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           branch_id: string
+          branch_id_v2: string | null
           cancel_reason: string | null
           cancelled_at: string | null
           channel: string
@@ -966,6 +1016,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           branch_id: string
+          branch_id_v2?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
           channel: string
@@ -993,6 +1044,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           branch_id?: string
+          branch_id_v2?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
           channel?: string
@@ -1023,6 +1075,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_branch_id_v2_fkey"
+            columns: ["branch_id_v2"]
+            isOneToOne: false
+            referencedRelation: "branches_v2"
             referencedColumns: ["id"]
           },
           {
@@ -1087,6 +1146,105 @@ export type Database = {
           },
           {
             foreignKeyName: "payment_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_devices: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          device_token_hash: string
+          id: string
+          last_seen_at: string | null
+          name: string
+          paired_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          device_token_hash: string
+          id?: string
+          last_seen_at?: string | null
+          name: string
+          paired_at?: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          device_token_hash?: string
+          id?: string
+          last_seen_at?: string | null
+          name?: string
+          paired_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_devices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_devices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_pairing_codes: {
+        Row: {
+          branch_id: string | null
+          code: string
+          created_at: string
+          device_name: string
+          expires_at: string
+          id: string
+          tenant_id: string
+          used_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          code: string
+          created_at?: string
+          device_name: string
+          expires_at: string
+          id?: string
+          tenant_id: string
+          used_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          code?: string
+          created_at?: string
+          device_name?: string
+          expires_at?: string
+          id?: string
+          tenant_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_pairing_codes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_pairing_codes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1283,6 +1441,8 @@ export type Database = {
           employee_id_v2: string | null
           ended_at: string | null
           id: string
+          opening_float_cents: number
+          opening_float_set: boolean
           orders_count: number | null
           started_at: string
           tenant_id: string | null
@@ -1305,6 +1465,8 @@ export type Database = {
           employee_id_v2?: string | null
           ended_at?: string | null
           id?: string
+          opening_float_cents?: number
+          opening_float_set?: boolean
           orders_count?: number | null
           started_at?: string
           tenant_id?: string | null
@@ -1327,6 +1489,8 @@ export type Database = {
           employee_id_v2?: string | null
           ended_at?: string | null
           id?: string
+          opening_float_cents?: number
+          opening_float_set?: boolean
           orders_count?: number | null
           started_at?: string
           tenant_id?: string | null
@@ -1393,7 +1557,7 @@ export type Database = {
           phone: string | null
           plan: string
           rfc: string | null
-          slug: string
+          slug: string | null
           subscription_status: string | null
           trial_ends_at: string | null
           updated_at: string | null
@@ -1412,7 +1576,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           rfc?: string | null
-          slug: string
+          slug?: string | null
           subscription_status?: string | null
           trial_ends_at?: string | null
           updated_at?: string | null
@@ -1431,7 +1595,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           rfc?: string | null
-          slug?: string
+          slug?: string | null
           subscription_status?: string | null
           trial_ends_at?: string | null
           updated_at?: string | null
@@ -2161,3 +2325,4 @@ export const Constants = {
     },
   },
 } as const
+
