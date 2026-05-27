@@ -80,7 +80,9 @@ export const ItemEditorPanel = ({
         if (pendingFile) {
           setUploadProgress(0);
           const tempId = item?.id ?? `new-${Date.now()}`;
-          const uploaded = await uploadMenuImage(pendingFile, tempId);
+          const fd = new FormData();
+          fd.append('file', pendingFile);
+          const uploaded = await uploadMenuImage(fd, tempId);
           finalPhotoUrl = uploaded.url;
           finalPhotoKey = uploaded.key;
           setUploadProgress(100);
