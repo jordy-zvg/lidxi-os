@@ -1,5 +1,10 @@
 'use client';
-import { type EmployeeRole, getEmployeeBranches, updateEmployee } from '@/app/admin/equipo/actions';
+import {
+  type EmployeeRole,
+  getEmployeeBranches,
+  suspendEmployee,
+  updateEmployee,
+} from '@/app/admin/equipo/actions';
 import type { Role } from '@kobi/shared';
 import { Button, SegmentedControl, Toggle } from '@kobi/ui';
 import { IconX } from '@tabler/icons-react';
@@ -123,7 +128,32 @@ export const EmployeeSlideOver = ({ employee, branches, onClose }: EmployeeSlide
         ...(pinGenerated ? { pin } : {}),
         // Solo enviar branchIds si hay multi-sucursal Y ya cargamos.
         ...(branches.length > 1 && branchesLoaded ? { branchIds: Array.from(branchIds) } : {}),
+        permissions: {
+          cancel_tickets: perms.cancel_tickets,
+          discounts: perms.discounts,
+          open_cash: perms.open_cash,
+          view_reports: perms.view_reports,
+          edit_inventory: perms.edit_inventory,
+        },
       });
+      if (result.ok) {
+        router.refresh();
+        onClose();
+      } else {
+        setError(result.error);
+      }
+    });
+  };
+
+  const handleSuspend = () => {
+    if (
+      !employee ||
+      !window.confirm(`¿Suspender a ${employee.name}? No podrá operar hasta reactivación.`)
+    )
+      return;
+    setError(null);
+    startTransition(async () => {
+      const result = await suspendEmployee(employee.id);
       if (result.ok) {
         router.refresh();
         onClose();
@@ -283,7 +313,7 @@ export const EmployeeSlideOver = ({ employee, branches, onClose }: EmployeeSlide
             <button
               type="button"
               className="text-sm font-medium text-danger-text hover:underline disabled:opacity-50"
-              onClick={onClose}
+              onClick={handleSuspend}
               disabled={isPending}
             >
               Suspender empleado

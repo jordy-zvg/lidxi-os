@@ -78,6 +78,13 @@ export interface UpdateEmployeeInput {
   role: EmployeeRole;
   pin?: string;
   branchIds?: string[];
+  permissions?: {
+    cancel_tickets: boolean;
+    discounts: boolean;
+    open_cash: boolean;
+    view_reports: boolean;
+    edit_inventory: boolean;
+  };
 }
 
 export async function updateEmployee(
@@ -105,6 +112,13 @@ export async function updateEmployee(
   };
   if (input.pin !== undefined) {
     patch.pin_hash = await hashPin(input.pin);
+  }
+  if (input.permissions !== undefined) {
+    patch.perm_cancel_tickets = input.permissions.cancel_tickets;
+    patch.perm_discounts = input.permissions.discounts;
+    patch.perm_open_cash = input.permissions.open_cash;
+    patch.perm_view_reports = input.permissions.view_reports;
+    patch.perm_edit_inventory = input.permissions.edit_inventory;
   }
 
   const { error } = await supabase
@@ -150,6 +164,28 @@ export async function enrollFingerprint(employeeId: string): Promise<EnrollFinge
     .update({
       fingerprint_enrolled: true,
       fingerprint_enrolled_at: new Date().toISOString(),
+    })
+    .eq('id', employeeId)
+    .eq('tenant_id', tenantId);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/admin/equipo');
+  return { ok: true };
+}
+
+export type SuspendEmployeeResult = { ok: true } | { ok: false; error: string };
+
+export async function suspendEmployee(employeeId: string): Promise<SuspendEmployeeResult> {
+  if (!employeeId) return { ok: false, error: 'Empleado inválido.' };
+
+  const { tenantId } = await requireTenant();
+  const supabase = createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('employees_v2')
+    .update({
+      status: 'pausado',
+      updated_at: new Date().toISOString(),
     })
     .eq('id', employeeId)
     .eq('tenant_id', tenantId);
