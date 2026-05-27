@@ -81,6 +81,52 @@ export async function loadTenantMenu(
   return { ok: true, data: items };
 }
 
+export interface StorefrontLanding {
+  tenantId: string;
+  name: string;
+  slug: string;
+  brandColor: string | null;
+  address: string | null;
+  featured: StorefrontMenuItem[];
+}
+
+/**
+ * Datos para el landing público de un restaurante: identidad (nombre, color de
+ * marca, dirección) + items destacados del menú. Resuelve por restaurants.slug
+ * (igual que loadTenantBySlug). Prioriza items con foto para los destacados.
+ */
+export async function loadRestaurantLanding(slug: string): Promise<StorefrontLanding | null> {
+  const supabase = createSupabaseServiceClient();
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('tenant_id, name, slug, brand_color, address')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  const r = restaurant as {
+    tenant_id: string | null;
+    name: string;
+    slug: string;
+    brand_color: string | null;
+    address: string | null;
+  } | null;
+  if (!r?.tenant_id) return null;
+
+  const menu = await loadTenantMenu(r.tenant_id);
+  const items = menu.ok ? menu.data : [];
+  const withPhoto = items.filter((i) => i.image_url);
+  const featured = (withPhoto.length >= 3 ? withPhoto : items).slice(0, 6);
+
+  return {
+    tenantId: r.tenant_id,
+    name: r.name,
+    slug: r.slug,
+    brandColor: r.brand_color,
+    address: r.address,
+    featured,
+  };
+}
+
 export interface CreateDirectOrderInput {
   tenantSlug: string;
   customerName: string;
