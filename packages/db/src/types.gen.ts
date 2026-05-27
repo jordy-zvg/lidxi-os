@@ -681,6 +681,11 @@ export type Database = {
           id: string
           last_login: string | null
           name: string
+          perm_cancel_tickets: boolean
+          perm_discounts: boolean
+          perm_edit_inventory: boolean
+          perm_open_cash: boolean
+          perm_view_reports: boolean
           pin_hash: string
           role: string
           status: string | null
@@ -695,6 +700,11 @@ export type Database = {
           id?: string
           last_login?: string | null
           name: string
+          perm_cancel_tickets?: boolean
+          perm_discounts?: boolean
+          perm_edit_inventory?: boolean
+          perm_open_cash?: boolean
+          perm_view_reports?: boolean
           pin_hash: string
           role: string
           status?: string | null
@@ -709,6 +719,11 @@ export type Database = {
           id?: string
           last_login?: string | null
           name?: string
+          perm_cancel_tickets?: boolean
+          perm_discounts?: boolean
+          perm_edit_inventory?: boolean
+          perm_open_cash?: boolean
+          perm_view_reports?: boolean
           pin_hash?: string
           role?: string
           status?: string | null
