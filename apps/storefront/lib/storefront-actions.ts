@@ -27,21 +27,24 @@ export interface StorefrontMenuItem {
 
 export async function loadTenantBySlug(slug: string): Promise<StorefrontTenant | null> {
   const supabase = createSupabaseServiceClient();
-  // El slug del storefront es el slug de restaurants, no de tenants.
-  // Resolvemos: restaurants.slug → tenant_id → tenant.
+  // El slug del storefront es restaurants.slug (visible al cliente).
+  // tenants.slug es un identificador interno autogenerado (ej. "restaurante-76c0b97c")
+  // y NO debe usarse en URLs públicas. Construimos StorefrontTenant directo desde
+  // restaurants para que tenant.slug == restaurants.slug en toda la app.
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('tenant_id')
+    .select('tenant_id, name, slug, address')
     .eq('slug', slug)
     .maybeSingle();
   if (!restaurant?.tenant_id) return null;
 
-  const { data: tenant } = await supabase
-    .from('tenants')
-    .select('id, name, slug, address, phone')
-    .eq('id', restaurant.tenant_id)
-    .maybeSingle();
-  return tenant ? (tenant as StorefrontTenant) : null;
+  return {
+    id: (restaurant as { tenant_id: string }).tenant_id,
+    name: (restaurant as { name: string }).name,
+    slug: (restaurant as { slug: string }).slug,
+    address: (restaurant as { address: string | null }).address,
+    phone: null,
+  };
 }
 
 export async function loadTenantMenu(
