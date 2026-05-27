@@ -107,24 +107,36 @@ export function OrderTrackingClient({
             <h2 className="text-sm font-semibold text-ink">Estado del pedido</h2>
             <span className="font-mono text-sm font-semibold text-ink">{pesos(totalCents)}</span>
           </div>
-          <ol className="space-y-3">
+          <ol className="relative">
             {STAGES.map((stage, idx) => {
               const reached = idx <= currentStage;
               const active = idx === currentStage;
+              const done = reached && !active;
+              const isLast = idx === STAGES.length - 1;
               return (
-                <li key={stage.key} className="flex items-start gap-3">
-                  <div
-                    className={`h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-mono shrink-0 ${
-                      reached
-                        ? 'bg-brand text-white'
-                        : 'bg-canvas border border-line-2 text-ink-400'
-                    } ${active ? 'ring-2 ring-brand/30' : ''}`}
-                  >
-                    {idx + 1}
+                <li key={stage.key} className="flex gap-3 pb-5 last:pb-0">
+                  <div className="flex flex-col items-center self-stretch">
+                    <div
+                      className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0 transition-colors ${
+                        reached
+                          ? 'bg-brand text-white'
+                          : 'bg-canvas border border-line-2 text-ink-400'
+                      } ${active ? 'ring-4 ring-brand/20' : ''}`}
+                    >
+                      {done ? '✓' : idx + 1}
+                    </div>
+                    {!isLast && (
+                      <div
+                        className={`w-px flex-1 mt-1 ${idx < currentStage ? 'bg-brand' : 'bg-line-2'}`}
+                      />
+                    )}
                   </div>
-                  <p className={`text-sm pt-0.5 ${reached ? 'text-ink' : 'text-ink-400'}`}>
-                    {stage.label}
-                  </p>
+                  <div className="pt-1">
+                    <p className={`text-sm font-medium ${reached ? 'text-ink' : 'text-ink-400'}`}>
+                      {stage.label}
+                    </p>
+                    {active && <p className="text-[11px] text-ink-400 mt-0.5">En progreso…</p>}
+                  </div>
                 </li>
               );
             })}
@@ -164,7 +176,8 @@ export function OrderTrackingClient({
           </section>
         )}
 
-        <p className="text-center text-[11px] text-ink-400">
+        <p className="flex items-center justify-center gap-1.5 text-center text-[11px] text-ink-400">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
           Esta página se actualiza automáticamente cada 4 segundos.
         </p>
       </main>
