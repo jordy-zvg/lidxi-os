@@ -27,12 +27,21 @@ export interface StorefrontMenuItem {
 
 export async function loadTenantBySlug(slug: string): Promise<StorefrontTenant | null> {
   const supabase = createSupabaseServiceClient();
-  const { data } = await supabase
-    .from('tenants')
-    .select('id, name, slug, address, phone')
+  // El slug del storefront es el slug de restaurants, no de tenants.
+  // Resolvemos: restaurants.slug → tenant_id → tenant.
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('tenant_id')
     .eq('slug', slug)
     .maybeSingle();
-  return data ? (data as StorefrontTenant) : null;
+  if (!restaurant?.tenant_id) return null;
+
+  const { data: tenant } = await supabase
+    .from('tenants')
+    .select('id, name, slug, address, phone')
+    .eq('id', restaurant.tenant_id)
+    .maybeSingle();
+  return tenant ? (tenant as StorefrontTenant) : null;
 }
 
 export async function loadTenantMenu(
@@ -166,11 +175,12 @@ export async function createDirectOrderAndPreference(
     return { ok: false, error: 'Ningún item está disponible' };
   }
 
-  // Necesitamos una branch del tenant. Tomamos la primera activa.
+  // branches legacy no tiene tenant_id — resolvemos vía join con restaurants,
+  // igual que pos-actions.ts para satisfacer la FK NOT NULL de orders.branch_id.
   const { data: branchRow } = await supabase
     .from('branches')
-    .select('id')
-    .eq('tenant_id', tenant.id)
+    .select('id, restaurants!inner(tenant_id)')
+    .eq('restaurants.tenant_id', tenant.id)
     .limit(1)
     .maybeSingle();
   if (!branchRow) {
