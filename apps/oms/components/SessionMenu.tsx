@@ -1,9 +1,8 @@
 'use client';
 
-import { IconChevronDown, IconClockStop, IconLogout, IconUserCircle } from '@tabler/icons-react';
+import { IconChevronDown, IconClockStop, IconUserCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { closeShiftAndSignOut, signOut } from '../lib/auth-actions';
 
 interface SessionMenuProps {
   employeeName?: string;
@@ -37,19 +36,13 @@ export const SessionMenu = ({
     };
   }, [open]);
 
-  const handleSignOut = () => {
-    setOpen(false);
-    startTransition(async () => {
-      await signOut();
-      router.push('/login');
-    });
-  };
-
+  // Sprint 16: el botón lleva a /caja para que el cierre pase por el corte
+  // formal (closed_at + cash_*). "Cerrar sesión sin cerrar turno" se eliminó
+  // para garantizar invariante: un solo turno abierto por (tenant, branch).
   const handleCloseShift = () => {
     setOpen(false);
-    startTransition(async () => {
-      await closeShiftAndSignOut();
-      router.push('/login');
+    startTransition(() => {
+      router.push('/caja');
     });
   };
 
@@ -83,25 +76,15 @@ export const SessionMenu = ({
 
           <button
             type="button"
-            onClick={handleSignOut}
-            className="flex w-full items-start gap-2.5 px-3 py-2.5 text-sm text-ink-200 hover:bg-surface-2 transition-colors"
-          >
-            <IconLogout size={16} className="text-ink-400 shrink-0 mt-0.5" />
-            <span className="flex flex-col items-start">
-              <span>Cerrar sesión</span>
-              <span className="text-xs text-ink-400">el turno sigue abierto</span>
-            </span>
-          </button>
-
-          <div className="border-t border-line" />
-
-          <button
-            type="button"
             onClick={handleCloseShift}
-            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-danger-text hover:bg-surface-2 rounded-b-lg transition-colors"
+            disabled={isPending}
+            className="flex w-full items-start gap-2.5 px-3 py-2.5 text-sm text-danger-text hover:bg-surface-2 rounded-b-lg transition-colors disabled:opacity-50"
           >
-            <IconClockStop size={16} className="shrink-0" />
-            Cerrar turno
+            <IconClockStop size={16} className="shrink-0 mt-0.5" />
+            <span className="flex flex-col items-start">
+              <span>Cerrar turno</span>
+              <span className="text-xs text-ink-400">pasa por el corte de caja</span>
+            </span>
           </button>
         </div>
       )}

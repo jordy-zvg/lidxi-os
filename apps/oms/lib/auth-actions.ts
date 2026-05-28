@@ -1,10 +1,12 @@
 'use server';
 
 import {
+  closeShiftMinimal,
   createSupabaseServiceClient,
   closeShift as dbCloseShift,
   findEmployeeByPin,
   findEmployeeByPinV2,
+  getOpenShiftForBranchV2,
   getOpenShiftForEmployee,
   getOpenShiftForEmployeeV2,
   openShift,
@@ -122,19 +124,33 @@ async function activateV2(
     };
   }
 
-  // Cierra shift v2 abierto del mismo empleado (multi-dispositivo defense).
-  const previousOpen = await getOpenShiftForEmployeeV2(supabase, employee.id);
-  if (previousOpen) {
-    await dbCloseShift(supabase, previousOpen.id, { autoClosed: true });
+  // Sprint 16: modelo "un turno por branch". El turno es del branch (caja física),
+  // no del empleado. Si el empleado tiene un turno abierto en OTRO branch lo
+  // cerramos minimal (closed_at + auto_closed, sin arqueo) para no dejar huérfanos.
+  // Luego, si hay un turno abierto en ESTE branch, lo HEREDA en lugar de abrir uno
+  // nuevo — distintos empleados rotan dentro del mismo turno físico-contable.
+  const previousOfEmployee = await getOpenShiftForEmployeeV2(supabase, employee.id);
+  if (previousOfEmployee && previousOfEmployee.branch_id_v2 !== activeBranchId) {
+    await closeShiftMinimal(supabase, previousOfEmployee.id, {
+      closedByEmployeeIdV2: employee.id,
+      autoClosed: true,
+    });
   }
 
-  const newShift = await openShift(supabase, {
-    employeeIdV2: employee.id,
-    branchIdV2: activeBranchId,
-    tenantId,
-    type: 'pos_activation',
-  });
-  if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
+  const branchOpenShift = await getOpenShiftForBranchV2(supabase, tenantId, activeBranchId);
+  let shiftIdForJwt: string;
+  if (branchOpenShift) {
+    shiftIdForJwt = branchOpenShift.id;
+  } else {
+    const newShift = await openShift(supabase, {
+      employeeIdV2: employee.id,
+      branchIdV2: activeBranchId,
+      tenantId,
+      type: 'pos_activation',
+    });
+    if (!newShift) return { ok: false, error: 'No se pudo abrir la sesión. Intenta de nuevo.' };
+    shiftIdForJwt = newShift.id;
+  }
 
   const { data: restaurant } = await supabase
     .from('restaurants')
@@ -151,7 +167,7 @@ async function activateV2(
       branch_id: activeBranchId,
       restaurant_id: restaurantId,
       station_id: getStationId(),
-      pos_session_id: newShift.id,
+      pos_session_id: shiftIdForJwt,
     },
     SESSION_MAX_AGE_S,
   );
@@ -307,6 +323,14 @@ export const signOut = async (): Promise<ActionResult<null>> => {
   return { ok: true, data: null };
 };
 
+/**
+ * Sprint 16: cierre de "sentido completo" (closed_at set, no solo ended_at)
+ * sin arqueo. Reescrita para no generar huérfanos. El call site canónico
+ * para cerrar turno con arqueo es endShiftAndSignOut (operations/shift-actions).
+ * Esta función queda como wrapper de seguridad: si algo todavía la invoca,
+ * cierra contablemente el turno (closed_at + closed_by_employee_id_v2),
+ * dejando cash_* en NULL para indicar que no se hizo arqueo.
+ */
 export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: string }>> => {
   const cookieStore = cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
@@ -317,13 +341,18 @@ export const closeShiftAndSignOut = async (): Promise<ActionResult<{ shiftId: st
       const employeeId = claims.sub;
       const supabase = createSupabaseServiceClient();
 
-      // Buscar shift abierto: primero en v2 (nuevo path), luego legacy.
       const openShiftRow =
         (await getOpenShiftForEmployeeV2(supabase, employeeId)) ??
         (await getOpenShiftForEmployee(supabase, employeeId));
 
       if (openShiftRow) {
-        const closed = await dbCloseShift(supabase, openShiftRow.id);
+        // Si tiene tenant_id es v2 (POS shift) → cierre minimal con closed_at.
+        // Si no, es legacy clock_in/out → ended_at solo (sin corte de caja).
+        const closed = openShiftRow.tenant_id
+          ? await closeShiftMinimal(supabase, openShiftRow.id, {
+              closedByEmployeeIdV2: employeeId,
+            })
+          : await dbCloseShift(supabase, openShiftRow.id);
         cookieStore.delete(SESSION_COOKIE);
         if (!closed) return { ok: false, error: 'No se pudo cerrar el turno' };
         return { ok: true, data: { shiftId: closed.id } };

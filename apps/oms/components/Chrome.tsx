@@ -6,10 +6,12 @@ import { ClockOverlayProvider } from './ClockOverlayProvider';
 import { EntradaSalidaButton } from './EntradaSalidaButton';
 import { DesktopSidebar, MobileNavButton, MobileNavDrawer, MobileNavProvider } from './MobileNav';
 import { SessionMenu } from './SessionMenu';
+import { OpeningFloatGate } from './caja/OpeningFloatGate';
 
 export const Chrome = ({ children }: { children: ReactNode }) => (
   <MobileNavProvider>
     <ClockOverlayProvider>
+      <OpeningFloatGate />
       <div className="flex h-screen overflow-hidden">
         <DesktopSidebar brand={<KobiWordmark size="md" />}>
           <ChromeSidebarNav />

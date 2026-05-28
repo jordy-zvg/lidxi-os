@@ -160,6 +160,32 @@ export const getOpenShiftForEmployeeV2 = async (
   return (data as ShiftRow | null) ?? null;
 };
 
+/**
+ * Turno POS abierto en un (tenant, branch). Sprint 16: el turno es del branch,
+ * no del empleado individual — distintos empleados rotan dentro del mismo
+ * turno físico-contable. Si esta función devuelve un shift, la activación de
+ * un nuevo empleado debe HEREDARLO en vez de crear uno nuevo.
+ */
+export const getOpenShiftForBranchV2 = async (
+  supabase: SupabaseClient,
+  tenantId: string,
+  branchIdV2: string,
+): Promise<ShiftRow | null> => {
+  const { data, error } = await supabase
+    .from('shifts')
+    .select(SHIFT_SELECT)
+    .eq('tenant_id', tenantId)
+    .eq('branch_id_v2', branchIdV2)
+    .eq('type', 'pos_activation')
+    .is('ended_at', null)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error && !isPostgrestSingleNotFound(error)) return null;
+  return (data as ShiftRow | null) ?? null;
+};
+
 export type OpenShiftInput =
   | { employeeId: string; branchId: string; type: ShiftRow['type']; tenantId?: string }
   | {
@@ -206,6 +232,34 @@ export const closeShift = async (
     .from('shifts')
     .update({
       ended_at: new Date().toISOString(),
+      auto_closed: opts.autoClosed ?? false,
+    })
+    .eq('id', shiftId)
+    .select(SHIFT_SELECT)
+    .single();
+  if (error || !data) return null;
+  return data as ShiftRow;
+};
+
+/**
+ * Cierre mínimo de un turno POS: marca ended_at + closed_at sin arqueo de
+ * efectivo. Sprint 16: para cerrar turnos POS sin huérfanos cuando no hay
+ * datos de caja (auto-close por migración branch-a-branch, fallback de
+ * retrocompat, etc.). Usar siempre que se cierre un POS shift sin arqueo
+ * en lugar de closeShift, para no dejar closed_at en NULL.
+ */
+export const closeShiftMinimal = async (
+  supabase: SupabaseClient,
+  shiftId: string,
+  opts: { closedByEmployeeIdV2?: string | null; autoClosed?: boolean } = {},
+): Promise<ShiftRow | null> => {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('shifts')
+    .update({
+      ended_at: now,
+      closed_at: now,
+      closed_by_employee_id_v2: opts.closedByEmployeeIdV2 ?? null,
       auto_closed: opts.autoClosed ?? false,
     })
     .eq('id', shiftId)

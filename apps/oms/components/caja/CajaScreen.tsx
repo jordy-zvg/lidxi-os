@@ -113,6 +113,21 @@ export const CajaScreen = ({ summary }: { summary: ShiftSummary }) => {
     });
   };
 
+  // Escape hatch: cerrar el turno sin contar efectivo. closed_at y totales del
+  // sistema sí se persisten; cash_counted_cents queda null. No bloquea al cajero
+  // apurado pero exige confirmación porque pierde la trazabilidad del arqueo.
+  const handleCerrarSinContar = () => {
+    if (
+      !window.confirm(
+        'Vas a cerrar el turno sin contar el efectivo. El sistema registrará el cierre y los totales calculados, pero no quedará registrado el efectivo contado ni la diferencia. ¿Continuar?',
+      )
+    )
+      return;
+    startTransition(async () => {
+      await endShiftAndSignOut(null);
+    });
+  };
+
   return (
     <div className="h-full flex flex-col gap-section-sm">
       <div className="shrink-0">
@@ -402,26 +417,50 @@ export const CajaScreen = ({ summary }: { summary: ShiftSummary }) => {
           </div>
 
           {/* Footer acciones */}
-          <div className="flex gap-2 pb-2">
-            <Button
-              variant="secondary"
-              leftIcon={<IconPrinter size={16} />}
-              className="flex-1"
-              onClick={() => {}}
-            >
-              Reimprimir corte
-            </Button>
-            <Button
-              leftIcon={<IconReceipt size={16} />}
-              className="flex-1"
+          <div className="flex flex-col gap-2 pb-2">
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                leftIcon={<IconPrinter size={16} />}
+                className="flex-1"
+                onClick={() => {}}
+              >
+                Reimprimir corte
+              </Button>
+              <Button
+                leftIcon={<IconReceipt size={16} />}
+                className="flex-1"
+                disabled={isPending}
+                onClick={handleCerrarTurno}
+              >
+                {isPending ? 'Cerrando…' : 'Cerrar turno e imprimir'}
+              </Button>
+            </div>
+            <button
+              type="button"
+              onClick={handleCerrarSinContar}
               disabled={isPending}
-              onClick={handleCerrarTurno}
+              className="text-xs text-ink-400 hover:text-ink-200 hover:underline disabled:opacity-50 text-center py-1"
             >
-              {isPending ? 'Cerrando…' : 'Cerrar turno e imprimir'}
-            </Button>
+              Cerrar sin contar efectivo
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Acción de cerrar sin contar — también disponible antes de revelar */}
+      {!revealed && (
+        <div className="shrink-0 pt-1">
+          <button
+            type="button"
+            onClick={handleCerrarSinContar}
+            disabled={isPending}
+            className="text-xs text-ink-400 hover:text-ink-200 hover:underline disabled:opacity-50"
+          >
+            Cerrar turno sin contar efectivo
+          </button>
+        </div>
+      )}
     </div>
   );
 };
