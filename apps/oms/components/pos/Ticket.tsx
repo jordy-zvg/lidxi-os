@@ -1,6 +1,6 @@
 import { formatMXN } from '@kobi/shared';
 import { cents } from '@kobi/shared';
-import { Button } from '@kobi/ui';
+import { Button, EmptyState } from '@kobi/ui';
 import { IconReceipt } from '@tabler/icons-react';
 import { TicketLine } from './TicketLine';
 import type { PaymentMethod, TicketLine as TicketLineType } from './types';
@@ -61,10 +61,11 @@ export const Ticket = ({
       {/* Líneas del ticket */}
       <div className="flex-1 overflow-y-auto px-4">
         {empty ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 text-ink-400">
-            <IconReceipt size={32} className="opacity-30" />
-            <p className="text-sm">Agrega platillos al ticket</p>
-          </div>
+          <EmptyState
+            icon={<IconReceipt size={36} />}
+            title="Agrega platillos al ticket"
+            description="Selecciona platillos del menú para empezar a cobrar."
+          />
         ) : (
           <div className="py-2">
             {lines.map((line) => (

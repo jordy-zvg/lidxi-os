@@ -1,7 +1,7 @@
 'use client';
 
 import { revokeDevice } from '@/app/admin/dispositivos/actions';
-import { Button } from '@kobi/ui';
+import { Button, EmptyState } from '@kobi/ui';
 import { IconDeviceTablet, IconPlus } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -92,14 +92,13 @@ export const DispositivosScreen = ({ devices }: DispositivosScreenProps) => {
       )}
 
       {devices.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center">
-          <IconDeviceTablet size={36} className="text-ink-400" />
-          <p className="text-sm font-medium text-ink">No hay dispositivos vinculados</p>
-          <p className="text-xs text-ink-400 max-w-xs">
-            Genera un código de emparejamiento y úsalo en la tablet para vincularla a tu
-            restaurante.
-          </p>
-        </div>
+        <EmptyState
+          size="block"
+          className="flex-1"
+          icon={<IconDeviceTablet size={36} />}
+          title="No hay dispositivos vinculados"
+          description="Genera un código de emparejamiento y úsalo en la tablet para vincularla a tu restaurante."
+        />
       ) : (
         <div className="bg-surface border border-line rounded-lg overflow-hidden flex-1">
           <table className="w-full text-sm">

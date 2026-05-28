@@ -19,7 +19,7 @@ import type {
   DeliveryProviderId,
 } from '@/lib/delivery-provider-schemas';
 import type { UberDirectQuote } from '@kobi/integrations/uber-direct';
-import { StatusPill } from '@kobi/ui';
+import { EmptyState, StatusPill } from '@kobi/ui';
 import {
   IconBolt,
   IconBrandWhatsapp,
@@ -394,13 +394,12 @@ function ConfigCard({
 
 function EmptyOrdersState() {
   return (
-    <div className="rounded-lg border border-dashed border-line-2 bg-canvas py-10 px-6 text-center">
-      <p className="text-sm font-medium text-ink">No hay órdenes directas todavía</p>
-      <p className="mt-1 text-xs text-ink-400 max-w-md mx-auto">
-        Cuando un cliente pida desde tu storefront público, aparecerá aquí. Configura tu link en
-        Ajustes → Storefront.
-      </p>
-    </div>
+    <EmptyState
+      size="block"
+      icon={<IconReceipt2 size={36} />}
+      title="No hay órdenes directas todavía"
+      description="Cuando un cliente pida desde tu storefront público, aparecerá aquí. Configura tu link en Ajustes → Storefront."
+    />
   );
 }
 

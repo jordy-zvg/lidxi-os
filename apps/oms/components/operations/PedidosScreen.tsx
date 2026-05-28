@@ -8,7 +8,7 @@ import {
 } from '@/lib/operations/order-actions';
 import type { ShiftInfo, ShiftSummary } from '@/lib/operations/shift-actions';
 import { endShiftAndSignOut } from '@/lib/operations/shift-actions';
-import { Button, StatusPill } from '@kobi/ui';
+import { Button, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
 import { useState, useTransition } from 'react';
 
@@ -82,13 +82,11 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
       {/* Lista de órdenes */}
       <div className="flex-1 overflow-y-auto">
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-            <IconReceipt size={36} className="text-ink-500" />
-            <p className="text-sm font-medium text-ink">Sin pedidos todavía</p>
-            <p className="text-xs text-ink-400 max-w-xs">
-              Captura un pedido nuevo desde el POS para verlo aquí.
-            </p>
-          </div>
+          <EmptyState
+            icon={<IconReceipt size={36} />}
+            title="Sin pedidos todavía"
+            description="Captura un pedido nuevo desde el POS para verlo aquí."
+          />
         ) : (
           <div
             className="grid gap-4"

@@ -1,6 +1,8 @@
 'use client';
 
 import { cn } from '@kobi/shared';
+import { EmptyState } from '@kobi/ui';
+import { IconToolsKitchen2 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { MenuItem } from './MenuItem';
 import type { MenuItemData } from './types';
@@ -51,9 +53,13 @@ export const MenuGrid = ({ items, qtyMap, onAdd }: MenuGridProps) => {
             />
           ))}
           {visible.length === 0 && (
-            <div className="col-span-2 sm:col-span-3 xl:col-span-4 py-16 text-center text-sm text-ink-400">
-              Sin platillos en esta categoría
-            </div>
+            <EmptyState
+              size="block"
+              className="col-span-2 sm:col-span-3 xl:col-span-4"
+              icon={<IconToolsKitchen2 size={36} />}
+              title="Sin platillos en esta categoría"
+              description="Cambia de categoría o agrega platillos al menú desde Admin."
+            />
           )}
         </div>
       </div>

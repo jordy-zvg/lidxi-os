@@ -1,5 +1,6 @@
 export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
+export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { StatusPill, type StatusPillProps } from './StatusPill';
 export { ChannelBadge, type ChannelBadgeProps } from './ChannelBadge';
 export { KpiCard, type KpiCardProps } from './KpiCard';

@@ -1,5 +1,7 @@
 'use client';
 
+import { EmptyState } from '@kobi/ui';
+import { IconChefHat } from '@tabler/icons-react';
 import { useCallback, useMemo, useState } from 'react';
 import { KdsStationFilters } from './KdsStationFilters';
 import { KdsTicket } from './KdsTicket';
@@ -39,9 +41,12 @@ export const KdsScreen = () => {
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
         <div className="flex gap-4 p-6 h-full items-start">
           {filtered.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-dark-ink-300 text-sm">
-              Sin tickets en esta estación
-            </div>
+            <EmptyState
+              tone="dark"
+              icon={<IconChefHat size={36} />}
+              title="Sin tickets en esta estación"
+              description="Los pedidos nuevos aparecerán aquí en cuanto entren a cocina."
+            />
           ) : (
             filtered.map((ticket) => (
               <KdsTicket

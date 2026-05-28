@@ -5,27 +5,12 @@ import { Button } from '@kobi/ui';
 import { IconPrinter, IconReceipt } from '@tabler/icons-react';
 import { useState, useTransition } from 'react';
 import { type ShiftSummary, endShiftAndSignOut } from '../../lib/operations/shift-actions';
+import { BILLETES, MONEDAS, sumDenominationsCents } from './denominations';
 
 // ---------------------------------------------------------------------------
-// Denominaciones
+// Denominaciones — BILLETES y MONEDAS viven en ./denominations (compartido con
+// la apertura de caja) para que el conteo sea idéntico en apertura y cierre.
 // ---------------------------------------------------------------------------
-
-// Paleta desaturada — mantiene asociación visual pero alejada del rojo Miztli.
-const BILLETES = [
-  { valor: 1000, color: '#4A7C59' },
-  { valor: 500, color: '#8B6F47' },
-  { valor: 200, color: '#A36480' },
-  { valor: 100, color: '#B45A52' },
-  { valor: 50, color: '#C97B3A' },
-  { valor: 20, color: '#4A6FA5' },
-];
-
-const MONEDAS = [
-  { valor: 10, label: '$10' },
-  { valor: 5, label: '$5' },
-  { valor: 2, label: '$2' },
-  { valor: 1, label: '$1' },
-];
 
 const TERMINALES = [
   { key: 'visa_mc', label: 'Visa / MC' },
@@ -81,22 +66,12 @@ export const CajaScreen = ({ summary }: { summary: ShiftSummary }) => {
   const cardExpected = summary.card_total_cents;
   const grossSales = summary.total_sold_cents;
 
-  const totalBilletes = BILLETES.reduce((sum, b) => {
-    const qty = Number(billetes[b.valor] ?? 0);
-    return sum + qty * b.valor * 100;
-  }, 0);
-
-  const totalMonedas = MONEDAS.reduce((sum, m) => {
-    const qty = Number(monedas[m.valor] ?? 0);
-    return sum + qty * m.valor * 100;
-  }, 0);
-
   const totalTerminales = TERMINALES.reduce((sum, t) => {
     const val = Number(terminales[t.key] ?? 0);
     return sum + Math.round(val * 100);
   }, 0);
 
-  const efectivoDeclared = totalBilletes + totalMonedas;
+  const efectivoDeclared = sumDenominationsCents(billetes, monedas);
   const efectivoDeclaredCents = cents(efectivoDeclared);
   const terminalDeclaredCents = cents(totalTerminales);
 

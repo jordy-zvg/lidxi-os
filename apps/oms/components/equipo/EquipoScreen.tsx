@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@kobi/ui';
-import { IconUserPlus } from '@tabler/icons-react';
+import { Button, EmptyState } from '@kobi/ui';
+import { IconUserPlus, IconUsers } from '@tabler/icons-react';
 import { useState } from 'react';
 import { AddEmployeeDrawer } from './AddEmployeeDrawer';
 import { EmployeeCard } from './EmployeeCard';
@@ -62,12 +62,13 @@ export const EquipoScreen = ({ employees, branches }: EquipoScreenProps) => {
 
       {/* Grid de empleados */}
       {employees.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center">
-          <p className="text-sm font-medium text-ink">No hay empleados todavía</p>
-          <p className="text-xs text-ink-400 max-w-xs">
-            Agrega a tu primer empleado con el botón de arriba. Recibirá un PIN para acceder al POS.
-          </p>
-        </div>
+        <EmptyState
+          size="block"
+          className="flex-1"
+          icon={<IconUsers size={36} />}
+          title="No hay empleados todavía"
+          description="Agrega a tu primer empleado con el botón de arriba. Recibirá un PIN para acceder al POS."
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-card-gap flex-1 content-start overflow-y-auto">
           {employees.map((emp) => (
