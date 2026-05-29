@@ -11,7 +11,12 @@ const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
 ];
 
-const REQUIRED_IN_PRODUCTION = ['NEXT_PUBLIC_APP_URL'];
+const REQUIRED_IN_PRODUCTION = [
+  'NEXT_PUBLIC_APP_URL',
+  // Base URL del storefront público — usada para construir links de seguimiento
+  // que el operador comparte con el cliente desde el detalle del pedido.
+  'NEXT_PUBLIC_STOREFRONT_URL',
+];
 
 export function validateEnv(): void {
   const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);

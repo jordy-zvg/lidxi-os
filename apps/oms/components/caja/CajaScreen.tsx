@@ -277,8 +277,10 @@ export const CajaScreen = ({ summary }: { summary: ShiftSummary }) => {
             </span>
           </div>
 
-          <Button className="w-full" onClick={() => setRevealed(true)} disabled={revealed}>
-            Calcular diferencia
+          {/* El cálculo es repetible: el cajero puede editar el contado y recalcular
+              las veces que quiera. Solo se bloquea mientras se procesa el cierre. */}
+          <Button className="w-full" onClick={() => setRevealed(true)} disabled={isPending}>
+            {revealed ? 'Recalcular diferencia' : 'Calcular diferencia'}
           </Button>
         </div>
 

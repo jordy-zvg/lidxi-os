@@ -1,23 +1,52 @@
 'use client';
 
 import { cents, formatMXN } from '@kobi/shared';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconLink } from '@tabler/icons-react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useOrderTracking } from '../../hooks/useOrderTracking';
 import { MOCK_ORDERS } from '../orders/mock-orders';
 import { TrackingPanel } from './TrackingPanel';
 
 interface OrderDetailViewProps {
   orderId: string;
+  /** Slug público (restaurants.slug) del tenant activo; null si no resuelto. */
+  restaurantSlug?: string | null;
+  /** Base URL del storefront (NEXT_PUBLIC_STOREFRONT_URL); null si no configurada. */
+  storefrontUrl?: string | null;
 }
 
-export const OrderDetailView = ({ orderId }: OrderDetailViewProps) => {
+export const OrderDetailView = ({
+  orderId,
+  restaurantSlug,
+  storefrontUrl,
+}: OrderDetailViewProps) => {
   // En producción, cargar desde BD. Por ahora usamos mocks.
   const order = MOCK_ORDERS.find((o) => o.id === orderId) ?? MOCK_ORDERS[0];
 
   const isUberDirect = order?.channel === 'direct';
 
   const { tracking, status: connectionStatus } = useOrderTracking(isUberDirect ? orderId : null);
+
+  // Link de seguimiento público para compartir con el cliente. Solo se ofrece
+  // si tenemos slug + base URL del storefront.
+  const trackingUrl =
+    restaurantSlug && storefrontUrl
+      ? `${storefrontUrl}/${restaurantSlug}/seguimiento/${orderId}`
+      : null;
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    if (!trackingUrl) return;
+    try {
+      await navigator.clipboard.writeText(trackingUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard bloqueado (contexto inseguro / permiso) → abrir en nueva pestaña.
+      window.open(trackingUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   if (!order) {
     return (
@@ -55,19 +84,32 @@ export const OrderDetailView = ({ orderId }: OrderDetailViewProps) => {
                 {order.customer} · {order.channel.toUpperCase()}
               </p>
             </div>
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                order.status === 'delivered'
-                  ? 'bg-ok-soft text-ok-text'
-                  : order.status === 'cancelled'
-                    ? 'bg-danger-soft text-danger-text'
-                    : order.status === 'ready'
-                      ? 'bg-ok-soft text-ok-text'
-                      : 'bg-brand-soft text-brand-text'
-              }`}
-            >
-              {order.status}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+                  order.status === 'delivered'
+                    ? 'bg-ok-soft text-ok-text'
+                    : order.status === 'cancelled'
+                      ? 'bg-danger-soft text-danger-text'
+                      : order.status === 'ready'
+                        ? 'bg-ok-soft text-ok-text'
+                        : 'bg-brand-soft text-brand-text'
+                }`}
+              >
+                {order.status}
+              </span>
+              {trackingUrl && (
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  title={trackingUrl}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-line-2 px-3 py-1.5 text-sm text-ink-200 transition-colors hover:bg-surface-2"
+                >
+                  {copied ? <IconCheck size={15} className="text-ok" /> : <IconLink size={15} />}
+                  {copied ? '¡Copiado!' : 'Compartir seguimiento'}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Items */}
