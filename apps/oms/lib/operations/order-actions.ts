@@ -26,6 +26,7 @@ export interface ActiveOrder {
   id: string;
   folio: string;
   status: OrderStatus;
+  channel: string;
   customer_name: string;
   total_cents: number;
   payment_method: string | null;
@@ -35,7 +36,7 @@ export interface ActiveOrder {
 }
 
 /**
- * Órdenes activas del turno actual del empleado (channel=mostrador).
+ * Órdenes activas del tenant: mostrador (POS presencial) + direct (storefront online).
  * Sin shift_id válido devuelve solo las órdenes creadas en esta sesión por
  * el contexto del tenant — el corte de caja luego suma por shift_id.
  */
@@ -50,9 +51,9 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
 
   const { data: orders, error } = await supabase
     .from('orders')
-    .select('id, status, customer_name, total, payment_method, created_at')
+    .select('id, status, channel, customer_name, total, payment_method, created_at')
     .eq('tenant_id', ctx.tenantId)
-    .eq('channel', 'mostrador')
+    .in('channel', ['mostrador', 'direct'])
     .neq('status', 'cancelled')
     .order('created_at', { ascending: false })
     .limit(50);
@@ -78,6 +79,7 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
     const row = o as {
       id: string;
       status: OrderStatus;
+      channel: string;
       customer_name: string;
       total: number;
       payment_method: string | null;
@@ -85,8 +87,9 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
     };
     return {
       id: row.id,
-      folio: `POS-${row.id.slice(-6).toUpperCase()}`,
+      folio: `${row.channel === 'direct' ? 'WEB' : 'POS'}-${row.id.slice(-6).toUpperCase()}`,
       status: row.status,
+      channel: row.channel,
       customer_name: row.customer_name,
       total_cents: row.total,
       payment_method: row.payment_method,

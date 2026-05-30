@@ -40,6 +40,11 @@ const NEXT_LABEL: Partial<Record<OrderStatus, string>> = {
   ready: 'Marcar entregada',
 };
 
+const CHANNEL_LABEL: Record<string, string> = {
+  mostrador: 'Mostrador',
+  direct: 'En línea',
+};
+
 function formatMoney(cents: number): string {
   return `$${(cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -128,7 +133,16 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
     <article className="bg-surface border border-line rounded-lg p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-mono text-xs text-ink-400">{order.folio}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="font-mono text-xs text-ink-400">{order.folio}</p>
+            <span
+              className={`text-[10px] font-medium px-1.5 py-0.5 rounded leading-none ${
+                order.channel === 'direct' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-ink-400'
+              }`}
+            >
+              {CHANNEL_LABEL[order.channel] ?? order.channel}
+            </span>
+          </div>
           <p className="text-sm font-medium text-ink mt-0.5">{order.customer_name}</p>
         </div>
         <StatusPill variant={STATUS_VARIANT[order.status]}>{STATUS_LABEL[order.status]}</StatusPill>
