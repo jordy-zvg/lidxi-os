@@ -7,9 +7,9 @@ import {
   chargeOrder,
 } from '@/lib/operations/order-actions';
 import type { ShiftInfo, ShiftSummary } from '@/lib/operations/shift-actions';
-import { endShiftAndSignOut } from '@/lib/operations/shift-actions';
 import { Button, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 interface PedidosScreenProps {
@@ -49,8 +49,8 @@ function formatTime(iso: string): string {
 }
 
 export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) => {
+  const router = useRouter();
   const [chargingOrder, setChargingOrder] = useState<ActiveOrder | null>(null);
-  const [closingShift, setClosingShift] = useState(false);
 
   return (
     <div className="h-full flex flex-col gap-3 sm:gap-4">
@@ -73,7 +73,7 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
               </p>
             </div>
           )}
-          <Button variant="secondary" size="sm" onClick={() => setClosingShift(true)}>
+          <Button variant="secondary" size="sm" onClick={() => router.push('/caja')}>
             Cerrar turno
           </Button>
         </div>
@@ -101,9 +101,6 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
 
       {chargingOrder && (
         <ChargeOrderModal order={chargingOrder} onClose={() => setChargingOrder(null)} />
-      )}
-      {closingShift && summary && (
-        <CloseShiftModal summary={summary} onClose={() => setClosingShift(false)} />
       )}
     </div>
   );
@@ -321,139 +318,5 @@ function ChargeOrderModal({ order, onClose }: { order: ActiveOrder; onClose: () 
         </footer>
       </dialog>
     </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Modal de cierre de turno con corte de caja
-// ---------------------------------------------------------------------------
-
-function CloseShiftModal({
-  summary,
-  onClose,
-}: {
-  summary: ShiftSummary;
-  onClose: () => void;
-}) {
-  const [cashCountedStr, setCashCountedStr] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  const cashCountedPesos = Number.parseFloat(cashCountedStr);
-  const cashCountedCents = Number.isFinite(cashCountedPesos)
-    ? Math.round(cashCountedPesos * 100)
-    : null;
-  const difference = cashCountedCents !== null ? cashCountedCents - summary.cash_total_cents : null;
-
-  const handleClose = () => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        await endShiftAndSignOut(cashCountedCents);
-      } catch (e) {
-        // endShiftAndSignOut hace redirect en success — un throw aquí es bug real.
-        setError(e instanceof Error ? e.message : 'Error cerrando turno');
-      }
-    });
-  };
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-40 bg-ink/70"
-        role="presentation"
-        onClick={onClose}
-        onKeyDown={(e) => e.key === 'Enter' && onClose()}
-      />
-      <dialog
-        open
-        aria-label="Cerrar turno"
-        className="fixed inset-0 z-50 m-auto w-[480px] h-fit p-0 rounded-xl bg-surface border border-line shadow-lg flex flex-col"
-      >
-        <header className="border-b border-line px-5 py-4 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-7 w-7 flex items-center justify-center rounded text-ink-300 hover:bg-surface-2"
-          >
-            <IconX size={16} />
-          </button>
-          <span className="font-medium text-sm text-ink">Corte de caja del turno</span>
-        </header>
-
-        <div className="px-5 py-4 space-y-4">
-          <div className="space-y-2">
-            <Row label="Órdenes cobradas" value={String(summary.orders_count)} />
-            <Row label="Cobrado en efectivo" value={formatMoney(summary.cash_total_cents)} />
-            <Row label="Cobrado con tarjeta" value={formatMoney(summary.card_total_cents)} />
-            <div className="pt-2 border-t border-line">
-              <Row label="Total vendido" value={formatMoney(summary.total_sold_cents)} highlight />
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-3 border-t border-line">
-            <label className="block text-xs font-medium text-ink-300" htmlFor="cash-counted">
-              Efectivo contado en caja (opcional)
-            </label>
-            <div className="flex items-center border border-line-2 rounded-md bg-canvas overflow-hidden focus-within:border-brand">
-              <span className="px-3 font-mono text-sm text-ink-400 border-r border-line-2 h-10 flex items-center">
-                $
-              </span>
-              <input
-                id="cash-counted"
-                type="number"
-                inputMode="decimal"
-                value={cashCountedStr}
-                min="0"
-                step="0.50"
-                onChange={(e) => setCashCountedStr(e.target.value)}
-                placeholder={(summary.cash_total_cents / 100).toFixed(2)}
-                className="flex-1 h-10 px-3 font-mono text-base text-ink bg-transparent focus:outline-none"
-              />
-            </div>
-            {difference !== null && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-400">Diferencia vs esperado</span>
-                <span
-                  className={`font-mono font-semibold ${
-                    difference === 0
-                      ? 'text-ok-text'
-                      : difference > 0
-                        ? 'text-ink-200'
-                        : 'text-danger-text'
-                  }`}
-                >
-                  {difference >= 0 ? formatMoney(difference) : `−${formatMoney(-difference)}`}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {error && <p className="text-xs text-danger-text">{error}</p>}
-        </div>
-
-        <footer className="border-t border-line px-5 py-3 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={onClose} disabled={pending}>
-            Cancelar
-          </Button>
-          <Button onClick={handleClose} disabled={pending}>
-            {pending ? 'Cerrando…' : 'Cerrar turno y salir'}
-          </Button>
-        </footer>
-      </dialog>
-    </>
-  );
-}
-
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-ink-400">{label}</span>
-      <span
-        className={`font-mono ${highlight ? 'text-base font-semibold text-ink' : 'text-ink-200'}`}
-      >
-        {value}
-      </span>
-    </div>
   );
 }
