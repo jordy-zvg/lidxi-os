@@ -1,4 +1,4 @@
-import type { CentsMXN } from '@kobi/shared';
+import type { CentsMXN, OrderTypeKey } from '@kobi/shared';
 
 export interface MenuItemData {
   id: string;
@@ -21,6 +21,9 @@ export interface TicketLine {
 }
 
 export type PaymentMethod = 'cash' | 'card';
+
+/** Tipo de pedido — alias del enum de @kobi/shared para uso en el POS. */
+export type OrderType = OrderTypeKey;
 
 export interface SaleResult {
   orderId: string;

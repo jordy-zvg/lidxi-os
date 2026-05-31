@@ -1018,6 +1018,7 @@ export type Database = {
           dispatched_at: string | null
           external_id: string | null
           id: string
+          order_type: string
           payment_method: string | null
           payment_ref: string | null
           ready_at: string | null
@@ -1046,6 +1047,7 @@ export type Database = {
           dispatched_at?: string | null
           external_id?: string | null
           id?: string
+          order_type?: string
           payment_method?: string | null
           payment_ref?: string | null
           ready_at?: string | null
@@ -1074,6 +1076,7 @@ export type Database = {
           dispatched_at?: string | null
           external_id?: string | null
           id?: string
+          order_type?: string
           payment_method?: string | null
           payment_ref?: string | null
           ready_at?: string | null

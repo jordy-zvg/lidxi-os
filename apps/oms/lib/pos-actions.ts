@@ -4,7 +4,7 @@ import { requireEmployeeContext } from '@/lib/operations/employee-context';
 import { createSupabaseServiceClient } from '@kobi/db';
 import { type CentsMXN, cents, pesos } from '@kobi/shared';
 import { revalidatePath } from 'next/cache';
-import type { MenuItemData, PaymentMethod, TicketLine } from '../components/pos/types';
+import type { MenuItemData, OrderType, PaymentMethod, TicketLine } from '../components/pos/types';
 
 export type PosActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -54,6 +54,12 @@ export const loadMenu = async (): Promise<PosActionResult<MenuItemData[]>> => {
 export interface CreateSaleInput {
   customerName: string;
   customerPhone: string | null;
+  /** Tipo de servicio: mostrador | para_llevar | envio. */
+  orderType: OrderType;
+  /** Solo 'envio': dirección de entrega y coords (de Google Places). */
+  customerAddress: string | null;
+  customerLat: number | null;
+  customerLng: number | null;
   items: TicketLine[];
   totalCents: CentsMXN;
   taxCents: CentsMXN;
@@ -113,9 +119,13 @@ export const createSaleOrder = async (
       branch_id: legacyBranchId,
       branch_id_v2: branchIdV2,
       channel: 'mostrador',
+      order_type: input.orderType,
       status: initialStatus,
       customer_name: input.customerName || 'Mostrador',
       customer_phone: input.customerPhone,
+      customer_address: input.customerAddress,
+      customer_lat: input.customerLat,
+      customer_lng: input.customerLng,
       subtotal: input.netCents,
       tax: input.taxCents,
       total: input.totalCents,

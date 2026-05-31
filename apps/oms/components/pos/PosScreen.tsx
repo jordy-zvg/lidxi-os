@@ -2,14 +2,16 @@
 import { IconAlertCircle, IconLoader2 } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import { loadMenu } from '../../lib/pos-actions';
+import type { AddressValue } from './AddressAutocomplete';
 import { CobrarEfectivoModal } from './CobrarEfectivoModal';
 import { CobrarTarjetaModal } from './CobrarTarjetaModal';
+import { DespachoUberModal } from './DespachoUberModal';
 import { MenuGrid } from './MenuGrid';
 import { ReciboView } from './ReciboView';
 import { Ticket, calcTotals } from './Ticket';
-import type { MenuItemData, PaymentMethod, SaleResult, TicketLine } from './types';
+import type { MenuItemData, OrderType, PaymentMethod, SaleResult, TicketLine } from './types';
 
-type Screen = 'pos' | 'cash' | 'card' | 'receipt';
+type Screen = 'pos' | 'cash' | 'card' | 'dispatch' | 'receipt';
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
@@ -20,6 +22,11 @@ export const PosScreen = () => {
 
   const [lines, setLines] = useState<TicketLine[]>([]);
   const [customerName, setCustomerName] = useState('');
+  const [orderType, setOrderType] = useState<OrderType>('mostrador');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerLat, setCustomerLat] = useState<number | null>(null);
+  const [customerLng, setCustomerLng] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [screen, setScreen] = useState<Screen>('pos');
   const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
@@ -89,12 +96,24 @@ export const PosScreen = () => {
 
   const handleSuccess = (result: SaleResult) => {
     setSaleResult(result);
-    setScreen('receipt');
+    // En 'envio', tras el cobro ofrecemos el despacho con Uber Direct antes del recibo.
+    setScreen(orderType === 'envio' ? 'dispatch' : 'receipt');
+  };
+
+  const handleAddressChange = (v: AddressValue) => {
+    setCustomerAddress(v.address);
+    setCustomerLat(v.lat);
+    setCustomerLng(v.lng);
   };
 
   const handleNuevaVenta = () => {
     setLines([]);
     setCustomerName('');
+    setOrderType('mostrador');
+    setCustomerPhone('');
+    setCustomerAddress('');
+    setCustomerLat(null);
+    setCustomerLng(null);
     setPaymentMethod('cash');
     setSaleResult(null);
     setScreen('pos');
@@ -106,9 +125,14 @@ export const PosScreen = () => {
 
   const { total, tax, net } = calcTotals(lines);
 
+  const isEnvio = orderType === 'envio';
   const saleInput = {
     customerName: customerName || 'Mostrador',
-    customerPhone: null,
+    customerPhone: isEnvio ? customerPhone.trim() || null : null,
+    orderType,
+    customerAddress: isEnvio ? customerAddress.trim() || null : null,
+    customerLat: isEnvio ? customerLat : null,
+    customerLng: isEnvio ? customerLng : null,
     items: lines,
     totalCents: total,
     taxCents: tax,
@@ -163,6 +187,12 @@ export const PosScreen = () => {
           lines={lines}
           customerName={customerName}
           onCustomerNameChange={setCustomerName}
+          orderType={orderType}
+          onOrderTypeChange={setOrderType}
+          customerPhone={customerPhone}
+          onCustomerPhoneChange={setCustomerPhone}
+          customerAddress={customerAddress}
+          onAddressChange={handleAddressChange}
           onIncrement={handleIncrement}
           onDecrement={handleDecrement}
           onSetNote={(lineId, note, scope) => handleSetNote(lineId, note, scope)}
@@ -192,6 +222,14 @@ export const PosScreen = () => {
         saleInput={saleInput}
         onSuccess={handleSuccess}
       />
+
+      {saleResult && (
+        <DespachoUberModal
+          open={screen === 'dispatch'}
+          orderId={saleResult.orderId}
+          onDone={() => setScreen('receipt')}
+        />
+      )}
     </div>
   );
 };
