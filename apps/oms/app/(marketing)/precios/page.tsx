@@ -89,7 +89,7 @@ function PlanCard({
       transition={{ duration: 0.5, ease: [0.21, 0.47, 0.32, 0.98], delay: index * 0.1 }}
       className={`relative flex flex-col rounded-2xl border p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
         plan.highlighted
-          ? 'border-[#635BFF] bg-[#635BFF] text-white'
+          ? 'border-[#7C71FF] bg-[#7C71FF] text-white'
           : 'border-ink/10 bg-white text-[#0A2540]'
       }`}
     >
@@ -118,7 +118,7 @@ function PlanCard({
           )}
         </div>
         {annual && price && (
-          <p className={`mt-1 text-xs ${plan.highlighted ? 'text-white/60' : 'text-[#635BFF]'}`}>
+          <p className={`mt-1 text-xs ${plan.highlighted ? 'text-white/60' : 'text-[#7C71FF]'}`}>
             Facturado anualmente · Ahorra 20%
           </p>
         )}
@@ -133,7 +133,7 @@ function PlanCard({
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-sm">
             <span
-              className={`mt-0.5 shrink-0 text-base leading-none ${plan.highlighted ? 'text-white' : 'text-[#635BFF]'}`}
+              className={`mt-0.5 shrink-0 text-base leading-none ${plan.highlighted ? 'text-white' : 'text-[#7C71FF]'}`}
             >
               ✓
             </span>
@@ -146,8 +146,8 @@ function PlanCard({
         href={plan.cta.href}
         className={`block rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-all active:scale-[0.98] ${
           plan.highlighted
-            ? 'bg-white text-[#635BFF] hover:bg-white/90'
-            : 'bg-[#635BFF] text-white hover:bg-[#4f48d9]'
+            ? 'bg-white text-[#7C71FF] hover:bg-white/90'
+            : 'bg-[#7C71FF] text-white hover:bg-[#5E52F5]'
         }`}
       >
         {plan.cta.label}
@@ -166,7 +166,7 @@ export default function PreciosPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <motion.p
             {...FADE}
-            className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#635BFF]"
+            className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]"
           >
             Precios
           </motion.p>

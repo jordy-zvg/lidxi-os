@@ -8,7 +8,7 @@ export const contentType = 'image/png';
 /**
  * OG image generada con Satori (next/og, edge runtime).
  *
- * Diseño: fondo indigo #635BFF full-bleed + wordmark Inter SemiBold en
+ * Diseño: fondo indigo #7C71FF full-bleed + wordmark Inter SemiBold en
  * blanco + tagline + url. No usa el PNG del wordmark porque el archivo
  * kobi-wordmark.png es indigo sobre transparente: sobre fondo indigo
  * desaparece. La cuchara integrada en la O es un detalle del login hero,
@@ -24,7 +24,7 @@ export default function OgImage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#635BFF',
+        background: '#7C71FF',
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >

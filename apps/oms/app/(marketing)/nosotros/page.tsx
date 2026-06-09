@@ -56,7 +56,7 @@ export default function NosotrosPage() {
           <div className="mx-auto max-w-3xl text-center">
             <motion.p
               {...FADE}
-              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#635BFF]"
+              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]"
             >
               Nosotros
             </motion.p>
@@ -145,7 +145,7 @@ export default function NosotrosPage() {
                 transition={{ duration: 0.55, ease: [0.21, 0.47, 0.32, 0.98], delay: i * 0.08 }}
                 className="rounded-2xl border border-ink/8 bg-white p-8 shadow-sm"
               >
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#635BFF]/10 text-[#635BFF]">
+                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#7C71FF]/10 text-[#7C71FF]">
                   {p.icon}
                 </div>
                 <h3 className="mb-3 text-base font-semibold leading-snug text-[#0A2540]">
@@ -183,7 +183,7 @@ export default function NosotrosPage() {
                 transition={{ duration: 0.45, ease: [0.21, 0.47, 0.32, 0.98], delay: i * 0.07 }}
                 className="flex items-center gap-4 rounded-2xl border border-ink/8 bg-[#F6F9FC] p-5"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#635BFF]/10 text-sm font-semibold text-[#635BFF]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#7C71FF]/10 text-sm font-semibold text-[#7C71FF]">
                   {member.initials}
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function NosotrosPage() {
                 </div>
                 <a
                   href="https://linkedin.com/company/kobi-mx"
-                  className="ml-2 text-ink/30 hover:text-[#635BFF] transition-colors"
+                  className="ml-2 text-ink/30 hover:text-[#7C71FF] transition-colors"
                   aria-label="LinkedIn"
                 >
                   <IconBrandLinkedin size={16} />
@@ -217,7 +217,7 @@ export default function NosotrosPage() {
             </div>
             <p className="mt-6 text-sm text-ink/40">
               Si tu operación quiere probar Kobi en su etapa temprana,{' '}
-              <a href="mailto:ventas@kobi.mx" className="text-[#635BFF] hover:underline">
+              <a href="mailto:ventas@kobi.mx" className="text-[#7C71FF] hover:underline">
                 escríbenos
               </a>
               .

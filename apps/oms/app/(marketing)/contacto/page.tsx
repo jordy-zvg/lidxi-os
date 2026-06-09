@@ -68,7 +68,7 @@ export default function ContactoPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.p
             {...FADE}
-            className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#635BFF]"
+            className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]"
           >
             Contacto
           </motion.p>
@@ -108,9 +108,9 @@ export default function ContactoPage() {
                         key={item.label}
                         className="flex items-center gap-2.5 text-sm text-[#0A2540]"
                       >
-                        <span className="text-[#635BFF]">{item.icon}</span>
+                        <span className="text-[#7C71FF]">{item.icon}</span>
                         {item.href ? (
-                          <a href={item.href} className="hover:text-[#635BFF] transition-colors">
+                          <a href={item.href} className="hover:text-[#7C71FF] transition-colors">
                             {item.label}
                           </a>
                         ) : (

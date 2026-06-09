@@ -15,7 +15,7 @@ export default function SinAccesoPage() {
       <div className="mt-8 flex gap-3">
         <Link
           href="/ingresar"
-          className="rounded-full bg-[#635BFF] px-5 py-2 text-sm font-semibold text-white hover:bg-[#4f48d9]"
+          className="rounded-full bg-[#7C71FF] px-5 py-2 text-sm font-semibold text-white hover:bg-[#5E52F5]"
         >
           Volver a ingresar
         </Link>

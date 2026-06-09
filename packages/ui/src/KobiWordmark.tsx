@@ -47,7 +47,7 @@ export const KobiWordmark = ({
   const wordmarkColor =
     variant === 'dark'
       ? 'var(--brand-wordmark-color-inverse, #fff)'
-      : 'var(--brand-wordmark-color, #635BFF)';
+      : 'var(--brand-wordmark-color, #7C71FF)';
 
   const taglineColor =
     variant === 'dark'

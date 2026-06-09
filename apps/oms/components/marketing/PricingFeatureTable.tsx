@@ -57,19 +57,19 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 ];
 
 function Cell({ value, highlighted }: { value: CellValue; highlighted?: boolean }) {
-  const base = `px-4 py-3 text-center text-sm ${highlighted ? 'bg-[#635BFF]/5' : ''}`;
+  const base = `px-4 py-3 text-center text-sm ${highlighted ? 'bg-[#7C71FF]/5' : ''}`;
 
   if (typeof value === 'boolean') {
     return (
       <td className={base}>
-        {value ? <span className="text-[#635BFF]">✓</span> : <span className="text-ink/20">—</span>}
+        {value ? <span className="text-[#7C71FF]">✓</span> : <span className="text-ink/20">—</span>}
       </td>
     );
   }
 
   return (
     <td className={base}>
-      <span className={highlighted ? 'font-medium text-[#635BFF]' : 'text-ink/60'}>{value}</span>
+      <span className={highlighted ? 'font-medium text-[#7C71FF]' : 'text-ink/60'}>{value}</span>
     </td>
   );
 }
@@ -90,7 +90,7 @@ export function PricingFeatureTable() {
             <th className="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider text-ink/50">
               Arranque
             </th>
-            <th className="bg-[#635BFF]/5 px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider text-[#635BFF]">
+            <th className="bg-[#7C71FF]/5 px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider text-[#7C71FF]">
               Crecimiento
             </th>
             <th className="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider text-ink/50">

@@ -24,8 +24,8 @@ export function RestaurantIllustration({ className = '' }: { className?: string 
       />
 
       {/* Awning */}
-      <path d="M55 95 L265 95 L250 115 L70 115 Z" fill="#635BFF" opacity="0.15" />
-      <path d="M55 95 L265 95" stroke="#635BFF" strokeWidth="2" opacity="0.4" />
+      <path d="M55 95 L265 95 L250 115 L70 115 Z" fill="#7C71FF" opacity="0.15" />
+      <path d="M55 95 L265 95" stroke="#7C71FF" strokeWidth="2" opacity="0.4" />
 
       {/* Sign */}
       <rect x="100" y="100" width="120" height="24" rx="4" fill="#0A2540" opacity="0.08" />
@@ -77,20 +77,20 @@ export function RestaurantIllustration({ className = '' }: { className?: string 
         width="40"
         height="45"
         rx="4"
-        fill="#635BFF"
+        fill="#7C71FF"
         opacity="0.08"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.2"
       />
-      <circle cx="175" cy="200" r="2.5" fill="#635BFF" opacity="0.4" />
+      <circle cx="175" cy="200" r="2.5" fill="#7C71FF" opacity="0.4" />
 
       {/* Motorcycle / delivery */}
-      <circle cx="256" cy="185" r="14" fill="none" stroke="#635BFF" strokeWidth="2" />
-      <circle cx="256" cy="185" r="4" fill="#635BFF" opacity="0.3" />
+      <circle cx="256" cy="185" r="14" fill="none" stroke="#7C71FF" strokeWidth="2" />
+      <circle cx="256" cy="185" r="4" fill="#7C71FF" opacity="0.3" />
       <ellipse cx="240" cy="178" rx="14" ry="8" fill="#0A2540" opacity="0.08" />
-      <circle cx="226" cy="185" r="10" fill="none" stroke="#635BFF" strokeWidth="2" opacity="0.6" />
-      <circle cx="226" cy="185" r="3" fill="#635BFF" opacity="0.3" />
+      <circle cx="226" cy="185" r="10" fill="none" stroke="#7C71FF" strokeWidth="2" opacity="0.6" />
+      <circle cx="226" cy="185" r="3" fill="#7C71FF" opacity="0.3" />
 
       {/* Stars / rating */}
       <circle cx="90" cy="72" r="4" fill="#f59e0b" opacity="0.6" />

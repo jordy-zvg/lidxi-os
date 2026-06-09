@@ -121,7 +121,7 @@ export function ResetPasswordForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
-          className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20"
+          className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20"
         />
       </div>
       <div>
@@ -134,7 +134,7 @@ export function ResetPasswordForm() {
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           autoComplete="new-password"
-          className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20"
+          className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20"
         />
       </div>
       {error && (
@@ -145,7 +145,7 @@ export function ResetPasswordForm() {
       <button
         type="submit"
         disabled={pending || !ready}
-        className="w-full rounded-lg bg-[#635BFF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60"
+        className="w-full rounded-lg bg-[#7C71FF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5E52F5] disabled:opacity-60"
       >
         {!ready ? 'Validando enlace…' : pending ? 'Guardando…' : 'Actualizar contraseña'}
       </button>

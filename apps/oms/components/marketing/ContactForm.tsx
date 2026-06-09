@@ -135,8 +135,8 @@ export function ContactForm() {
 
   if (status === 'success') {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-[#635BFF]/20 bg-[#635BFF]/5 px-8 py-16 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#635BFF]/10">
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-[#7C71FF]/20 bg-[#7C71FF]/5 px-8 py-16 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7C71FF]/10">
           <span className="text-2xl">✓</span>
         </div>
         <h3 className="mb-2 text-xl font-semibold text-[#0A2540]">Mensaje recibido.</h3>
@@ -221,11 +221,11 @@ export function ContactForm() {
             type="checkbox"
             checked={form.acepto}
             onChange={set('acepto')}
-            className="mt-0.5 h-4 w-4 rounded border-ink/20 text-[#635BFF] focus:ring-[#635BFF]/30"
+            className="mt-0.5 h-4 w-4 rounded border-ink/20 text-[#7C71FF] focus:ring-[#7C71FF]/30"
           />
           <span className="text-sm text-ink/60">
             Acepto que Kobi me contacte en relación a esta consulta.{' '}
-            <a href="/privacidad" className="text-[#635BFF] hover:underline">
+            <a href="/privacidad" className="text-[#7C71FF] hover:underline">
               Aviso de privacidad
             </a>
             .
@@ -248,7 +248,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === 'sending'}
-        className="w-full rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#4f48d9] active:scale-[0.98] disabled:opacity-60"
+        className="w-full rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#5E52F5] active:scale-[0.98] disabled:opacity-60"
       >
         {status === 'sending' ? 'Enviando...' : 'Enviar mensaje'}
       </button>
@@ -271,7 +271,7 @@ function Field({
     <div>
       <p className="mb-1.5 block text-sm font-medium text-[#0A2540]">
         {label}
-        {required && <span className="ml-0.5 text-[#635BFF]">*</span>}
+        {required && <span className="ml-0.5 text-[#7C71FF]">*</span>}
       </p>
       {children}
       {error && (
@@ -288,7 +288,7 @@ function inputCls(hasError: boolean) {
   return [
     'w-full rounded-lg border px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all',
     'placeholder:text-ink/30',
-    'focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20',
+    'focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20',
     hasError
       ? 'border-b-2 border-b-[#DC2626] border-x-ink/15 border-t-ink/15 bg-red-50/50'
       : 'border-ink/15 bg-white hover:border-ink/30',

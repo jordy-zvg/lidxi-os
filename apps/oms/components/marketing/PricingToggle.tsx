@@ -26,7 +26,7 @@ export function PricingToggle({ annual, onChange }: PricingToggleProps) {
       >
         Anual
         <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${annual ? 'bg-[#635BFF] text-white' : 'bg-[#635BFF]/10 text-[#635BFF]'}`}
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${annual ? 'bg-[#7C71FF] text-white' : 'bg-[#7C71FF]/10 text-[#7C71FF]'}`}
         >
           Ahorra 20%
         </span>

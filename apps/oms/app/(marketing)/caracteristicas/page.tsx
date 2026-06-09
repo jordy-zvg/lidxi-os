@@ -22,7 +22,7 @@ function PosVisual() {
           (item, i) => (
             <div
               key={item}
-              className={`rounded-lg p-3 text-center cursor-pointer transition-colors ${i === 1 ? 'bg-[#635BFF] text-white' : 'bg-white border border-ink/10 text-[#0A2540]'}`}
+              className={`rounded-lg p-3 text-center cursor-pointer transition-colors ${i === 1 ? 'bg-[#7C71FF] text-white' : 'bg-white border border-ink/10 text-[#0A2540]'}`}
             >
               <p className="text-[10px] font-medium leading-tight">{item}</p>
             </div>
@@ -34,7 +34,7 @@ function PosVisual() {
           <p className="text-[10px] text-white/40">Total</p>
           <p className="font-mono text-lg font-semibold text-white">$285.00</p>
         </div>
-        <div className="rounded-lg bg-[#635BFF] px-4 py-2 text-xs font-semibold text-white">
+        <div className="rounded-lg bg-[#7C71FF] px-4 py-2 text-xs font-semibold text-white">
           Cobrar
         </div>
       </div>
@@ -54,7 +54,7 @@ function OmsVisual() {
         {['UberEats', 'Rappi', 'Didi', 'Sitio'].map((ch) => (
           <span
             key={ch}
-            className="rounded bg-[#635BFF]/10 px-2 py-0.5 text-[9px] font-semibold text-[#635BFF]"
+            className="rounded bg-[#7C71FF]/10 px-2 py-0.5 text-[9px] font-semibold text-[#7C71FF]"
           >
             {ch}
           </span>
@@ -101,10 +101,10 @@ function KdsVisual() {
             id: 'DD-23',
             items: 'Sopa ×2, Pan ×2',
             time: '8:45',
-            color: '#635BFF',
+            color: '#7C71FF',
             elapsed: '1 min',
           },
-          { id: 'MP-05', items: 'Pozole ×1', time: '8:47', color: '#635BFF', elapsed: 'Nuevo' },
+          { id: 'MP-05', items: 'Pozole ×1', time: '8:47', color: '#7C71FF', elapsed: 'Nuevo' },
         ].map((t) => (
           <div
             key={t.id}
@@ -129,7 +129,7 @@ function StorefrontVisual() {
   return (
     <div className="h-64 rounded-2xl bg-white border border-ink/10 p-5 overflow-hidden shadow-sm">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-[#635BFF]">Mi Cocina</div>
+        <div className="text-sm font-semibold text-[#7C71FF]">Mi Cocina</div>
         <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-600">
           Abierto
         </span>
@@ -149,7 +149,7 @@ function StorefrontVisual() {
               <div>
                 <p className="text-xs font-medium text-[#0A2540]">{item.name}</p>
                 {item.tag && (
-                  <span className="text-[9px] text-[#635BFF] font-semibold">{item.tag}</span>
+                  <span className="text-[9px] text-[#7C71FF] font-semibold">{item.tag}</span>
                 )}
               </div>
             </div>
@@ -157,7 +157,7 @@ function StorefrontVisual() {
           </div>
         ))}
       </div>
-      <div className="mt-3 rounded-lg bg-[#635BFF] py-2 text-center text-xs font-semibold text-white">
+      <div className="mt-3 rounded-lg bg-[#7C71FF] py-2 text-center text-xs font-semibold text-white">
         Ordenar ahora · Uber Direct
       </div>
     </div>
@@ -189,7 +189,7 @@ function InventarioVisual() {
               </div>
               <div className="h-1.5 w-full rounded-full bg-ink/8">
                 <div
-                  className={`h-1.5 rounded-full ${item.alert ? 'bg-amber-400' : 'bg-[#635BFF]'}`}
+                  className={`h-1.5 rounded-full ${item.alert ? 'bg-amber-400' : 'bg-[#7C71FF]'}`}
                   style={{ width: `${item.stock}%` }}
                 />
               </div>
@@ -234,14 +234,14 @@ function ReportesVisual() {
         <polyline
           points="0,35 30,28 60,20 90,25 120,12 150,18 200,8"
           fill="none"
-          stroke="#635BFF"
+          stroke="#7C71FF"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <polyline
           points="0,35 30,28 60,20 90,25 120,12 150,18 200,8 200,40 0,40"
-          fill="#635BFF"
+          fill="#7C71FF"
           fillOpacity="0.06"
         />
       </svg>
@@ -263,8 +263,8 @@ function AutomatizacionVisual() {
       <div className="relative flex items-center justify-between px-4">
         {nodes.map((node, i) => (
           <div key={node.label} className="flex flex-col items-center gap-1 flex-1">
-            <div className="relative z-10 rounded-xl bg-[#635BFF]/20 border border-[#635BFF]/30 px-3 py-2 text-center min-w-[80px]">
-              <p className="text-[9px] font-semibold uppercase tracking-wider text-[#635BFF]">
+            <div className="relative z-10 rounded-xl bg-[#7C71FF]/20 border border-[#7C71FF]/30 px-3 py-2 text-center min-w-[80px]">
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-[#7C71FF]">
                 {node.label}
               </p>
               <p className="text-[10px] text-white/60 mt-0.5 leading-tight">{node.sub}</p>
@@ -274,7 +274,7 @@ function AutomatizacionVisual() {
                 <svg width="20" height="12" viewBox="0 0 20 12" aria-hidden="true">
                   <path
                     d="M0 6 L14 6 M10 2 L14 6 L10 10"
-                    stroke="#635BFF"
+                    stroke="#7C71FF"
                     strokeWidth="1.5"
                     strokeOpacity="0.5"
                     fill="none"
@@ -487,7 +487,7 @@ export default function CaracteristicasPage() {
           <div className="mx-auto max-w-3xl text-center">
             <motion.p
               {...FADE}
-              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#635BFF]"
+              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]"
             >
               Capacidades
             </motion.p>
@@ -517,7 +517,7 @@ export default function CaracteristicasPage() {
         <section
           key={mod.id}
           id={mod.id}
-          className={`py-20 sm:py-24 ${mod.highlight ? 'bg-[#635BFF]/[0.03] border-y border-[#635BFF]/8' : i % 2 === 0 ? 'bg-white' : 'bg-[#F6F9FC]'}`}
+          className={`py-20 sm:py-24 ${mod.highlight ? 'bg-[#7C71FF]/[0.03] border-y border-[#7C71FF]/8' : i % 2 === 0 ? 'bg-white' : 'bg-[#F6F9FC]'}`}
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div
@@ -526,7 +526,7 @@ export default function CaracteristicasPage() {
               <motion.div {...FADE} className={mod.flip ? 'lg:col-start-2' : ''}>
                 {mod.eyebrow && (
                   <p
-                    className={`mb-3 text-xs font-semibold uppercase tracking-widest ${mod.highlight ? 'text-[#635BFF]' : 'text-[#635BFF]'}`}
+                    className={`mb-3 text-xs font-semibold uppercase tracking-widest ${mod.highlight ? 'text-[#7C71FF]' : 'text-[#7C71FF]'}`}
                   >
                     {mod.eyebrow}
                   </p>
@@ -541,7 +541,7 @@ export default function CaracteristicasPage() {
                 <ul className="space-y-2.5">
                   {mod.bullets.map((b) => (
                     <li key={b} className="flex items-start gap-2.5 text-sm text-ink/70">
-                      <span className="mt-0.5 shrink-0 text-[#635BFF]">✓</span>
+                      <span className="mt-0.5 shrink-0 text-[#7C71FF]">✓</span>
                       {b}
                     </li>
                   ))}

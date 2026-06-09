@@ -29,7 +29,7 @@ export function Hero({
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage:
-            'linear-gradient(#635BFF 1px, transparent 1px), linear-gradient(to right, #635BFF 1px, transparent 1px)',
+            'linear-gradient(#7C71FF 1px, transparent 1px), linear-gradient(to right, #7C71FF 1px, transparent 1px)',
           backgroundSize: '48px 48px',
         }}
       />
@@ -41,7 +41,7 @@ export function Hero({
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#635BFF]"
+              className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#7C71FF]"
             >
               {eyebrow}
             </motion.p>
@@ -76,7 +76,7 @@ export function Hero({
               {primaryCta && (
                 <Link
                   href={primaryCta.href as Route}
-                  className="rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#4f48d9] active:scale-[0.98]"
+                  className="rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#5E52F5] active:scale-[0.98]"
                 >
                   {primaryCta.label}
                 </Link>
@@ -98,7 +98,7 @@ export function Hero({
             initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: 'easeOut', delay: 0.3 }}
-            className="mt-16 overflow-hidden rounded-2xl border border-ink/10 shadow-2xl shadow-[#635BFF]/10"
+            className="mt-16 overflow-hidden rounded-2xl border border-ink/10 shadow-2xl shadow-[#7C71FF]/10"
           >
             {visual}
           </motion.div>

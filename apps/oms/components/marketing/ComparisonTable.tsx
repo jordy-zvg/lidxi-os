@@ -18,9 +18,9 @@ const HEADERS = ['', 'Kobi', 'Wansoft', 'Soft Restaurant', 'Parrot'];
 
 function Cell({ value, highlight }: { value: boolean; highlight?: boolean }) {
   return (
-    <td className={`px-4 py-3 text-center ${highlight ? 'bg-[#635BFF]/5' : ''}`}>
+    <td className={`px-4 py-3 text-center ${highlight ? 'bg-[#7C71FF]/5' : ''}`}>
       {value ? (
-        <span className="text-base text-[#635BFF]">✓</span>
+        <span className="text-base text-[#7C71FF]">✓</span>
       ) : (
         <span className="text-base text-ink/20">✗</span>
       )}
@@ -47,7 +47,7 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
                   i === 0
                     ? 'text-ink/40'
                     : i === 1
-                      ? 'text-[#635BFF] bg-[#635BFF]/5'
+                      ? 'text-[#7C71FF] bg-[#7C71FF]/5'
                       : 'text-ink/40'
                 }`}
               >

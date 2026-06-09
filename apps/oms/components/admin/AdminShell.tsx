@@ -132,7 +132,7 @@ export default function AdminShell({ tenantName, children }: AdminShellProps) {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/login"
-              className="flex items-center gap-2 rounded-md border border-transparent px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-[#635BFF] hover:bg-[#635BFF]/5 whitespace-nowrap"
+              className="flex items-center gap-2 rounded-md border border-transparent px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-[#7C71FF] hover:bg-[#7C71FF]/5 whitespace-nowrap"
             >
               <IconDeviceDesktop size={16} />
               <span className="hidden sm:inline">Abrir la operación</span>
@@ -157,7 +157,7 @@ function NavList({ pathname }: { pathname: string }) {
           href={item.href as Route}
           className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
             pathname.startsWith(item.href)
-              ? 'bg-[#635BFF]/10 text-[#0A2540] shadow-[inset_3px_0_0_0_#635BFF]'
+              ? 'bg-[#7C71FF]/10 text-[#0A2540] shadow-[inset_3px_0_0_0_#7C71FF]'
               : 'text-ink/60 hover:bg-ink/5 hover:text-[#0A2540]'
           }`}
         >

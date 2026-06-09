@@ -1,5 +1,5 @@
 import { validateEnv } from '@/lib/validate-env';
-import { inter, jetbrainsMono } from '@kobi/tokens/fonts';
+import { fraunces, inter, jetbrainsMono } from '@kobi/tokens/fonts';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
@@ -44,12 +44,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#635BFF',
+  themeColor: '#7C71FF',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}>
       <body className="bg-canvas text-ink antialiased">{children}</body>
     </html>
   );

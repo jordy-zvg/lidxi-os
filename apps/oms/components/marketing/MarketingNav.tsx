@@ -84,7 +84,7 @@ export function MarketingNav() {
           </Link>
           <Link
             href="/registro"
-            className="rounded-lg bg-[#635BFF] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#4f48d9] active:scale-95"
+            className="rounded-lg bg-[#7C71FF] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#5E52F5] active:scale-95"
           >
             Empezar gratis
           </Link>
@@ -128,7 +128,7 @@ export function MarketingNav() {
             <Link
               href="/registro"
               onClick={() => setMenuOpen(false)}
-              className="block rounded-lg bg-[#635BFF] px-4 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-[#4f48d9]"
+              className="block rounded-lg bg-[#7C71FF] px-4 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-[#5E52F5]"
             >
               Empezar gratis
             </Link>

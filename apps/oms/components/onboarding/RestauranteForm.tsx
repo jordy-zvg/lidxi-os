@@ -78,7 +78,7 @@ export function RestauranteForm() {
           name="name"
           type="text"
           placeholder="El Mesón de los Sueños"
-          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#635BFF]/30 ${errors.name ? 'border-red-400' : 'border-ink/15 focus:border-[#635BFF]'}`}
+          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#7C71FF]/30 ${errors.name ? 'border-red-400' : 'border-ink/15 focus:border-[#7C71FF]'}`}
         />
         {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
       </div>
@@ -93,7 +93,7 @@ export function RestauranteForm() {
           name="rfc"
           type="text"
           placeholder="MAPJ850312AB1"
-          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm uppercase outline-none transition focus:ring-2 focus:ring-[#635BFF]/30 ${errors.rfc ? 'border-red-400' : 'border-ink/15 focus:border-[#635BFF]'}`}
+          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm uppercase outline-none transition focus:ring-2 focus:ring-[#7C71FF]/30 ${errors.rfc ? 'border-red-400' : 'border-ink/15 focus:border-[#7C71FF]'}`}
         />
         {errors.rfc && <p className="mt-1 text-xs text-red-500">{errors.rfc}</p>}
       </div>
@@ -108,7 +108,7 @@ export function RestauranteForm() {
           name="address"
           rows={2}
           placeholder="Av. Álvaro Obregón 123, Roma Norte, CDMX"
-          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#635BFF]/30 resize-none ${errors.address ? 'border-red-400' : 'border-ink/15 focus:border-[#635BFF]'}`}
+          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#7C71FF]/30 resize-none ${errors.address ? 'border-red-400' : 'border-ink/15 focus:border-[#7C71FF]'}`}
         />
         {errors.address && <p className="mt-1 text-xs text-red-500">{errors.address}</p>}
       </div>
@@ -123,7 +123,7 @@ export function RestauranteForm() {
           name="phone"
           type="tel"
           placeholder="55 1234 5678"
-          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#635BFF]/30 ${errors.phone ? 'border-red-400' : 'border-ink/15 focus:border-[#635BFF]'}`}
+          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#7C71FF]/30 ${errors.phone ? 'border-red-400' : 'border-ink/15 focus:border-[#7C71FF]'}`}
         />
         {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
       </div>
@@ -137,13 +137,13 @@ export function RestauranteForm() {
           {OPERATION_TYPES.map((op) => (
             <label
               key={op.value}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border border-ink/10 p-3.5 transition hover:border-[#635BFF]/40 has-[:checked]:border-[#635BFF] has-[:checked]:bg-[#635BFF]/5"
+              className="flex cursor-pointer items-start gap-3 rounded-lg border border-ink/10 p-3.5 transition hover:border-[#7C71FF]/40 has-[:checked]:border-[#7C71FF] has-[:checked]:bg-[#7C71FF]/5"
             >
               <input
                 type="radio"
                 name="operation_type"
                 value={op.value}
-                className="mt-0.5 accent-[#635BFF]"
+                className="mt-0.5 accent-[#7C71FF]"
               />
               <div>
                 <span className="text-sm font-medium text-[#0A2540]">{op.label}</span>
@@ -161,7 +161,7 @@ export function RestauranteForm() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[#635BFF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60 active:scale-[0.98]"
+          className="rounded-lg bg-[#7C71FF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5E52F5] disabled:opacity-60 active:scale-[0.98]"
         >
           {pending ? 'Guardando…' : 'Continuar'}
         </button>

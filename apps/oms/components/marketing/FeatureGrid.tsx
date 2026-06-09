@@ -28,7 +28,7 @@ export function FeatureGrid({ features, columns = 3 }: FeatureGridProps) {
           transition={{ duration: 0.45, ease: 'easeOut', delay: i * 0.08 }}
           className="group rounded-2xl border border-ink/8 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
         >
-          <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#635BFF]/10 text-[#635BFF]">
+          <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#7C71FF]/10 text-[#7C71FF]">
             {feature.icon}
           </div>
           <h3 className="mb-2 text-base font-semibold text-[#0A2540]">{feature.title}</h3>

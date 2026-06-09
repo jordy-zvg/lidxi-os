@@ -30,7 +30,7 @@ function passwordStrength(pw: string): { label: string; color: string; pct: numb
     (pw.length >= 12 ? 1 : 0);
   if (score <= 1) return { label: 'Débil', color: 'bg-red-400', pct: 25 };
   if (score === 2) return { label: 'Regular', color: 'bg-amber-400', pct: 50 };
-  if (score === 3) return { label: 'Buena', color: 'bg-[#635BFF]', pct: 75 };
+  if (score === 3) return { label: 'Buena', color: 'bg-[#7C71FF]', pct: 75 };
   return { label: 'Fuerte', color: 'bg-green-400', pct: 100 };
 }
 
@@ -141,15 +141,15 @@ export function RegistroForm() {
             type="checkbox"
             checked={form.acepto}
             onChange={set('acepto')}
-            className="mt-0.5 h-4 w-4 rounded border-ink/20 text-[#635BFF] focus:ring-[#635BFF]/30"
+            className="mt-0.5 h-4 w-4 rounded border-ink/20 text-[#7C71FF] focus:ring-[#7C71FF]/30"
           />
           <span className="text-sm text-ink/60">
             Acepto los{' '}
-            <Link href="/terminos" className="text-[#635BFF] hover:underline">
+            <Link href="/terminos" className="text-[#7C71FF] hover:underline">
               términos de uso
             </Link>{' '}
             y el{' '}
-            <Link href="/privacidad" className="text-[#635BFF] hover:underline">
+            <Link href="/privacidad" className="text-[#7C71FF] hover:underline">
               aviso de privacidad
             </Link>
             .
@@ -165,7 +165,7 @@ export function RegistroForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#4f48d9] active:scale-[0.98] disabled:opacity-60"
+        className="w-full rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#5E52F5] active:scale-[0.98] disabled:opacity-60"
       >
         {loading ? 'Creando cuenta…' : 'Crear cuenta'}
       </button>
@@ -180,7 +180,7 @@ export function RegistroForm() {
 
       <p className="text-center text-sm text-ink/50">
         ¿Ya tienes cuenta?{' '}
-        <Link href="/ingresar" className="font-medium text-[#635BFF] hover:underline">
+        <Link href="/ingresar" className="font-medium text-[#7C71FF] hover:underline">
           Inicia sesión
         </Link>
       </p>
@@ -248,7 +248,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-[#0A2540]">
         {label}
-        {required && <span className="ml-0.5 text-[#635BFF]">*</span>}
+        {required && <span className="ml-0.5 text-[#7C71FF]">*</span>}
       </span>
       {children}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
@@ -259,7 +259,7 @@ function Field({
 function inputCls(hasError: boolean) {
   return [
     'w-full rounded-lg border px-3.5 py-2.5 text-sm text-[#0A2540] outline-none transition-all',
-    'placeholder:text-ink/30 focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20',
+    'placeholder:text-ink/30 focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20',
     hasError ? 'border-red-400 bg-red-50/50' : 'border-ink/15 bg-white hover:border-ink/30',
   ].join(' ');
 }

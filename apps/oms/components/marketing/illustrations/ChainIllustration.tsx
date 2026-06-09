@@ -21,7 +21,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         strokeWidth="1.5"
         strokeOpacity="0.1"
       />
-      <rect x="120" y="60" width="80" height="16" rx="4" fill="#635BFF" opacity="0.15" />
+      <rect x="120" y="60" width="80" height="16" rx="4" fill="#7C71FF" opacity="0.15" />
       {/* Windows B1 */}
       {[80, 100, 120, 140, 160].map((y) => (
         <g key={y}>
@@ -62,7 +62,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         strokeWidth="1.5"
         strokeOpacity="0.1"
       />
-      <rect x="30" y="100" width="70" height="14" rx="4" fill="#635BFF" opacity="0.1" />
+      <rect x="30" y="100" width="70" height="14" rx="4" fill="#7C71FF" opacity="0.1" />
       {/* Windows B2 */}
       {[120, 140, 160].map((y) => (
         <g key={y}>
@@ -103,7 +103,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         strokeWidth="1.5"
         strokeOpacity="0.1"
       />
-      <rect x="220" y="110" width="70" height="14" rx="4" fill="#635BFF" opacity="0.1" />
+      <rect x="220" y="110" width="70" height="14" rx="4" fill="#7C71FF" opacity="0.1" />
       {/* Windows B3 */}
       {[130, 150, 170].map((y) => (
         <g key={y}>
@@ -135,23 +135,23 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
       {/* Connection lines between buildings */}
       <path
         d="M100 140 Q160 120 120 140"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.3"
         strokeDasharray="4 3"
       />
       <path
         d="M200 140 Q220 130 220 140"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.3"
         strokeDasharray="4 3"
       />
 
       {/* Central node */}
-      <circle cx="160" cy="40" r="14" fill="#635BFF" opacity="0.12" />
-      <circle cx="160" cy="40" r="8" fill="#635BFF" opacity="0.2" />
-      <circle cx="160" cy="40" r="4" fill="#635BFF" />
+      <circle cx="160" cy="40" r="14" fill="#7C71FF" opacity="0.12" />
+      <circle cx="160" cy="40" r="8" fill="#7C71FF" opacity="0.2" />
+      <circle cx="160" cy="40" r="4" fill="#7C71FF" />
 
       {/* Lines from node to buildings */}
       <line
@@ -159,7 +159,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         y1="54"
         x2="160"
         y2="62"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.4"
       />
@@ -168,7 +168,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         y1="48"
         x2="65"
         y2="100"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.2"
       />
@@ -177,7 +177,7 @@ export function ChainIllustration({ className = '' }: { className?: string }) {
         y1="48"
         x2="255"
         y2="110"
-        stroke="#635BFF"
+        stroke="#7C71FF"
         strokeWidth="1.5"
         strokeOpacity="0.2"
       />

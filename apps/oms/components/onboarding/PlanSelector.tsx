@@ -44,8 +44,8 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
               key={plan.id}
               className={`block cursor-pointer rounded-xl border p-5 transition ${
                 isSelected
-                  ? 'border-[#635BFF] bg-[#635BFF]/5 ring-1 ring-[#635BFF]/40'
-                  : 'border-ink/10 hover:border-[#635BFF]/30'
+                  ? 'border-[#7C71FF] bg-[#7C71FF]/5 ring-1 ring-[#7C71FF]/40'
+                  : 'border-ink/10 hover:border-[#7C71FF]/30'
               }`}
             >
               <input
@@ -61,7 +61,7 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
                   <div className="mb-0.5 flex items-center gap-2">
                     <span className="text-sm font-semibold text-[#0A2540]">{plan.name}</span>
                     {plan.id === suggested && (
-                      <span className="rounded-full bg-[#635BFF] px-2 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="rounded-full bg-[#7C71FF] px-2 py-0.5 text-[10px] font-semibold text-white">
                         Recomendado
                       </span>
                     )}
@@ -70,7 +70,7 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
                   <ul className="space-y-1">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-center gap-1.5 text-xs text-ink/70">
-                        <span className="text-[#635BFF]">✓</span> {f}
+                        <span className="text-[#7C71FF]">✓</span> {f}
                       </li>
                     ))}
                   </ul>
@@ -88,7 +88,7 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
       </div>
 
       {selected === 'escala' && (
-        <div className="mb-5 rounded-lg border border-[#635BFF]/20 bg-[#635BFF]/5 p-4 text-sm text-[#0A2540]">
+        <div className="mb-5 rounded-lg border border-[#7C71FF]/20 bg-[#7C71FF]/5 p-4 text-sm text-[#0A2540]">
           Un especialista te contactará en 24 horas para armar tu plan Escala a medida.
         </div>
       )}
@@ -97,7 +97,7 @@ export function PlanSelector({ volumen }: PlanSelectorProps) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[#635BFF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60 active:scale-[0.98]"
+          className="rounded-lg bg-[#7C71FF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5E52F5] disabled:opacity-60 active:scale-[0.98]"
         >
           {pending ? 'Guardando…' : `Elegir ${PLANS.find((p) => p.id === selected)?.name}`}
         </button>

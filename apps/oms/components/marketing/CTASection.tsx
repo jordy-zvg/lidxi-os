@@ -31,7 +31,7 @@ export function CTASection({ headline, subheadline, primaryCta, secondaryCta }: 
               {primaryCta && (
                 <Link
                   href={primaryCta.href as Route}
-                  className="rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#4f48d9] active:scale-[0.98]"
+                  className="rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#5E52F5] active:scale-[0.98]"
                 >
                   {primaryCta.label}
                 </Link>

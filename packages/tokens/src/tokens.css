@@ -31,7 +31,7 @@
 :root {
   /* ========== 0 · BRAND KOBI ========== */
 
-  --brand-wordmark-color: var(--brand, #635bff);
+  --brand-wordmark-color: var(--brand, #7c71ff);
   --brand-wordmark-color-inverse: #ffffff;
   --brand-wordmark-weight: 600;
   --brand-wordmark-tracking: -0.02em;
@@ -92,8 +92,8 @@
 
   /* ========== 2 · LIGHT SURFACES & INK ========== */
 
-  --brand: #635bff;
-  --brand-hover: #5145e5;
+  --brand: #7c71ff;
+  --brand-hover: #5e52f5;
   --brand-soft: #eff4ff;
   --brand-text: #1a56db;
 
@@ -126,6 +126,27 @@
   --danger: #dc2626;
   --danger-soft: #fef2f2;
   --danger-text: #b91c1c;
+
+  /* ========== MARKETING · home v4 (paleta cálida) ==========
+     Scope: solo el landing (marketing)/page.tsx y sus piezas. Fondos crema/
+     arena, tinta cálida y acento terracota. El indigo de marca SE MANTIENE en
+     --brand. Los neutrales cálidos van prefijados --mkt-* para no pisar los
+     tokens globales (--ink, --line, --muted). Úsalas vía bg-[var(--cream)] etc.
+     ========================================================== */
+
+  --cream: #faf7f1;
+  --sand: #f2ece1;
+  --espresso: #221b12;
+  --espresso-2: #2c2418;
+  --terra: #c96f3d;
+  --terra-soft: #f8ece2;
+  --mkt-ink: #211c15;
+  --mkt-ink-soft: #554e44;
+  --mkt-muted: #8b8378;
+  --mkt-line: #e7dfd2;
+  --mkt-line-soft: #efe9dd;
+  --mkt-ok: #1e7e5a;
+  --mkt-ok-soft: #e2f2ea;
 
   /* ========== 4 · CHANNEL PALETTE [NEW · Sprint 01] ==========
      ch-direct apunta a --brand (refuerza diferenciador económico).

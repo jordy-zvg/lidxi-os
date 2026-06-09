@@ -29,7 +29,7 @@ export function PricingCard({ plan, index = 0 }: PricingCardProps) {
       transition={{ duration: 0.45, ease: 'easeOut', delay: index * 0.1 }}
       className={`relative flex flex-col rounded-2xl border p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
         plan.highlighted
-          ? 'border-[#635BFF] bg-[#635BFF] text-white'
+          ? 'border-[#7C71FF] bg-[#7C71FF] text-white'
           : 'border-ink/10 bg-white text-[#0A2540]'
       }`}
     >
@@ -68,7 +68,7 @@ export function PricingCard({ plan, index = 0 }: PricingCardProps) {
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-sm">
             <span
-              className={`mt-0.5 text-base leading-none ${plan.highlighted ? 'text-white' : 'text-[#635BFF]'}`}
+              className={`mt-0.5 text-base leading-none ${plan.highlighted ? 'text-white' : 'text-[#7C71FF]'}`}
             >
               ✓
             </span>
@@ -81,8 +81,8 @@ export function PricingCard({ plan, index = 0 }: PricingCardProps) {
         href={plan.cta.href as Route}
         className={`block rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-all active:scale-[0.98] ${
           plan.highlighted
-            ? 'bg-white text-[#635BFF] hover:bg-white/90'
-            : 'bg-[#635BFF] text-white hover:bg-[#4f48d9]'
+            ? 'bg-white text-[#7C71FF] hover:bg-white/90'
+            : 'bg-[#7C71FF] text-white hover:bg-[#5E52F5]'
         }`}
       >
         {plan.cta.label}

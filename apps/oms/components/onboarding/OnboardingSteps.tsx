@@ -27,9 +27,9 @@ export function OnboardingSteps() {
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                     isCompleted
-                      ? 'bg-[#635BFF] text-white'
+                      ? 'bg-[#7C71FF] text-white'
                       : isCurrent
-                        ? 'bg-[#635BFF] text-white ring-2 ring-[#635BFF]/30 ring-offset-1'
+                        ? 'bg-[#7C71FF] text-white ring-2 ring-[#7C71FF]/30 ring-offset-1'
                         : 'bg-ink/10 text-ink/40'
                   }`}
                 >
@@ -45,7 +45,7 @@ export function OnboardingSteps() {
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`mx-2 h-px w-8 sm:w-12 ${i < currentIndex ? 'bg-[#635BFF]' : 'bg-ink/10'}`}
+                  className={`mx-2 h-px w-8 sm:w-12 ${i < currentIndex ? 'bg-[#7C71FF]' : 'bg-ink/10'}`}
                 />
               )}
             </div>

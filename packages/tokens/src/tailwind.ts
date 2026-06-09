@@ -151,6 +151,7 @@ const preset = {
       fontFamily: {
         sans: ['var(--font-sans)'],
         mono: ['var(--font-mono)'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
       },
       borderWidth: {
         hairline: '0.5px',

@@ -7,7 +7,7 @@ const BARS = [
   { label: 'Uber Eats', pct: 28, color: 'bg-ink/15', textColor: 'text-ink/50' },
   { label: 'Rappi', pct: 27, color: 'bg-ink/12', textColor: 'text-ink/50' },
   { label: 'Didi Food', pct: 25, color: 'bg-ink/10', textColor: 'text-ink/50' },
-  { label: 'Tu storefront', pct: 8, color: 'bg-[#635BFF]', textColor: 'text-[#635BFF]' },
+  { label: 'Tu storefront', pct: 8, color: 'bg-[#7C71FF]', textColor: 'text-[#7C71FF]' },
 ];
 
 const MAX_PCT = 30;

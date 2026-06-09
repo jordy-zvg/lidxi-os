@@ -23,7 +23,7 @@ export default function RegistroPage() {
               'Cancela cuando quieras',
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-sm text-white/70">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#635BFF]/30 text-[#635BFF]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#7C71FF]/30 text-[#7C71FF]">
                   ✓
                 </span>
                 {item}

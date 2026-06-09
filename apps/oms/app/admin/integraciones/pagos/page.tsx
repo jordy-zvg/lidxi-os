@@ -52,7 +52,7 @@ export default async function PagosIntegracionPage() {
               type="submit"
               className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition ${
                 targetMode === 'production'
-                  ? 'bg-[#635BFF] text-white hover:bg-[#4f48d9]'
+                  ? 'bg-[#7C71FF] text-white hover:bg-[#5E52F5]'
                   : 'border border-ink/15 bg-white text-[#0A2540] hover:bg-ink/5'
               }`}
             >

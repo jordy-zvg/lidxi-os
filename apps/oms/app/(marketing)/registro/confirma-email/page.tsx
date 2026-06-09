@@ -51,10 +51,10 @@ function ConfirmaEmailContent() {
 
       <div className="w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
         {/* Email icon */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#635BFF]/10">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#7C71FF]/10">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <rect x="4" y="8" width="24" height="16" rx="3" stroke="#635BFF" strokeWidth="2" />
-            <path d="M4 11l12 8 12-8" stroke="#635BFF" strokeWidth="2" strokeLinecap="round" />
+            <rect x="4" y="8" width="24" height="16" rx="3" stroke="#7C71FF" strokeWidth="2" />
+            <path d="M4 11l12 8 12-8" stroke="#7C71FF" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
 
@@ -89,7 +89,7 @@ function ConfirmaEmailContent() {
 
         <p className="mt-6 text-xs text-ink/40">
           ¿Usaste el correo equivocado?{' '}
-          <Link href="/registro" className="text-[#635BFF] hover:underline">
+          <Link href="/registro" className="text-[#7C71FF] hover:underline">
             Vuelve al registro
           </Link>
         </p>

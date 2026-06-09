@@ -24,7 +24,7 @@ export function SectionHeader({
       className={centered ? 'text-center' : ''}
     >
       {eyebrow && (
-        <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-[#635BFF]">
+        <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-[#7C71FF]">
           {eyebrow}
         </p>
       )}

@@ -22,7 +22,7 @@ export function Testimonial({ quote, name, role, company }: TestimonialProps) {
         &ldquo;{quote}&rdquo;
       </p>
       <footer className="mt-6 flex items-center justify-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#635BFF]/10 text-sm font-semibold text-[#635BFF]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#7C71FF]/10 text-sm font-semibold text-[#7C71FF]">
           {name.charAt(0)}
         </div>
         <div className="text-left">

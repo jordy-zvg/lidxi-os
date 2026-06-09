@@ -43,7 +43,7 @@ export function RecuperarForm() {
               Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu
               contraseña.
             </p>
-            <Link href="/ingresar" className="text-sm font-medium text-[#635BFF] hover:underline">
+            <Link href="/ingresar" className="text-sm font-medium text-[#7C71FF] hover:underline">
               Volver a iniciar sesión
             </Link>
           </div>
@@ -59,7 +59,7 @@ export function RecuperarForm() {
                   htmlFor="recover-email"
                   className="mb-1.5 block text-sm font-medium text-[#0A2540]"
                 >
-                  Email <span className="text-[#635BFF]">*</span>
+                  Email <span className="text-[#7C71FF]">*</span>
                 </label>
                 <input
                   id="recover-email"
@@ -71,7 +71,7 @@ export function RecuperarForm() {
                   }}
                   placeholder="maria@micocina.mx"
                   autoComplete="email"
-                  className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] placeholder:text-ink/30 outline-none transition-all focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20 hover:border-ink/30"
+                  className="w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-[#0A2540] placeholder:text-ink/30 outline-none transition-all focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20 hover:border-ink/30"
                 />
                 {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
               </div>
@@ -79,13 +79,13 @@ export function RecuperarForm() {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="w-full rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#4f48d9] active:scale-[0.98] disabled:opacity-60"
+                className="w-full rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#5E52F5] active:scale-[0.98] disabled:opacity-60"
               >
                 {status === 'sending' ? 'Enviando…' : 'Enviar enlace'}
               </button>
 
               <p className="text-center text-sm text-ink/50">
-                <Link href="/ingresar" className="font-medium text-[#635BFF] hover:underline">
+                <Link href="/ingresar" className="font-medium text-[#7C71FF] hover:underline">
                   Volver a iniciar sesión
                 </Link>
               </p>

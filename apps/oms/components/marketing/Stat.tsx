@@ -15,7 +15,7 @@ export function Stat({ value, label }: StatProps) {
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
-      <p className="text-5xl font-semibold tracking-tight text-[#635BFF] sm:text-6xl">{value}</p>
+      <p className="text-5xl font-semibold tracking-tight text-[#7C71FF] sm:text-6xl">{value}</p>
       <p className="mt-2 text-sm text-ink/60">{label}</p>
     </motion.div>
   );

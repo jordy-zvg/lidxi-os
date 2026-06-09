@@ -24,13 +24,13 @@ export function ListoSuccess({ tenantName, trialEndsAt, needsSalesContact }: Lis
       {/* Animated checkmark */}
       <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
         <motion.div
-          className="absolute inset-0 rounded-full bg-[#635BFF]/20"
+          className="absolute inset-0 rounded-full bg-[#7C71FF]/20"
           initial={{ scale: 0.6, opacity: 1 }}
           animate={{ scale: 2.2, opacity: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
         />
         <motion.div
-          className="flex h-20 w-20 items-center justify-center rounded-full bg-[#635BFF]"
+          className="flex h-20 w-20 items-center justify-center rounded-full bg-[#7C71FF]"
           initial={{ scale: 0 }}
           animate={{ scale: [0, 1.15, 1] }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
@@ -75,7 +75,7 @@ export function ListoSuccess({ tenantName, trialEndsAt, needsSalesContact }: Lis
         </p>
 
         {needsSalesContact && (
-          <div className="mb-6 rounded-lg border border-[#635BFF]/20 bg-[#635BFF]/5 p-4 text-sm text-[#0A2540]">
+          <div className="mb-6 rounded-lg border border-[#7C71FF]/20 bg-[#7C71FF]/5 p-4 text-sm text-[#0A2540]">
             Un especialista te contactará en 24 horas para tu plan Escala.
           </div>
         )}
@@ -91,20 +91,20 @@ export function ListoSuccess({ tenantName, trialEndsAt, needsSalesContact }: Lis
                 1
               </span>
               Configura tus impresoras en{' '}
-              <span className="font-medium text-[#635BFF]">Ajustes › Impresoras</span>
+              <span className="font-medium text-[#7C71FF]">Ajustes › Impresoras</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-ink/70">
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
                 2
               </span>
               Conecta Uber Eats, Rappi o Didi en{' '}
-              <span className="font-medium text-[#635BFF]">Integraciones</span>
+              <span className="font-medium text-[#7C71FF]">Integraciones</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-ink/70">
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
                 3
               </span>
-              Crea tu primer producto en <span className="font-medium text-[#635BFF]">Menú</span>
+              Crea tu primer producto en <span className="font-medium text-[#7C71FF]">Menú</span>
             </li>
           </ul>
         </div>
@@ -119,7 +119,7 @@ export function ListoSuccess({ tenantName, trialEndsAt, needsSalesContact }: Lis
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-[#635BFF] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60 active:scale-[0.98]"
+            className="w-full rounded-lg bg-[#7C71FF] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5E52F5] disabled:opacity-60 active:scale-[0.98]"
           >
             {pending ? 'Entrando…' : 'Entrar a mi panel'}
           </button>

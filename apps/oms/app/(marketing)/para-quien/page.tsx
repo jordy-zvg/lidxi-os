@@ -98,7 +98,7 @@ export default function ParaQuienPage() {
           <div className="mx-auto max-w-3xl text-center">
             <motion.p
               {...FADE}
-              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#635BFF]"
+              className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]"
             >
               Perfiles
             </motion.p>
@@ -147,8 +147,8 @@ export default function ParaQuienPage() {
                 <profile.Illustration className="w-full rounded-2xl shadow-sm" />
 
                 {/* Stat */}
-                <div className="mt-6 rounded-2xl border border-[#635BFF]/15 bg-[#635BFF]/5 p-6">
-                  <p className="text-4xl font-semibold text-[#635BFF]">{profile.stat.value}</p>
+                <div className="mt-6 rounded-2xl border border-[#7C71FF]/15 bg-[#7C71FF]/5 p-6">
+                  <p className="text-4xl font-semibold text-[#7C71FF]">{profile.stat.value}</p>
                   <p className="mt-2 text-sm leading-relaxed text-ink/60">{profile.stat.label}</p>
                 </div>
               </motion.div>
@@ -163,7 +163,7 @@ export default function ParaQuienPage() {
                 }}
                 className={profile.flip ? 'lg:col-start-1' : ''}
               >
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#635BFF]">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#7C71FF]">
                   {profile.eyebrow}
                 </p>
                 <h2
@@ -181,7 +181,7 @@ export default function ParaQuienPage() {
                 <ul className="mt-6 space-y-2.5">
                   {profile.bullets.map((b) => (
                     <li key={b} className="flex items-start gap-2.5 text-sm text-ink/70">
-                      <span className="mt-0.5 shrink-0 text-[#635BFF]">→</span>
+                      <span className="mt-0.5 shrink-0 text-[#7C71FF]">→</span>
                       {b}
                     </li>
                   ))}

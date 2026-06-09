@@ -30,7 +30,7 @@ export default function GlobalError({
           padding: '24px',
         }}
       >
-        <p style={{ fontWeight: 700, letterSpacing: '0.1em', marginBottom: 24, color: '#635BFF' }}>
+        <p style={{ fontWeight: 700, letterSpacing: '0.1em', marginBottom: 24, color: '#7C71FF' }}>
           KOBI
         </p>
         <h1 style={{ fontSize: '28px', margin: 0, fontWeight: 600 }}>Algo salió mal.</h1>
@@ -41,7 +41,7 @@ export default function GlobalError({
           <a
             href="/admin/inicio"
             style={{
-              background: '#635BFF',
+              background: '#7C71FF',
               color: 'white',
               borderRadius: 999,
               padding: '8px 20px',

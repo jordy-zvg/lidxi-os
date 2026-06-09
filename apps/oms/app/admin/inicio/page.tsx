@@ -36,8 +36,8 @@ export default function InicioAdminPage() {
           </div>
         </div>
       ) : (
-        <div className="flex w-full items-start gap-6 rounded-xl border border-[#635BFF]/20 bg-gradient-to-br from-[#635BFF]/5 to-[#F6F9FC] p-8">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#635BFF]/10 text-[#635BFF]">
+        <div className="flex w-full items-start gap-6 rounded-xl border border-[#7C71FF]/20 bg-gradient-to-br from-[#7C71FF]/5 to-[#F6F9FC] p-8">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#7C71FF]/10 text-[#7C71FF]">
             <IconRocket size={24} />
           </div>
           <div>
@@ -48,19 +48,19 @@ export default function InicioAdminPage() {
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href={'/admin/equipo' as Route}
-                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#635BFF] shadow-sm border border-ink/5 hover:bg-gray-50"
+                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#7C71FF] shadow-sm border border-ink/5 hover:bg-gray-50"
               >
                 Agregar equipo →
               </Link>
               <Link
                 href={'/admin/menu' as Route}
-                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#635BFF] shadow-sm border border-ink/5 hover:bg-gray-50"
+                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#7C71FF] shadow-sm border border-ink/5 hover:bg-gray-50"
               >
                 Configurar menú →
               </Link>
               <Link
                 href={'/admin/integraciones' as Route}
-                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#635BFF] shadow-sm border border-ink/5 hover:bg-gray-50"
+                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#7C71FF] shadow-sm border border-ink/5 hover:bg-gray-50"
               >
                 Conectar canales →
               </Link>
@@ -79,7 +79,7 @@ export default function InicioAdminPage() {
           </p>
           <Link
             href={'/admin/equipo' as Route}
-            className="text-sm font-medium text-[#635BFF] hover:underline"
+            className="text-sm font-medium text-[#7C71FF] hover:underline"
           >
             Ir a Equipo →
           </Link>
@@ -90,7 +90,7 @@ export default function InicioAdminPage() {
           <p className="mt-1 mb-4 text-sm text-ink/60">Agrega items, precios y fotos.</p>
           <Link
             href={'/admin/menu' as Route}
-            className="text-sm font-medium text-[#635BFF] hover:underline"
+            className="text-sm font-medium text-[#7C71FF] hover:underline"
           >
             Ir a Menú →
           </Link>
@@ -101,7 +101,7 @@ export default function InicioAdminPage() {
           <p className="mt-1 mb-4 text-sm text-ink/60">Uber Eats, Rappi, Didi Food.</p>
           <Link
             href={'/admin/integraciones' as Route}
-            className="text-sm font-medium text-[#635BFF] hover:underline"
+            className="text-sm font-medium text-[#7C71FF] hover:underline"
           >
             Ir a Integraciones →
           </Link>

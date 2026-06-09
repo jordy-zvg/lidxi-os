@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 const KDS_TICKETS = [
   { id: 'RP-44102', items: 'Tacos al Pastor ×2', price: '$170', color: '#22c55e' },
   { id: 'UP-23901', items: 'Quesadilla Especial ×1', price: '$95', color: '#f59e0b' },
-  { id: 'DD-11234', items: 'Ensalada César ×3', price: '$285', color: '#635BFF' },
+  { id: 'DD-11234', items: 'Ensalada César ×3', price: '$285', color: '#7C71FF' },
 ];
 
 const OMS_COLUMNS = [
@@ -48,8 +48,8 @@ function OmsPanel() {
   return (
     <div className="h-full rounded-2xl bg-[#F6F9FC] border border-[#0A2540]/8 p-4 text-xs">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-semibold text-[#635BFF]">Kobi</span>
-        <span className="rounded-full bg-[#635BFF]/10 px-2 py-0.5 text-[10px] font-semibold text-[#635BFF]">
+        <span className="text-sm font-semibold text-[#7C71FF]">Kobi</span>
+        <span className="rounded-full bg-[#7C71FF]/10 px-2 py-0.5 text-[10px] font-semibold text-[#7C71FF]">
           28% ahorro
         </span>
       </div>
@@ -81,7 +81,7 @@ function DeliveryPanel() {
   return (
     <div className="rounded-2xl bg-white border border-[#0A2540]/10 p-4 shadow-lg text-xs">
       <div className="mb-2 flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-[#635BFF] animate-pulse" />
+        <span className="h-2 w-2 rounded-full bg-[#7C71FF] animate-pulse" />
         <span className="font-mono text-[10px] text-[#0A2540]/50">#1204 · Uber Direct</span>
       </div>
       <p className="text-xs font-medium text-[#0A2540]">En camino · 12 min</p>
@@ -90,7 +90,7 @@ function DeliveryPanel() {
         <svg viewBox="0 0 160 60" className="w-full" aria-hidden="true">
           <path
             d="M10 30 Q40 10 80 30 Q120 50 150 20"
-            stroke="#635BFF"
+            stroke="#7C71FF"
             strokeWidth="2"
             fill="none"
             strokeLinecap="round"
@@ -103,7 +103,7 @@ function DeliveryPanel() {
             fill="none"
             strokeLinecap="round"
           />
-          <circle cx="10" cy="30" r="4" fill="#635BFF" />
+          <circle cx="10" cy="30" r="4" fill="#7C71FF" />
           <circle cx="150" cy="20" r="4" fill="#22c55e" />
         </svg>
       </div>
@@ -130,7 +130,7 @@ export function HeroVisual() {
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98], delay: 0.2 }}
-        className="absolute inset-x-4 top-14 h-72 shadow-2xl shadow-[#635BFF]/10"
+        className="absolute inset-x-4 top-14 h-72 shadow-2xl shadow-[#7C71FF]/10"
         style={{ zIndex: 2 }}
       >
         <OmsPanel />

@@ -124,7 +124,7 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
       {/* Sucursal */}
       <fieldset>
         <legend className="mb-2 block text-sm font-medium text-[#0A2540]">
-          Dirección de tu sucursal <span className="text-[#635BFF]">*</span>
+          Dirección de tu sucursal <span className="text-[#7C71FF]">*</span>
         </legend>
         <div className="relative">
           <IconMapPin
@@ -141,7 +141,7 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
               setLng(null);
             }}
             placeholder="Av. Insurgentes Sur 1234, Roma Norte, CDMX"
-            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#635BFF] focus:ring-2 focus:ring-[#635BFF]/20 ${
+            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20 ${
               errors.address ? 'border-[#DC2626]' : 'border-ink/15 hover:border-ink/30'
             }`}
             autoComplete="off"
@@ -153,7 +153,7 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
                   <button
                     type="button"
                     onClick={() => pickSuggestion(s)}
-                    className="block w-full px-3.5 py-2 text-left text-sm text-[#0A2540] hover:bg-[#635BFF]/5"
+                    className="block w-full px-3.5 py-2 text-left text-sm text-[#0A2540] hover:bg-[#7C71FF]/5"
                   >
                     {s.place_name}
                   </button>
@@ -199,7 +199,7 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
                     type="checkbox"
                     checked={!h.closed}
                     onChange={(e) => updateDay(d.key, { closed: !e.target.checked })}
-                    className="accent-[#635BFF]"
+                    className="accent-[#7C71FF]"
                   />
                   Abierto
                 </label>
@@ -227,15 +227,15 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
       {/* Canales */}
       <fieldset>
         <legend className="mb-2 block text-sm font-medium text-[#0A2540]">
-          Canales activos <span className="text-[#635BFF]">*</span>
+          Canales activos <span className="text-[#7C71FF]">*</span>
         </legend>
         <div className="space-y-2">
           {CANALES.map((c) => (
             <label
               key={c.value}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-ink/10 px-3.5 py-3 transition hover:border-[#635BFF]/40 has-[:checked]:border-[#635BFF] has-[:checked]:bg-[#635BFF]/5"
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-ink/10 px-3.5 py-3 transition hover:border-[#7C71FF]/40 has-[:checked]:border-[#7C71FF] has-[:checked]:bg-[#7C71FF]/5"
             >
-              <input type="checkbox" name="canales" value={c.value} className="accent-[#635BFF]" />
+              <input type="checkbox" name="canales" value={c.value} className="accent-[#7C71FF]" />
               <span className="text-sm text-[#0A2540]">{c.label}</span>
             </label>
           ))}
@@ -251,7 +251,7 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[#635BFF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f48d9] disabled:opacity-60 active:scale-[0.98]"
+          className="rounded-lg bg-[#7C71FF] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5E52F5] disabled:opacity-60 active:scale-[0.98]"
         >
           {pending ? 'Guardando…' : 'Continuar'}
         </button>
