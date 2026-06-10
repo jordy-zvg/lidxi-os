@@ -178,9 +178,6 @@ importers:
       '@kobi/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@mercadopago/sdk-react':
-        specifier: 0.0.21
-        version: 0.0.21(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       mercadopago:
         specifier: 2.0.15
         version: 2.0.15
@@ -481,15 +478,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@mercadopago/sdk-js@0.0.3':
-    resolution: {integrity: sha512-kO48DNLHdfFAp3on12nuKdqNlEmw1x3+nM6wLd04BdWOXoFcAhkNMQV3AyUIanXdO/bB/dENakdacLT29297EQ==}
-
-  '@mercadopago/sdk-react@0.0.21':
-    resolution: {integrity: sha512-95/TZab4kRySWWwUPzyncz+mqvZ7vyiZ6I3zLyElhf8kNpKB/Xu1DClUU79t+wu3ejXOHraWcUCeC1vwgKOfww==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@next/env@14.2.35':
     resolution: {integrity: sha512-DuhvCtj4t9Gwrx80dmz2F4t/zKQ4ktN8WrMwOuVzkJfBilwAwGr6v16M5eI8yCuZ63H9TTuEU09Iu2HqkzFPVQ==}
@@ -1918,14 +1906,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@mercadopago/sdk-js@0.0.3': {}
-
-  '@mercadopago/sdk-react@0.0.21(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@mercadopago/sdk-js': 0.0.3
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
 
   '@next/env@14.2.35': {}
 
