@@ -13,7 +13,11 @@ export interface MercadoPagoItem {
   id: string;
   title: string;
   quantity: number;
-  /** Precio unitario en pesos (no centavos — MP usa el monto en la moneda). */
+  /**
+   * Precio unitario en unidad MAYOR (pesos con decimales), tal como lo espera MP
+   * en `unit_price`. Se obtiene con `toMajorUnits(cents)` de @kobi/shared en la
+   * frontera de integración — NO pasar CentsMXN crudos aquí.
+   */
   unitPrice: number;
 }
 
@@ -40,6 +44,35 @@ export interface MercadoPagoPreference {
 }
 
 export type MercadoPagoPaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+
+/**
+ * Estado de pago canónico de Kobi — alineado 1:1 con el CHECK de
+ * `orders.payment_status` (`pending | paid | failed | refunded`). MP 'cancelled'
+ * colapsa a 'failed'; no hay estado 'cancelled' separado en la orden.
+ */
+export type OrderPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
+/**
+ * Pago de MP normalizado al dominio de Kobi. Es el resultado de consultar la API
+ * de MP (`payment.get`) en el webhook — la fuente AUTORITATIVA del status. El
+ * payload del webhook nunca se confía para decidir el estado.
+ */
+export interface NormalizedMercadoPagoPayment {
+  /** ID del payment en MP. */
+  mpPaymentId: string;
+  /** external_reference de la preference = id interno de la orden. */
+  orderId: string;
+  /** Status mapeado al enum interno DB-aligned. */
+  status: OrderPaymentStatus;
+  /** Status crudo de MP (approved, rejected, in_process, ...). */
+  rawStatus: string;
+  /** Monto cobrado en CentsMXN. */
+  amountCents: number;
+  /** Moneda (MXN). */
+  currency: string;
+  /** tenant_id de metadata, si MP lo devolvió. */
+  tenantId: string | null;
+}
 
 export interface MercadoPagoWebhookEvent {
   /** Status mapeado al enum interno de Kobi. */

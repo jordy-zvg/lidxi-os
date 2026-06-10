@@ -3,6 +3,7 @@
 import { resolveOmsBaseUrl, resolveStorefrontOrigin } from '@/lib/origin';
 import { createSupabaseServiceClient } from '@kobi/db';
 import { MercadoPago } from '@kobi/integrations';
+import { cents, toMajorUnits } from '@kobi/shared';
 import { revalidatePath } from 'next/cache';
 
 export type StorefrontResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -216,7 +217,8 @@ export async function createDirectOrderAndPreference(
       id: it.menuItemId,
       title: menuItem.name,
       quantity: it.qty,
-      unitPrice: menuItem.base_price / 100, // MP usa pesos enteros/decimales
+      // base_price está en CentsMXN; MP espera el monto en unidad mayor (pesos).
+      unitPrice: toMajorUnits(cents(menuItem.base_price)),
     });
   }
 
@@ -291,6 +293,11 @@ export async function createDirectOrderAndPreference(
   if (!prefRes.ok) {
     return { ok: false, error: prefRes.error.message };
   }
+
+  // Persistir el preference_id en la orden para reconciliar retornos/abandonos.
+  // No es bloqueante: si falla, el pago aún se cierra por external_reference en
+  // el webhook; solo perdemos el puntero a la preference.
+  await supabase.from('orders').update({ mp_preference_id: prefRes.data.id }).eq('id', orderId);
 
   revalidatePath(`/${tenant.slug}`);
   return {

@@ -43,11 +43,12 @@ En Railway: cada service tiene su propia copia (prod usa `*_PROD`, staging usa `
 
 | Variable | OMS | Storefront | Notas |
 |---|:-:|:-:|---|
-| `MERCADO_PAGO_ACCESS_TOKEN_PROD` ⚠️ | — | ✅ | Usado por `create-preference` cuando `tenants.payment_mode='production'` |
-| `MERCADO_PAGO_ACCESS_TOKEN_TEST` ⚠️ | — | ✅ | Usado cuando `tenants.payment_mode='test'` (default) |
-| `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY_PROD` | — | ✅ | Cliente del checkout |
-| `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY_TEST` | — | ✅ | Cliente del checkout sandbox |
-| `MERCADO_PAGO_WEBHOOK_SECRET` ⚠️ | ✅ | — | HMAC verify del webhook |
+| `MP_MODE` | ✅ | ✅ | Entorno por **deploy**: `mock`\|`sandbox`\|`production`. Decide qué tokens usa el seam (`sandbox`→`_TEST`, `production`→`_PROD`). Reemplazó al toggle `tenants.payment_mode`. |
+| `MERCADO_PAGO_ACCESS_TOKEN_PROD` ⚠️ | ✅ | ✅ | Resuelto por el seam `getCollectorCredentials` (no por tenant). **OMS lo necesita** para el `payment.get` del webhook; Storefront para crear la preference. |
+| `MERCADO_PAGO_ACCESS_TOKEN_TEST` ⚠️ | ✅ | ✅ | Igual, cuando `MP_MODE=sandbox`. **OMS también lo requiere.** |
+| `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY_PROD` | — | ✅ | Reservada para Bricks/Checkout API futuro; Checkout Pro por redirect no la usa. |
+| `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY_TEST` | — | ✅ | Igual, sandbox. |
+| `MERCADO_PAGO_WEBHOOK_SECRET` ⚠️ | ✅ | — | Firma oficial del webhook (`x-signature`: `ts=..,v1=..`). |
 
 ### Resend
 
@@ -114,7 +115,7 @@ DKIM/SPF/DMARC: **solo Ruta B** requiere DNS en Cloudflare → zona `kobi.mx`. E
 | Servicio | Diferencia |
 |---|---|
 | Supabase | Proyectos separados (`*_PROD` vs `*_STAGING`). Schemas idénticos, data sintética en staging. |
-| Mercado Pago | Mismas credenciales pero `tenants.payment_mode` se setea por entorno (staging siempre `'test'`). |
+| Mercado Pago | Mismas credenciales; el entorno lo fija `MP_MODE` por deploy (staging → `sandbox`). |
 | Resend | Mismo dominio (o `resend.dev` si Ruta A) pero el `from` opcionalmente puede diferir entre prod y staging. |
 | Sentry | Misma org, environments separados (`production` vs `staging`) en el mismo proyecto. |
 | Mapbox | Mismo token. |

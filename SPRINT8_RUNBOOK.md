@@ -128,7 +128,7 @@ Pegar el prompt del Sprint 8 real a Claude Code junto con este runbook.
 ## Rollback rápido
 
 - **DB corrupta tras migration**: restaurar último backup pre-migration (ver `MIGRATIONS.md` → Restore desde backup).
-- **Pagos rompiendo órdenes**: toggle `tenants.payment_mode='test'` para el tenant afectado.
+- **Pagos rompiendo órdenes**: ⚠️ *(superseded Sprint 17)* el toggle `tenants.payment_mode` ya no existe; el entorno lo fija `MP_MODE` por deploy → poner `MP_MODE=mock` (o `sandbox`) en el servicio y redeployar para cortar cobros reales.
 - **Deploy roto**: Railway → service → rollback al deploy anterior.
 - **Cookie/sesión problemática**: invalidar `kobi-session` (POS) o `sb-<ref>-auth-token` (admin) desde Railway logs.
 

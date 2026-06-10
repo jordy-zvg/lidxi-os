@@ -17,7 +17,6 @@
     "@kobi/shared": "workspace:*",
     "@kobi/tokens": "workspace:*",
     "@kobi/ui": "workspace:*",
-    "@mercadopago/sdk-react": "0.0.21",
     "mercadopago": "2.0.15",
     "next": "14.2.35",
     "react": "18.3.1",

@@ -12,3 +12,13 @@ export const cents = (n: number): CentsMXN => {
 };
 
 export const pesos = (n: number): CentsMXN => cents(Math.round(n * 100));
+
+/**
+ * Convierte CentsMXN al monto en unidad MAYOR (pesos con decimales) que esperan
+ * las APIs de pago externas (Mercado Pago `unit_price`, etc.). 12345 → 123.45.
+ *
+ * Es la conversión INVERSA a `pesos()`: aquí SALIMOS del dominio interno (cents)
+ * hacia la frontera de integración. Centralizar la conversión en un solo helper
+ * evita los `/100` mágicos dispersos por el código.
+ */
+export const toMajorUnits = (c: CentsMXN): number => Math.round(c) / 100;

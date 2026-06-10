@@ -1,67 +1,49 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { type Database, createSupabaseServiceClient } from '@kobi/db';
+import { MercadoPago } from '@kobi/integrations';
 import { type NextRequest, NextResponse } from 'next/server';
 
 type PaymentEventInsert = Database['public']['Tables']['payment_events']['Insert'];
+type PaymentEventUpdate = Database['public']['Tables']['payment_events']['Update'];
 
 export const runtime = 'nodejs';
 
 const SECRET = process.env.MERCADO_PAGO_WEBHOOK_SECRET ?? '';
 
-interface MpPaymentResource {
-  id: string | number;
-  status?: string;
-  external_reference?: string;
-  metadata?: Record<string, unknown>;
+/** Payload `_mock` que inyecta el flujo mock (storefront / CLI). */
+interface MockEvent {
+  paymentId: string;
+  orderId: string;
+  tenantId: string | null;
+  rawStatus: string;
 }
 
 /**
- * Verifica la firma HMAC del header `x-signature` que envía Mercado Pago.
- *
- * Formato real MP: `ts=<unix>,v1=<hex>`. El payload firmado es
- * `id:<data.id>;request-id:<x-request-id>;ts:<ts>;`. Aquí usamos un esquema
- * compatible con el mock: si el header es solo `v1=<hex>`, validamos HMAC
- * del body crudo. Esto cubre el mock; para MP real, el caller mañana ajusta
- * a la canonicalización oficial.
+ * Estados de pago desde los que SÍ se permite transicionar al estado derivado.
+ * Garantiza idempotencia y la monotonicidad correcta de la máquina:
+ *   - paid     gana sobre 'pending' Y sobre un intento previo 'failed' — Checkout
+ *              Pro permite reintentar tras un rechazo bajo la misma preferencia,
+ *              así que un approve posterior debe ganar.
+ *   - failed   solo aplica si seguía 'pending' (un rechazo TARDÍO no degrada una
+ *              orden ya pagada).
+ *   - refunded solo aplica sobre un pago ya 'paid'.
+ *   - pending  nunca degrada (no-op de transición).
+ * Re-aplicar el mismo estado terminal es no-op (el origen no se incluye a sí
+ * mismo) → idempotente ante reenvíos de MP.
  */
-function verifySignature(rawBody: string, header: string | null): boolean {
-  if (!SECRET || !header) return false;
-  let provided: string;
-  if (header.includes('v1=')) {
-    const after = header.split('v1=')[1] ?? '';
-    provided = after.split(',')[0] ?? '';
-  } else {
-    provided = header;
-  }
-  if (!provided) return false;
-  const expected = createHmac('sha256', SECRET).update(rawBody).digest('hex');
-  try {
-    return (
-      provided.length === expected.length &&
-      timingSafeEqual(Buffer.from(provided, 'hex'), Buffer.from(expected, 'hex'))
-    );
-  } catch {
-    return false;
-  }
-}
-
-const STATUS_TO_PAYMENT_STATUS: Record<string, string> = {
-  approved: 'paid',
-  authorized: 'paid',
-  in_process: 'pending',
-  pending: 'pending',
-  rejected: 'failed',
-  cancelled: 'cancelled',
-  refunded: 'refunded',
-  charged_back: 'refunded',
+const ALLOWED_SOURCE_STATES: Record<string, readonly string[] | null> = {
+  paid: ['pending', 'failed'],
+  failed: ['pending'],
+  refunded: ['paid'],
+  pending: null,
 };
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const signature = req.headers.get('x-signature');
+  const xSignature = req.headers.get('x-signature');
+  const xRequestId = req.headers.get('x-request-id');
   const isMockMp = req.headers.get('x-mock-mp') === 'true';
 
-  // Parse defensivo (si JSON inválido, igualmente loggeamos para audit).
+  // Parse defensivo (si el JSON es inválido, igual loggeamos para audit).
   let payload: Record<string, unknown> = {};
   try {
     payload = JSON.parse(rawBody);
@@ -69,44 +51,31 @@ export async function POST(req: NextRequest) {
     // Sigue: la fila queda con error y signature_valid=false.
   }
 
-  // Si viene del flujo mock (storefront → este webhook con `_mock` adjunto),
-  // sintetizamos el payload de MP para que el resto del handler funcione.
-  const mockEvent = payload._mock as
-    | {
-        status: string;
-        paymentId: string;
-        orderId: string;
-        tenantId: string | null;
-        rawStatus: string;
-        amount: number;
-        currency: string;
-      }
-    | undefined;
-  if (isMockMp && mockEvent) {
-    payload = {
-      id: mockEvent.paymentId,
-      type: 'payment',
-      action: 'payment.created',
-      data: {
-        id: mockEvent.paymentId,
-        status: mockEvent.rawStatus,
-        external_reference: mockEvent.orderId,
-        metadata: { tenant_id: mockEvent.tenantId },
-      },
-    };
-  }
+  const data = (payload.data ?? {}) as Record<string, unknown>;
+  const dataId = (data.id ?? payload.id)?.toString() ?? null;
 
+  // event_id estable para idempotencia del LOG: id de notificación si existe,
+  // si no el id del recurso. El upsert ON CONFLICT event_id dedup reenvíos.
   const eventId =
-    (payload.id as string | number | undefined)?.toString() ??
+    (payload.id ?? data.id)?.toString() ??
     `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const eventType =
     (payload.type as string | undefined) ?? (payload.action as string | undefined) ?? 'unknown';
 
   const supabase = createSupabaseServiceClient();
-  // Para mocks aceptamos sin firma; para MP real exigimos HMAC válido.
-  const signatureValid = isMockMp ? true : verifySignature(rawBody, signature);
 
-  // Audit log SIEMPRE primero (M3): grabar antes de procesar.
+  const closeEvent = (fields: PaymentEventUpdate) =>
+    supabase
+      .from('payment_events')
+      .update({ processed_at: new Date().toISOString(), ...fields })
+      .eq('event_id', eventId);
+
+  // ── Firma: mocks sin firma; MP real exige la canonicalización oficial. ──
+  const signatureValid = isMockMp
+    ? true
+    : MercadoPago.verifyMercadoPagoSignature({ xSignature, xRequestId, dataId, secret: SECRET });
+
+  // ── Audit log SIEMPRE primero: grabar antes de procesar. ──
   const insertPayload: PaymentEventInsert = {
     event_id: eventId,
     event_type: eventType,
@@ -114,80 +83,178 @@ export async function POST(req: NextRequest) {
     payload: payload as PaymentEventInsert['payload'],
     signature_valid: signatureValid,
   };
-  await supabase.from('payment_events').upsert(insertPayload, { onConflict: 'event_id' });
+  const { error: auditErr } = await supabase
+    .from('payment_events')
+    .upsert(insertPayload, { onConflict: 'event_id' });
+  if (auditErr) {
+    // Audit-first de verdad: sin log no se procesa. 5xx para que MP reintente
+    // (el upsert es idempotente por onConflict event_id, así que es seguro).
+    return NextResponse.json({ error: 'audit_log_failed' }, { status: 503 });
+  }
 
   if (!signatureValid) {
-    await supabase
-      .from('payment_events')
-      .update({ error: 'invalid_signature', processed_at: new Date().toISOString() })
-      .eq('event_id', eventId);
+    await closeEvent({ error: 'invalid_signature' });
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   // Procesar solo eventos de payment.
-  const isPayment = eventType.startsWith('payment') || eventType === 'payment';
+  const isPayment = eventType.startsWith('payment');
   if (!isPayment) {
-    await supabase
-      .from('payment_events')
-      .update({ processed_at: new Date().toISOString(), derived_status: 'ignored' })
-      .eq('event_id', eventId);
+    await closeEvent({ derived_status: 'ignored' });
     return NextResponse.json({ ok: true, ignored: eventType });
   }
 
-  const resource = (payload.data ?? payload) as MpPaymentResource;
-  const externalRef = resource.external_reference;
-  const mpStatus = resource.status ?? 'unknown';
-  const derived = STATUS_TO_PAYMENT_STATUS[mpStatus] ?? 'unknown';
+  // ── Obtener el status AUTORITATIVO ──
+  // Mock: se sintetiza desde `_mock`. Real: se CONSULTA a la API de MP (nunca se
+  // confía en el status del payload — la notificación real solo trae data.id).
+  let mpPaymentId: string;
+  let orderId: string;
+  let tenantHint: string | null;
+  let derived: string;
+  let rawStatus: string;
 
-  if (!externalRef) {
-    await supabase
-      .from('payment_events')
-      .update({
-        processed_at: new Date().toISOString(),
-        derived_status: derived,
-        error: 'missing_external_reference',
-      })
-      .eq('event_id', eventId);
-    return NextResponse.json({ ok: true, warning: 'missing_external_reference' });
+  if (isMockMp) {
+    const mock = payload._mock as MockEvent | undefined;
+    if (!mock) {
+      await closeEvent({ error: 'mock_event_missing' });
+      return NextResponse.json({ ok: true, warning: 'mock_event_missing' });
+    }
+    mpPaymentId = mock.paymentId;
+    orderId = mock.orderId;
+    tenantHint = mock.tenantId;
+    rawStatus = mock.rawStatus;
+    derived = MercadoPago.mapMercadoPagoStatus(mock.rawStatus);
+  } else {
+    if (!dataId) {
+      await closeEvent({ error: 'missing_data_id' });
+      return NextResponse.json({ ok: true, warning: 'missing_data_id' });
+    }
+    const environment = MercadoPago.resolveMercadoPagoEnvironment();
+    const fetched = await MercadoPago.fetchMercadoPagoPayment(environment, dataId);
+    if (!fetched.ok) {
+      const fetchStatus = fetched.error.status ?? 502;
+      await closeEvent({ error: `fetch_failed:${fetched.error.code}:${fetchStatus}` });
+      // < 500 → permanente (404 pago inexistente, etc.): responder TERMINAL (200)
+      // para que MP DEJE de reintentar y no spamee el audit log. ≥ 500 →
+      // transitorio: responder 5xx para que MP reintente.
+      if (fetchStatus < 500) {
+        return NextResponse.json({
+          ok: true,
+          warning: 'payment_fetch_terminal',
+          code: fetched.error.code,
+        });
+      }
+      return NextResponse.json(
+        { error: 'No se pudo consultar el pago en MP', code: fetched.error.code },
+        { status: fetchStatus },
+      );
+    }
+    mpPaymentId = fetched.data.mpPaymentId;
+    orderId = fetched.data.orderId;
+    tenantHint = fetched.data.tenantId;
+    rawStatus = fetched.data.rawStatus;
+    derived = fetched.data.status;
   }
 
-  // Resolver tenant_id desde la orden (para que el RLS de payment_events.tenant_id funcione).
+  // ── Match contra la orden ──
   const { data: order } = await supabase
     .from('orders')
-    .select('id, tenant_id')
-    .eq('id', externalRef)
+    .select('id, tenant_id, payment_status')
+    .eq('id', orderId)
     .maybeSingle();
 
   if (!order) {
-    await supabase
-      .from('payment_events')
-      .update({
-        processed_at: new Date().toISOString(),
-        derived_status: derived,
-        error: 'order_not_found',
-      })
-      .eq('event_id', eventId);
+    await closeEvent({ derived_status: derived, error: 'order_not_found' });
     return NextResponse.json({ ok: true, warning: 'order_not_found' });
   }
 
-  // Actualizar order.payment_status + cerrar payment_events.
-  await supabase
-    .from('orders')
-    .update({
-      payment_method: 'mercado_pago',
-      payment_ref: resource.id?.toString() ?? null,
-    })
-    .eq('id', (order as { id: string }).id);
+  const orderRow = order as { id: string; tenant_id: string | null; payment_status: string };
+  const allowedSources = ALLOWED_SOURCE_STATES[derived];
 
-  await supabase
-    .from('payment_events')
-    .update({
-      order_id: (order as { id: string }).id,
-      tenant_id: (order as { tenant_id: string }).tenant_id,
-      derived_status: derived,
-      processed_at: new Date().toISOString(),
-    })
-    .eq('event_id', eventId);
+  // ── Marca idempotente del estado de pago ──
+  // El `.in('payment_status', allowedSources)` hace el UPDATE atómico y
+  // condicional: la transición ocurre una sola vez aunque MP reenvíe.
+  let applied = false;
+  if (allowedSources?.includes(orderRow.payment_status)) {
+    try {
+      const { data: updated, error: updateErr } = await supabase
+        .from('orders')
+        .update({
+          payment_status: derived,
+          mp_payment_id: mpPaymentId,
+          payment_method: 'mercado_pago',
+          payment_ref: mpPaymentId,
+        })
+        .eq('id', orderRow.id)
+        .in('payment_status', allowedSources as string[])
+        .select('id');
 
-  return NextResponse.json({ ok: true, orderId: (order as { id: string }).id, status: derived });
+      if (updateErr) {
+        // 23505 = unique_violation en orders.mp_payment_id: este pago YA se aplicó
+        // (otra entrega del mismo webhook). Es idempotente, NO un error → 200.
+        if (updateErr.code === '23505') {
+          await closeEvent({
+            order_id: orderRow.id,
+            tenant_id: orderRow.tenant_id ?? tenantHint,
+            derived_status: derived,
+            error: 'duplicate_payment_idempotent',
+          });
+          return NextResponse.json({
+            ok: true,
+            orderId: orderRow.id,
+            status: derived,
+            applied: false,
+          });
+        }
+        // Error real de DB: 5xx para que MP reintente.
+        await closeEvent({
+          order_id: orderRow.id,
+          tenant_id: orderRow.tenant_id ?? tenantHint,
+          derived_status: derived,
+          error: `update_failed:${updateErr.code}`,
+        });
+        return NextResponse.json({ error: 'DB update falló' }, { status: 500 });
+      }
+
+      applied = (updated?.length ?? 0) > 0;
+    } catch (e) {
+      // Red de seguridad: cualquier excepción de unicidad/transitoria → idempotente.
+      const code = (e as { code?: string })?.code;
+      if (code === '23505') {
+        await closeEvent({
+          order_id: orderRow.id,
+          tenant_id: orderRow.tenant_id ?? tenantHint,
+          derived_status: derived,
+          error: 'duplicate_payment_idempotent',
+        });
+        return NextResponse.json({
+          ok: true,
+          orderId: orderRow.id,
+          status: derived,
+          applied: false,
+        });
+      }
+      await closeEvent({
+        order_id: orderRow.id,
+        tenant_id: orderRow.tenant_id ?? tenantHint,
+        derived_status: derived,
+        error: 'update_exception',
+      });
+      return NextResponse.json({ error: 'DB update excepción' }, { status: 500 });
+    }
+  }
+
+  await closeEvent({
+    order_id: orderRow.id,
+    tenant_id: orderRow.tenant_id ?? tenantHint,
+    derived_status: derived,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    orderId: orderRow.id,
+    status: derived,
+    rawStatus,
+    applied,
+  });
 }

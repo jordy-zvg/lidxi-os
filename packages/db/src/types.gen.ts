@@ -1018,9 +1018,12 @@ export type Database = {
           dispatched_at: string | null
           external_id: string | null
           id: string
+          mp_payment_id: string | null
+          mp_preference_id: string | null
           order_type: string
           payment_method: string | null
           payment_ref: string | null
+          payment_status: string
           ready_at: string | null
           sla_deadline: string | null
           status: string
@@ -1047,9 +1050,12 @@ export type Database = {
           dispatched_at?: string | null
           external_id?: string | null
           id?: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
           order_type?: string
           payment_method?: string | null
           payment_ref?: string | null
+          payment_status?: string
           ready_at?: string | null
           sla_deadline?: string | null
           status?: string
@@ -1076,9 +1082,12 @@ export type Database = {
           dispatched_at?: string | null
           external_id?: string | null
           id?: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
           order_type?: string
           payment_method?: string | null
           payment_ref?: string | null
+          payment_status?: string
           ready_at?: string | null
           sla_deadline?: string | null
           status?: string

@@ -12,6 +12,7 @@
 
 import { type Result, ok } from '@kobi/shared';
 import { isMockMode } from '../common';
+import type { MercadoPagoEnvironment } from './credentials';
 import { createMockPreference } from './mock';
 import { createRealPreference } from './real';
 import type { MercadoPagoPreference, MercadoPagoPreferenceRequest } from './types';
@@ -26,6 +27,16 @@ export function resolveMercadoPagoMode(): MercadoPagoEffectiveMode {
   if (isMockMode()) return 'mock';
   if (process.env.MERCADO_PAGO_ACCESS_TOKEN_PROD) return 'production';
   return 'sandbox';
+}
+
+/**
+ * Narrowing del modo al ENTORNO real para llamadas que SIEMPRE hablan con MP
+ * (p.ej. el fetch del pago en el webhook): 'mock' no aplica ahí, colapsa a
+ * 'sandbox'. El webhook nunca debería recibir tráfico real en modo mock, pero
+ * si llegara, sandbox es el default seguro.
+ */
+export function resolveMercadoPagoEnvironment(): MercadoPagoEnvironment {
+  return resolveMercadoPagoMode() === 'production' ? 'production' : 'sandbox';
 }
 
 export interface MercadoPagoClient {

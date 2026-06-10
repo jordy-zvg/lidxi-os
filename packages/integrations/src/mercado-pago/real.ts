@@ -1,42 +1,32 @@
 /**
- * Cliente real de Mercado Pago (sandbox + production).
+ * Cliente real de Mercado Pago (sandbox + production), usando el SDK oficial
+ * `mercadopago`.
  *
- * Usa el SDK oficial `mercadopago`. El access token se decide por modo:
- *   - sandbox     → MERCADO_PAGO_ACCESS_TOKEN_TEST
- *   - production  → MERCADO_PAGO_ACCESS_TOKEN_PROD
- *
- * Si la env var del modo solicitado no está poblada, devuelve null y el
- * caller decide qué hacer (típicamente: 503 + log).
+ * Las CREDENCIALES (qué cuenta cobra) ya NO se leen aquí: vienen del seam
+ * `getCollectorCredentials(tenantId, environment)`, de modo que migrar a MP
+ * Connect/OAuth sea cambiar SOLO ese resolver. Este módulo decide el ENTORNO
+ * (sandbox vs production) y arma la request de la preference.
  */
 
 import { type Result, err, ok } from '@kobi/shared';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { apiError } from '../common';
+import { type MercadoPagoEnvironment, getCollectorCredentials } from './credentials';
 import type { MercadoPagoPreference, MercadoPagoPreferenceRequest } from './types';
 
-export type MercadoPagoMode = 'sandbox' | 'production';
-
-function tokenForMode(mode: MercadoPagoMode): string | null {
-  if (mode === 'production') {
-    return process.env.MERCADO_PAGO_ACCESS_TOKEN_PROD ?? null;
-  }
-  return process.env.MERCADO_PAGO_ACCESS_TOKEN_TEST ?? null;
-}
-
-export function buildMercadoPagoSdk(mode: MercadoPagoMode): MercadoPagoConfig | null {
-  const token = tokenForMode(mode);
-  if (!token) return null;
-  return new MercadoPagoConfig({ accessToken: token, options: { timeout: 5_000 } });
+/** Construye un cliente del SDK a partir de un access token ya resuelto. */
+export function buildMercadoPagoSdk(accessToken: string): MercadoPagoConfig {
+  return new MercadoPagoConfig({ accessToken, options: { timeout: 5_000 } });
 }
 
 export async function createRealPreference(
-  mode: MercadoPagoMode,
+  environment: MercadoPagoEnvironment,
   req: MercadoPagoPreferenceRequest,
 ): Promise<Result<MercadoPagoPreference>> {
-  const sdk = buildMercadoPagoSdk(mode);
-  if (!sdk) {
-    return err(apiError('config', `MP no configurado para modo ${mode}`, 503));
-  }
+  const creds = await getCollectorCredentials(req.tenantId, environment);
+  if (!creds.ok) return creds;
+
+  const sdk = buildMercadoPagoSdk(creds.data.accessToken);
 
   try {
     const preference = new Preference(sdk);
@@ -58,13 +48,18 @@ export async function createRealPreference(
         },
         auto_return: 'approved',
         notification_url: `${req.omsBaseUrl}/api/webhooks/mercado-pago`,
-        metadata: { tenant_id: req.tenantId, mode, restaurant_slug: req.restaurantSlug },
+        metadata: {
+          tenant_id: req.tenantId,
+          environment,
+          restaurant_slug: req.restaurantSlug,
+        },
       },
     });
 
     return ok({
       id: result.id ?? '',
-      initPoint: (mode === 'production' ? result.init_point : result.sandbox_init_point) ?? '',
+      initPoint:
+        (environment === 'production' ? result.init_point : result.sandbox_init_point) ?? '',
       sandboxInitPoint: result.sandbox_init_point ?? undefined,
     });
   } catch (e) {
