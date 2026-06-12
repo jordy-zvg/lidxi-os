@@ -2,8 +2,12 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireTenant } from '@/lib/supabase/tenant-guard';
+import type { MenuItemOptionGroup } from '@kobi/shared';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+export type MenuItemSource = 'manual' | 'rappi' | 'eats' | 'didi' | 'foto';
+export type MenuItemStatus = 'draft' | 'active' | 'archived';
 
 export interface MenuItemRow {
   id: string;
@@ -16,6 +20,11 @@ export interface MenuItemRow {
   photo_key: string | null;
   base_price: number;
   active: boolean;
+  source: MenuItemSource;
+  status: MenuItemStatus;
+  options: MenuItemOptionGroup[];
+  import_id: string | null;
+  review_reasons: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,18 +49,24 @@ async function getRestaurantIdForTenant(tenantId: string): Promise<string> {
 // Load
 // ---------------------------------------------------------------------------
 
-export const loadMenuEditorData = async (): Promise<
-  ActionResult<{ categories: CategoryGroup[]; items: MenuItemRow[] }>
-> => {
+export interface LoadMenuEditorOpts {
+  /** Scopea el editor a los BORRADORES de un import (pantalla de staging). */
+  importId?: string;
+}
+
+export const loadMenuEditorData = async (
+  opts?: LoadMenuEditorOpts,
+): Promise<ActionResult<{ categories: CategoryGroup[]; items: MenuItemRow[] }>> => {
   try {
     const { tenantId } = await requireTenant();
     const supabase = createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('menu_items')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .order('category')
-      .order('name');
+    let query = supabase.from('menu_items').select('*').eq('tenant_id', tenantId);
+    if (opts?.importId) {
+      // Scope hermético del staging: solo drafts de ESTE import. El menú vivo
+      // y los drafts de otros imports no entran a la pantalla.
+      query = query.eq('import_id', opts.importId).eq('status', 'draft');
+    }
+    const { data, error } = await query.order('category').order('name');
 
     if (error) return { ok: false, error: error.message };
 
@@ -83,10 +98,18 @@ export interface CreateMenuItemInput {
   photo_url?: string;
   photo_key?: string;
   active?: boolean;
+  options?: MenuItemOptionGroup[];
+}
+
+export interface DraftScope {
+  /** El item nace como borrador colgado de este import (staging). */
+  importId: string;
+  source?: MenuItemSource;
 }
 
 export const createMenuItem = async (
   input: CreateMenuItemInput,
+  draft?: DraftScope,
 ): Promise<ActionResult<MenuItemRow>> => {
   try {
     const { tenantId } = await requireTenant();
@@ -104,6 +127,10 @@ export const createMenuItem = async (
         photo_url: input.photo_url ?? null,
         photo_key: input.photo_key ?? null,
         active: input.active ?? true,
+        options: input.options ?? [],
+        status: draft ? 'draft' : 'active',
+        source: draft?.source ?? 'manual',
+        import_id: draft?.importId ?? null,
       })
       .select('*')
       .single();
@@ -127,6 +154,7 @@ export interface UpdateMenuItemInput {
   photo_url?: string | null;
   photo_key?: string | null;
   active?: boolean;
+  options?: MenuItemOptionGroup[];
 }
 
 export const updateMenuItem = async (
@@ -136,9 +164,11 @@ export const updateMenuItem = async (
   try {
     const { tenantId } = await requireTenant();
     const supabase = createSupabaseServerClient();
+    // Guardar desde el editor = un humano revisó → se limpia la marca de
+    // revisión obligatoria que dejó el importador.
     const { data, error } = await supabase
       .from('menu_items')
-      .update({ ...input, updated_at: new Date().toISOString() })
+      .update({ ...input, review_reasons: null, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('tenant_id', tenantId)
       .select('*')

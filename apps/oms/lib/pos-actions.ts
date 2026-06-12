@@ -26,6 +26,7 @@ export const loadMenu = async (): Promise<PosActionResult<MenuItemData[]>> => {
     .select('id, name, category, base_price, description')
     .eq('tenant_id', ctx.tenantId)
     .eq('active', true)
+    .eq('status', 'active')
     .order('category')
     .order('name');
 

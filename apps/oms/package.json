@@ -12,6 +12,7 @@
     "clean": "rm -rf .next .turbo"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@kobi/db": "workspace:*",
     "@kobi/integrations": "workspace:*",
     "@kobi/printing": "workspace:*",

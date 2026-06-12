@@ -24,6 +24,8 @@ export const SLA_BY_CHANNEL: Record<ChannelKey, SlaConfig> = {
   rappi: { green: 15, amber: 18, red: 22 },
   didi: { green: 15, amber: 18, red: 22 },
   mostrador: { green: 20, amber: 25, red: 30 },
+  // Sin contrato de marketplace de por medio: mismos umbrales que direct.
+  whatsapp: { green: 25, amber: 30, red: 40 },
 };
 
 export const slaLevel = (channel: ChannelKey, elapsedMinutes: number): SlaLevel => {

@@ -44,11 +44,27 @@ export const CHANNELS = {
     bg: '#F1F5F9',
     color: '#425466',
   },
+  whatsapp: {
+    key: 'whatsapp',
+    label: 'WhatsApp',
+    short: 'WA',
+    // Teal en vez del verde brand (#25D366): el verde claro ya lo ocupa Eats.
+    bg: '#E6F7F4',
+    color: '#0F766E',
+  },
 } as const;
 
 export type ChannelKey = keyof typeof CHANNELS;
 
 export const CHANNEL_KEYS = Object.keys(CHANNELS) as ChannelKey[];
+
+/**
+ * Canales con precio propio en `menu_channel_prices` (CHECK de la tabla).
+ * 'mostrador' queda fuera a propósito: el POS cobra `base_price`.
+ */
+export const PRICE_CHANNELS = ['direct', 'eats', 'rappi', 'didi', 'whatsapp'] as const;
+
+export type PriceChannel = (typeof PRICE_CHANNELS)[number];
 
 export const isMarketplace = (channel: ChannelKey): boolean =>
   channel === 'eats' || channel === 'rappi' || channel === 'didi';

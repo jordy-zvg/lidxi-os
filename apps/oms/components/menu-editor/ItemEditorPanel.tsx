@@ -1,8 +1,10 @@
 'use client';
 
+import type { MenuItemOptionGroup } from '@kobi/shared';
 import { IconX } from '@tabler/icons-react';
 import { useEffect, useState, useTransition } from 'react';
 import {
+  type DraftScope,
   type MenuItemRow,
   createMenuItem,
   deleteMenuItem,
@@ -10,10 +12,13 @@ import {
 } from '../../lib/menu-actions';
 import { deleteMenuImage, uploadMenuImage } from '../../lib/menu-storage';
 import { ImageDropzone } from './ImageDropzone';
+import { OptionsEditor } from './OptionsEditor';
 
 interface ItemEditorPanelProps {
   item: MenuItemRow | null; // null = nuevo item
   categories: string[];
+  /** En staging: los items nuevos nacen como borradores de este import. */
+  draftDefaults?: DraftScope;
   onClose: () => void;
   onSaved: (item: MenuItemRow) => void;
   onDeleted: (id: string) => void;
@@ -22,6 +27,7 @@ interface ItemEditorPanelProps {
 export const ItemEditorPanel = ({
   item,
   categories,
+  draftDefaults,
   onClose,
   onSaved,
   onDeleted,
@@ -33,6 +39,7 @@ export const ItemEditorPanel = ({
   const [priceStr, setPriceStr] = useState(item ? String(item.base_price / 100) : '');
   const [description, setDescription] = useState(item?.description ?? '');
   const [active, setActive] = useState(item?.active ?? true);
+  const [options, setOptions] = useState<MenuItemOptionGroup[]>(item?.options ?? []);
   const [photoUrl, setPhotoUrl] = useState<string | null>(item?.photo_url ?? null);
   const [photoKey, setPhotoKey] = useState<string | null>(item?.photo_key ?? null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -46,6 +53,7 @@ export const ItemEditorPanel = ({
     setPriceStr(item ? String(item.base_price / 100) : '');
     setDescription(item?.description ?? '');
     setActive(item?.active ?? true);
+    setOptions(item?.options ?? []);
     setPhotoUrl(item?.photo_url ?? null);
     setPhotoKey(item?.photo_key ?? null);
     setPendingFile(null);
@@ -88,6 +96,11 @@ export const ItemEditorPanel = ({
           setUploadProgress(100);
         }
 
+        // Filtra grupos/choices vacíos antes de persistir.
+        const cleanOptions = options
+          .map((g) => ({ ...g, choices: g.choices.filter((c) => c.name.trim()) }))
+          .filter((g) => g.group.trim() && g.choices.length > 0);
+
         const payload = {
           name: name.trim(),
           category: category.trim(),
@@ -96,10 +109,11 @@ export const ItemEditorPanel = ({
           photo_url: finalPhotoUrl ?? undefined,
           photo_key: finalPhotoKey ?? undefined,
           active,
+          options: cleanOptions,
         };
 
         const result = isNew
-          ? await createMenuItem(payload)
+          ? await createMenuItem(payload, draftDefaults)
           : await updateMenuItem(item.id, payload);
 
         if (!result.ok) return setError(result.error);
@@ -137,6 +151,21 @@ export const ItemEditorPanel = ({
 
       {/* Cuerpo scrolleable */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        {/* Marcado por el importador: revisión obligatoria. Guardar limpia la marca. */}
+        {item?.review_reasons && item.review_reasons.length > 0 && (
+          <div className="rounded-lg border border-[#F59E0B] bg-[#FFFBEB] p-3">
+            <p className="text-xs font-semibold text-[#B45309] mb-1">Por revisar</p>
+            <ul className="text-xs text-[#92400E] list-disc pl-4 space-y-0.5">
+              {item.review_reasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+            <p className="text-[11px] text-[#92400E] mt-1.5">
+              Corrige los datos y guarda — la marca se quita al guardar.
+            </p>
+          </div>
+        )}
+
         {/* Foto */}
         <div>
           <span className="block text-xs font-semibold uppercase tracking-wider text-ink-400 mb-2">
@@ -235,6 +264,14 @@ export const ItemEditorPanel = ({
             className="w-full rounded-md border border-line-2 bg-canvas px-3 py-2 text-sm text-ink resize-none focus:outline-none focus:border-brand"
           />
           <p className="text-xs text-ink-400 mt-0.5">{description.length}/240</p>
+        </div>
+
+        {/* Modificadores */}
+        <div>
+          <span className="block text-xs font-semibold uppercase tracking-wider text-ink-400 mb-2">
+            Modificadores
+          </span>
+          <OptionsEditor value={options} onChange={setOptions} />
         </div>
 
         {/* Disponibilidad */}

@@ -820,6 +820,50 @@ export type Database = {
           },
         ]
       }
+      menu_imports: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          input: Json
+          source: string
+          status: string
+          summary: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          input?: Json
+          source: string
+          status?: string
+          summary?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          input?: Json
+          source?: string
+          status?: string
+          summary?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_imports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           active: boolean
@@ -828,10 +872,15 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          import_id: string | null
           name: string
+          options: Json
           photo_key: string | null
           photo_url: string | null
           restaurant_id: string
+          review_reasons: Json | null
+          source: string
+          status: string
           tenant_id: string | null
           updated_at: string
         }
@@ -842,10 +891,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          import_id?: string | null
           name: string
+          options?: Json
           photo_key?: string | null
           photo_url?: string | null
           restaurant_id: string
+          review_reasons?: Json | null
+          source?: string
+          status?: string
           tenant_id?: string | null
           updated_at?: string
         }
@@ -856,14 +910,26 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          import_id?: string | null
           name?: string
+          options?: Json
           photo_key?: string | null
           photo_url?: string | null
           restaurant_id?: string
+          review_reasons?: Json | null
+          source?: string
+          status?: string
           tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_items_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "menu_imports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "menu_items_restaurant_id_fkey"
             columns: ["restaurant_id"]

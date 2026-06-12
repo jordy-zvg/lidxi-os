@@ -1,6 +1,8 @@
 'use client';
 
-import { IconPackage, IconPlus } from '@tabler/icons-react';
+import { IconFileImport, IconPackage, IconPlus } from '@tabler/icons-react';
+import type { Route } from 'next';
+import Link from 'next/link';
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import {
   type CategoryGroup,
@@ -12,7 +14,14 @@ import { CategorySidebar } from './CategorySidebar';
 import { ItemEditorPanel } from './ItemEditorPanel';
 import { MenuItemCard } from './MenuItemCard';
 
-export const MenuEditorScreen = () => {
+interface MenuEditorScreenProps {
+  /** Presente = modo staging: solo borradores de este import; altas nacen draft. */
+  importScope?: { importId: string };
+  /** Notifica al wrapper (barra de staging) cada cambio en la lista de items. */
+  onItemsChanged?: (items: MenuItemRow[]) => void;
+}
+
+export const MenuEditorScreen = ({ importScope, onItemsChanged }: MenuEditorScreenProps = {}) => {
   const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const [items, setItems] = useState<MenuItemRow[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -20,9 +29,12 @@ export const MenuEditorScreen = () => {
   const [loading, setLoading] = useState(true);
   const [, startTransition] = useTransition();
 
-  // Cargar datos iniciales
+  const importId = importScope?.importId;
+  const draftDefaults = importId ? { importId } : undefined;
+
+  // Cargar datos iniciales (scopeados al import en modo staging)
   useEffect(() => {
-    loadMenuEditorData().then((result) => {
+    loadMenuEditorData(importId ? { importId } : undefined).then((result) => {
       if (result.ok) {
         setCategories(result.data.categories);
         setItems(result.data.items);
@@ -30,7 +42,11 @@ export const MenuEditorScreen = () => {
       }
       setLoading(false);
     });
-  }, []);
+  }, [importId]);
+
+  useEffect(() => {
+    onItemsChanged?.(items);
+  }, [items, onItemsChanged]);
 
   const categoryNames = categories.map((c) => c.name);
   const visibleItems = activeCategory ? items.filter((i) => i.category === activeCategory) : items;
@@ -114,6 +130,7 @@ export const MenuEditorScreen = () => {
           <ItemEditorPanel
             item={editorItem}
             categories={editorCategories}
+            draftDefaults={draftDefaults}
             onClose={() => setSelectedItem(null)}
             onSaved={handleSaved}
             onDeleted={handleDeleted}
@@ -140,15 +157,28 @@ export const MenuEditorScreen = () => {
           <h2 className="text-base sm:text-xl font-semibold text-ink truncate">
             {activeCategory ?? 'Todos'}
           </h2>
-          <button
-            type="button"
-            onClick={() => setSelectedItem('new' as unknown as MenuItemRow)}
-            className="flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-md bg-brand text-white text-xs sm:text-sm font-medium hover:bg-brand-hover transition-colors shrink-0"
-          >
-            <IconPlus size={16} />
-            <span className="hidden sm:inline">Nuevo item</span>
-            <span className="sm:hidden">Nuevo</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {!importScope && (
+              <Link
+                href={'/admin/menu/importar' as Route}
+                className="flex items-center gap-1.5 h-9 px-3 rounded-md border border-line-2 text-xs sm:text-sm text-ink-200 font-medium hover:bg-surface-2 transition-colors"
+                title="Importa desde fotos o captura en borrador y publica todo junto"
+              >
+                <IconFileImport size={16} />
+                <span className="hidden sm:inline">Importar menú</span>
+                <span className="sm:hidden">Importar</span>
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedItem('new' as unknown as MenuItemRow)}
+              className="flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-md bg-brand text-white text-xs sm:text-sm font-medium hover:bg-brand-hover transition-colors"
+            >
+              <IconPlus size={16} />
+              <span className="hidden sm:inline">Nuevo item</span>
+              <span className="sm:hidden">Nuevo</span>
+            </button>
+          </div>
         </div>
 
         {/* Grid */}
@@ -191,6 +221,7 @@ export const MenuEditorScreen = () => {
         <ItemEditorPanel
           item={editorItem}
           categories={categoryNames}
+          draftDefaults={draftDefaults}
           onClose={() => setSelectedItem(null)}
           onSaved={handleSaved}
           onDeleted={handleDeleted}

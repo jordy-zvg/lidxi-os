@@ -23,6 +23,7 @@ export async function listMenuItemsWithPrices(): Promise<ListMenuItemsResult> {
     const { data: items, error: itemsError } = await supabase
       .from('menu_items')
       .select('id, name')
+      .eq('status', 'active')
       .order('name');
 
     if (itemsError) {

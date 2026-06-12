@@ -50,6 +50,13 @@ En Railway: cada service tiene su propia copia (prod usa `*_PROD`, staging usa `
 | `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY_TEST` | — | ✅ | Igual, sandbox. |
 | `MERCADO_PAGO_WEBHOOK_SECRET` ⚠️ | ✅ | — | Firma oficial del webhook (`x-signature`: `ts=..,v1=..`). |
 
+### Anthropic (visión — importador de menú por fotos)
+
+| Variable | OMS | Storefront | Notas |
+|---|:-:|:-:|---|
+| `ANTHROPIC_API_KEY` ⚠️ | ✅ | — | Extracción de menú desde fotos. SOLO server-side; requerida en producción (validate-env). |
+| `MENU_VISION_MODEL` | ✅ | — | Opcional. Default `claude-opus-4-8`; bajar a `claude-sonnet-4-6`/`claude-haiku-4-5` si la calidad aguanta. |
+
 ### Resend
 
 | Variable | OMS | Storefront | Clock | Notas |

@@ -57,6 +57,7 @@ export async function loadTenantMenu(
     .select('id, name, description, base_price, photo_url, category, active')
     .eq('tenant_id', tenantId)
     .eq('active', true)
+    .eq('status', 'active')
     .order('name', { ascending: true });
   if (error) return { ok: false, error: error.message };
   const items: StorefrontMenuItem[] = (data ?? []).map((row) => {
@@ -179,7 +180,9 @@ export async function createDirectOrderAndPreference(
     .from('menu_items')
     .select('id, name, base_price, active, tenant_id')
     .in('id', menuItemIds)
-    .eq('tenant_id', tenant.id);
+    .eq('tenant_id', tenant.id)
+    .eq('active', true)
+    .eq('status', 'active');
 
   if (menuErr || !menuRows) {
     return { ok: false, error: 'No se pudo cargar el catálogo' };
@@ -202,10 +205,16 @@ export async function createDirectOrderAndPreference(
 
   for (const it of input.items) {
     const menuItem = menuById.get(it.menuItemId);
+    // La query ya filtra active + status='active': item ausente = inactivo,
+    // borrador o ajeno al tenant. Se RECHAZA el pedido completo en vez de
+    // descartar la línea en silencio (cobraría de menos sin avisar a nadie).
     if (!menuItem) {
-      return { ok: false, error: `Item ${it.menuItemId} no disponible` };
+      return {
+        ok: false,
+        error:
+          'Un producto de tu carrito ya no está disponible. Actualiza el carrito e intenta de nuevo.',
+      };
     }
-    if (!menuItem.active) continue;
     const lineTotal = menuItem.base_price * it.qty;
     subtotal += lineTotal;
     orderItemRows.push({

@@ -50,6 +50,14 @@ export const MenuItemCard = ({
             Pausado
           </span>
         )}
+        {item.review_reasons && item.review_reasons.length > 0 && (
+          <span
+            className="absolute top-2 left-2 bg-[#D97706] text-white text-[10px] font-semibold px-2 py-0.5 rounded"
+            title={item.review_reasons.join(' · ')}
+          >
+            Revisar
+          </span>
+        )}
       </div>
 
       {/* Body */}

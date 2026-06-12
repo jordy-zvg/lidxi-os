@@ -16,6 +16,10 @@ const REQUIRED_IN_PRODUCTION = [
   // Base URL del storefront público — usada para construir links de seguimiento
   // que el operador comparte con el cliente desde el detalle del pedido.
   'NEXT_PUBLIC_STOREFRONT_URL',
+  // Extracción de menú por visión (importador de fotos). SOLO server-side —
+  // jamás exponer al cliente. En dev es opcional: sin ella, el importador
+  // marca el import como error con mensaje claro en vez de tronar al boot.
+  'ANTHROPIC_API_KEY',
 ];
 
 export function validateEnv(): void {
@@ -28,7 +32,13 @@ export function validateEnv(): void {
     );
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  // En build (next build) NODE_ENV ya es 'production' pero las env de runtime
+  // (Railway) no aplican: validar ahí rompería el build local/CI sin secretos.
+  // El chequeo real ocurre al boot del servidor.
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
     const missingProd = REQUIRED_IN_PRODUCTION.filter((key) => !process.env[key]);
     if (missingProd.length > 0) {
       const list = missingProd.map((k) => `  • ${k}`).join('\n');

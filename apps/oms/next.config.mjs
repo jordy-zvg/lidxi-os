@@ -11,6 +11,11 @@ const nextConfig = {
   ],
   experimental: {
     typedRoutes: true,
+    serverActions: {
+      // Fotos del importador de menú (comprimidas a ≤2400px en el cliente)
+      // viajan por server action; el default (~1 MB) las rechazaría.
+      bodySizeLimit: '5mb',
+    },
   },
   headers: async () => [
     {
