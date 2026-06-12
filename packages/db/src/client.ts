@@ -47,10 +47,20 @@ export const createSupabaseServerClient = (cookies: CookieStore) =>
 /**
  * Cliente con el service role key. Bypassa RLS. Úsalo SOLO desde código
  * server-only (webhooks, cron jobs, scripts), NUNCA expuesto al navegador.
+ *
+ * fetch con cache:'no-store': el data cache de Next cachea los GET REST de
+ * supabase-js incluso bajo `dynamic = 'force-dynamic'` (verificado empírico:
+ * el storefront servía menú stale tras confirmar staging). Datos operativos
+ * nunca deben servirse de caché.
  */
 export const createSupabaseServiceClient = () =>
   createBaseClient<Database>(
     requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
     requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
-    { auth: { persistSession: false, autoRefreshToken: false } },
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+      },
+    },
   );
