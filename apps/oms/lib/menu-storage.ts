@@ -30,8 +30,10 @@ export const uploadMenuImage = async (
   formData: FormData,
   itemId: string,
 ): Promise<UploadResult> => {
+  // instanceof Blob (no File): File no es global en Node 18; el File de
+  // undici que arma Next para FormData es subclase de Blob.
   const file = formData.get('file');
-  if (!(file instanceof File)) throw new Error('No se recibió archivo válido.');
+  if (!(file instanceof Blob)) throw new Error('No se recibió archivo válido.');
   if (!ALLOWED.has(file.type))
     throw new Error('Tipo de imagen no permitido. Usa JPEG, PNG o WebP.');
   if (file.size > MAX_BYTES) throw new Error('La imagen no puede superar 4 MB.');
