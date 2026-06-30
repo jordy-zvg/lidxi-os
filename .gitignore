@@ -51,3 +51,6 @@ supabase/.branches/
 .cache/
 packages/db/supabase/.temp/
 packages/db/supabase/.temp/
+
+# Claude Code local config
+.claude/
