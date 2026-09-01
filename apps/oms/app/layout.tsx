@@ -4,8 +4,6 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 
-validateEnv();
-
 // URL pública canónica de la app: leer de env para no requerir refactor al
 // migrar de *.up.railway.app → kobi.mx (basta con cambiar la env var).
 // En producción la env var es OBLIGATORIA: sin ella, OG tags y metadataBase
@@ -48,6 +46,8 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  validateEnv();
+
   return (
     <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}>
       <body className="bg-canvas text-ink antialiased">{children}</body>
