@@ -5,9 +5,9 @@
  * Correr después de clonar el repo: pnpm setup
  */
 
-import { existsSync, symlinkSync } from 'fs';
-import { join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { existsSync, symlinkSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(__dirname, '..');

@@ -1,0 +1,19 @@
+{
+  "extends": ["../../biome.jsonc"],
+  "files": {
+    "ignore": ["src/types.ts"]
+  },
+  "overrides": [
+    {
+      // Los scripts de seed y mock son CLIs: su salida por consola es parte de su contrato.
+      "include": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}
