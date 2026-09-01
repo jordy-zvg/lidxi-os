@@ -57,16 +57,23 @@ export async function middleware(req: NextRequest) {
     return response;
   }
 
-  // Zona 3: Operación (JWT con PIN - sin bridge de sesión)
-  const opPaths = ['/pedidos', '/pos', '/kds', '/caja', '/reportes', '/sitio-propio'];
-  if (opPaths.some((p) => path.startsWith(p))) {
-    // Aquí validamos la cookie de empleado (el token JWT)
-    const empToken = req.cookies.get('kobi-session');
-    if (!empToken) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    return response;
+  // Zona 3: Operación (JWT con PIN - sin bridge de sesión). El matcher deja
+  // fuera solo rutas públicas conocidas, así que toda ruta restante queda
+  // protegida por defecto, incluidas futuras rutas operativas y API.
+  const empToken = req.cookies.get('kobi-session');
+  if (!empToken) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
   return response;
 }
+
+export const config = {
+  matcher: [
+    /*
+     * Excluimos solo assets y rutas públicas conocidas. Las API públicas se
+     * enumeran una por una para que una ruta nueva no nazca desprotegida.
+     */
+    '/((?!$|_next/static|_next/image|favicon\\.ico$|.*\\.(?:avif|gif|ico|jpe?g|png|svg|webp|woff2?|eot|ttf|otf)$|api/health$|api/public/contact$|api/webhooks/mercado-pago$|api/webhooks/uber-direct$|auth(?:/.*)?$|aviso-privacidad$|caracteristicas$|comanda-prueba(?:/.*)?$|contacto$|cookies$|ingresar$|login$|nosotros$|para-quien$|precios$|privacidad$|recuperar$|registro(?:/.*)?$|terminos$).*)',
+  ],
+};
