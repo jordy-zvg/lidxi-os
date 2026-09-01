@@ -8,6 +8,7 @@ import {
   IconChefHat,
   IconCreditCard,
   IconShoppingCart,
+  IconToolsKitchen2,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import type { ReactElement } from 'react';
@@ -29,6 +30,7 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Pedidos', href: '/pedidos', icon: <IconShoppingCart size={16} /> },
       { label: 'KDS', href: '/kds', icon: <IconChefHat size={16} /> },
+      { label: 'Uber Eats', href: '/eats', icon: <IconToolsKitchen2 size={16} /> },
       { label: 'POS', href: '/pos', icon: <IconCreditCard size={16} /> },
       { label: 'Sitio propio', href: '/sitio-propio', icon: <IconBuildingStore size={16} /> },
     ],

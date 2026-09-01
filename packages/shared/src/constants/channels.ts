@@ -3,7 +3,8 @@
  * el sitio propio del restaurante (direct) y la venta presencial (mostrador).
  *
  * Los colores son los hex que usan los badges de canal en el sistema.
- * Mantén estos sincronizados con `ChannelBadge` en @kobi/ui.
+ * `ChannelBadge` en @kobi/ui consume este mapa directamente — editar aquí
+ * propaga a todos los badges y a la comanda impresa.
  */
 
 export const CHANNELS = {
@@ -17,7 +18,9 @@ export const CHANNELS = {
   eats: {
     key: 'eats',
     label: 'Uber Eats',
-    short: 'Eats',
+    // 'UBER', no 'Eats': la comanda la lee un cocinero de reojo y el
+    // repartidor dice "vengo por un pedido de Uber". (Sprint 19, Fase 3a)
+    short: 'UBER',
     bg: '#E6F4EA',
     color: '#137333',
   },
