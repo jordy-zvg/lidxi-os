@@ -127,6 +127,7 @@ export type Database = {
           address: string | null
           channels: string[] | null
           created_at: string | null
+          handles_cash: boolean
           hours_json: Json | null
           id: string
           is_active: boolean | null
@@ -141,6 +142,7 @@ export type Database = {
           address?: string | null
           channels?: string[] | null
           created_at?: string | null
+          handles_cash?: boolean
           hours_json?: Json | null
           id?: string
           is_active?: boolean | null
@@ -155,6 +157,7 @@ export type Database = {
           address?: string | null
           channels?: string[] | null
           created_at?: string | null
+          handles_cash?: boolean
           hours_json?: Json | null
           id?: string
           is_active?: boolean | null
