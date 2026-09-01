@@ -1,4 +1,5 @@
 import { KitchenTicketPrintPreview } from '@/components/comanda/KitchenTicketPrintPreview';
+import { getOperationSession } from '@/lib/operations/session-tenant';
 import type { ReceiptOrder } from '@kobi/printing';
 import { cents } from '@kobi/shared';
 
@@ -14,7 +15,10 @@ import { cents } from '@kobi/shared';
  * la prueba del papel no debe depender de que ese ocultamiento funcione.
  *
  * No requiere sesión de empleado: es una página de verificación de hardware,
- * sin datos reales. Se abre desde la PC de cocina.
+ * sin datos reales. Se abre desde la PC de cocina. Si HAY sesión activa, el
+ * nombre del negocio y la sucursal salen del contexto real — igual que
+ * cualquier otro consumidor; los valores de ejemplo son solo el fallback
+ * para la prueba sin sesión.
  */
 
 export const metadata = {
@@ -58,12 +62,18 @@ const ORDEN_DE_PRUEBA: ReceiptOrder = {
   total: cents(0),
 };
 
-export default function ComandaPruebaPage() {
+/** Fallback explícito para la prueba de hardware sin sesión activa. */
+const TENANT_DE_EJEMPLO = 'Miztli Burguers';
+const SUCURSAL_DE_EJEMPLO = 'Sucursal principal';
+
+export default async function ComandaPruebaPage() {
+  const session = await getOperationSession();
+
   return (
     <KitchenTicketPrintPreview
       order={ORDEN_DE_PRUEBA}
-      tenantName="Miztli Burguers"
-      branchName="Sucursal principal"
+      tenantName={session?.tenantName ?? TENANT_DE_EJEMPLO}
+      branchName={session?.branchName ?? SUCURSAL_DE_EJEMPLO}
     />
   );
 }

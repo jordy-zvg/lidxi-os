@@ -1,12 +1,15 @@
 /**
  * Configuración del tenant activo.
  *
- * Por ahora retorna valores hardcodeados del cliente demo (Miztli Pardo).
- * Cuando se sume el segundo cliente, reemplazar por un Context Provider
- * que lea del JWT o del env del branch.
+ * Desde Sprint 19 (Fase 3a) el hook real vive en OperationSessionProvider y
+ * lee la sesión operativa que Chrome (server) resuelve del JWT de empleado.
+ * Este módulo conserva el contrato público: cualquier componente que necesite
+ * datos del tenant importa este hook — nunca hardcodea el nombre del
+ * establecimiento.
  *
- * Convención: cualquier componente que necesite datos del tenant importa
- * este hook — nunca hardcodea el nombre del establecimiento.
+ * displayName/address/phone/rfc vienen de la fila de `tenants`; logoUrl queda
+ * null hasta que exista en el modelo (deuda anotada). La dirección y el RFC
+ * son para el ticket fiscal del cliente, fuera del alcance del día 1.
  */
 
 export interface TenantConfig {
@@ -17,10 +20,4 @@ export interface TenantConfig {
   rfc: string | null;
 }
 
-export const useTenant = (): TenantConfig => ({
-  displayName: 'Miztli Pardo',
-  logoUrl: null,
-  address: 'Av. Álvaro Obregón 123, Roma Norte, CDMX',
-  phone: '55 1234 5678',
-  rfc: 'MAPJ850312AB1',
-});
+export { useTenant } from '@/components/OperationSessionProvider';
