@@ -409,6 +409,21 @@ Recogida de la sección 13 de la brecha, sin re-litigar:
 - UUIDs de Miztli discrepantes entre `scripts/create-test-employees.ts:8-9` y el test de RLS/migración `20260521000003`. No bloquea con tenant nuevo, pero sigue sin resolverse.
 - `apps/oms/components/orders/mock-orders.ts` queda sin consumidores de datos tras H20.4; confirmar antes de borrar porque su **tipo** sí se importa en dos componentes.
 
+Añadido tras la Fase 2 del Sprint 19 (ingesta de Eats):
+
+- **`OrderItemModifier` no satisface `Json`** del tipo generado por Supabase: le falta la index signature que `Json` exige. **Esa es la razón de fondo del `modifiers: never[]` en `pos-actions.ts`, no un descuido.** La ingesta de Eats lo resuelve serializando en la frontera del insert (tipo local `SerializedModifier`, misma forma que produce el mapper de `@kobi/shared`). Quien intente "arreglar" el `never[]` va a chocar con el mismo muro: la salida es agregar la index signature al tipo del dominio o serializar en la frontera — **no ensanchar el dominio**.
+- **Deriva del ledger de migraciones en staging (`kobi.dev`), en una sola dirección**: hay migraciones aplicadas sin registrar en `supabase_migrations`, y ninguna registrada sin aplicar. Verificado contra `information_schema` el 2026-09-01: `branch_handles_cash`, `menu_staging_imports` y `employee_permissions` están aplicadas pero no constan. **`menu_staging_imports` no es idempotente**, así que un `db reset` o `db push` sobre ese proyecto puede romper. Verificar contra el esquema real antes de aplicar o re-aplicar nada; `list_migrations` no es fuente de verdad ahí.
+- **Corrección al registro histórico**: la migración `20260607000001_employee_permissions` crea **cinco booleanos `perm_*`** (`perm_cancel_tickets`, `perm_discounts`, `perm_open_cash`, `perm_view_reports`, `perm_edit_inventory`), **no una columna `permissions`**. Están aplicadas en staging y sus únicos consumidores son de la zona **admin** (`admin/equipo/actions.ts`, `EmployeeSlideOver.tsx`). La zona operativa no las lee y `ChromeSidebarNav` no hace gating por permisos: **no hay fallo heredado** en la zona operativa.
+
+## Aprendizaje del sprint
+
+**Las auditorías se releen contra el código, no se citan.** Dos veces en este trabajo un dato de una auditoría previa se dio por verdadero sin volver a la fuente:
+
+1. **El número de línea del patrón condicional** de `pos-actions.ts` — dos auditorías previas lo describieron de forma distinta, y la ruta del archivo también estaba mal (`lib/operations/pos-actions.ts` en vez de `lib/pos-actions.ts`).
+2. **El nombre de la columna de permisos** — se buscó `employees_v2.permissions`, que nunca existió; la migración crea cinco `perm_*`. El falso negativo se reportó como hecho y se propagó al prompt de la fase siguiente, donde se convirtió en una restricción basada en una premisa falsa.
+
+En ambos casos el costo fue trabajo dirigido por una premisa incorrecta. Un documento de auditoría envejece en cuanto el código se mueve; la fuente de verdad es el archivo.
+
 ---
 
 *Fase 2 termina aquí. Sin cambios en código fuente; único archivo creado: este documento. El siguiente prompt es "Sprint 19, Fase 1".*
