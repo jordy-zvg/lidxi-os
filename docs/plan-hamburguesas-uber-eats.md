@@ -423,6 +423,10 @@ Añadido tras la Fase 3b del Sprint 19 (impresión):
 
 - **Exportar una constante no-async desde un archivo `'use server'` rompe el build de Next**, y ni `pnpm type-check` ni biome lo detectan: es una restricción del compilador de Next, no de TypeScript. El error solo aparece al ejecutar la app (`Only async functions are allowed to be exported in a "use server" file`), y tumba TODA ruta que importe ese módulo — en nuestro caso la zona operativa entera devolvía 500 porque `auth-actions.ts` cuelga de `ClockOverlay` → `Chrome`. **El único filtro es levantar la app.** Las constantes compartidas entre server actions y UI van en un módulo aparte sin `'use server'` (ver `apps/oms/lib/auth-errors.ts`).
 
+Añadido en el Sprint 20, Fase 1:
+
+- **`orders.status` de Uber Direct NO lo escribe el webhook.** El webhook (`/api/webhooks/uber-direct`) solo escribe `delivery_tracking`; el `orders.status = 'delivered'` lo escribe `syncDelivery()` en `delivery-actions.ts:376`, disparado por un `setInterval` de 4 segundos **en el navegador** (`DeliveryTrackingPanel`). Consecuencia: si nadie tiene `/sitio-propio` abierto en una pestaña, un pedido de Direct puede quedarse en `dispatched` indefinidamente — no hay trigger de base, ni cron, ni edge function que cierre ese hueco. Preexistente y no tocado en este sprint; el cierre manual desde `/pedidos` (dispatched → delivered) es hoy la única salida cuando la confirmación no llega.
+
 ## Aprendizaje del sprint
 
 **Las auditorías se releen contra el código, no se citan.** Dos veces en este trabajo un dato de una auditoría previa se dio por verdadero sin volver a la fuente:

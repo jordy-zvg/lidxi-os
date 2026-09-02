@@ -2,7 +2,13 @@
 
 import { requireEmployeeContext } from '@/lib/operations/employee-context';
 import { createSupabaseServiceClient } from '@kobi/db';
-import { type ChannelKey, type OrderStatus, canTransition, isMarketplace } from '@kobi/shared';
+import {
+  CHANNEL_KEYS,
+  type ChannelKey,
+  type OrderStatus,
+  canTransition,
+  isMarketplace,
+} from '@kobi/shared';
 import { revalidatePath } from 'next/cache';
 
 export type OperationResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -11,6 +17,9 @@ export type { OrderStatus };
 
 /** `channel` viaja como string desde la base; fuera del enum, no es marketplace. */
 const esMarketplace = (channel: string): boolean => isMarketplace(channel as ChannelKey);
+
+/** Canales de plataforma, derivados del SSOT en vez de repetir la lista. */
+const MARKETPLACE_CHANNELS = CHANNEL_KEYS.filter(isMarketplace);
 
 /**
  * Escalera operativa por canal (Sprint 20, H20.2).
@@ -96,13 +105,39 @@ export interface ActiveOrder {
   payment_method: string | null;
   created_at: string;
   items_count: number;
+  /** Nombres de los platillos, para no tener que ir al papel a saber qué lleva. */
+  item_names: string[];
   is_paid: boolean;
+  /**
+   * ID corto de la plataforma (external_id). Es lo que canta el repartidor al
+   * llegar, así que sin él no se puede cerrar un pedido de marketplace.
+   */
+  external_id: string | null;
 }
 
 /**
- * Órdenes activas del tenant: mostrador (POS presencial) + direct (storefront online).
- * Sin shift_id válido devuelve solo las órdenes creadas en esta sesión por
- * el contexto del tenant — el corte de caja luego suma por shift_id.
+ * Folio visible del pedido.
+ *
+ * Para marketplace es el ID corto de la plataforma, que es lo que dice el
+ * repartidor al llegar; buscar por un folio interno que él no conoce sería
+ * inútil. El prefijo coincide con el que ya emite la ingesta de Eats.
+ */
+const folioFor = (channel: string, externalId: string | null, id: string): string => {
+  if (esMarketplace(channel) && externalId) return `UE-${externalId.toUpperCase()}`;
+  return `${channel === 'direct' ? 'WEB' : 'POS'}-${id.slice(-6).toUpperCase()}`;
+};
+
+/**
+ * Órdenes activas del tenant, de TODOS los canales.
+ *
+ * Hasta el Sprint 20 esto filtraba `channel IN ('mostrador','direct')`, así que
+ * un pedido de Uber Eats se guardaba e imprimía bien pero era invisible: no
+ * había forma de verlo en marcha ni de cerrarlo cuando llegaba el repartidor.
+ *
+ * Activas = todo lo que no está cancelado ni en un estado terminal de su canal.
+ * `dispatched` es terminal para marketplace (Kobi no sabe de la entrega final),
+ * así que esos pedidos salen de la lista; para `direct` no lo es, porque su
+ * flujo sí llega a `delivered`.
  */
 export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>> {
   let ctx: Awaited<ReturnType<typeof requireEmployeeContext>>;
@@ -115,10 +150,13 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
 
   const { data: orders, error } = await supabase
     .from('orders')
-    .select('id, status, channel, customer_name, total, payment_method, created_at')
+    .select('id, status, channel, external_id, customer_name, total, payment_method, created_at')
     .eq('tenant_id', ctx.tenantId)
-    .in('channel', ['mostrador', 'direct'])
     .neq('status', 'cancelled')
+    // `dispatched` es terminal SOLO en marketplace, así que esos salen de
+    // activos; un `direct` despachado sigue vivo hasta que se entrega.
+    // Equivale a NOT(marketplace AND dispatched).
+    .or(`channel.not.in.(${MARKETPLACE_CHANNELS.join(',')}),status.neq.dispatched`)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -129,13 +167,26 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
   if (orderIds.length === 0) return { ok: true, data: [] };
 
   const [{ data: items }, { data: payments }] = await Promise.all([
-    supabase.from('order_items').select('order_id, qty').in('order_id', orderIds),
+    supabase.from('order_items').select('order_id, qty, menu_items(name)').in('order_id', orderIds),
     supabase.from('order_payments').select('order_id').in('order_id', orderIds),
   ]);
 
   const itemsByOrder = new Map<string, number>();
-  for (const it of (items ?? []) as { order_id: string; qty: number }[]) {
+  const namesByOrder = new Map<string, string[]>();
+  for (const it of (items ?? []) as {
+    order_id: string;
+    qty: number;
+    menu_items: { name: string } | null;
+  }[]) {
     itemsByOrder.set(it.order_id, (itemsByOrder.get(it.order_id) ?? 0) + it.qty);
+    const nombre = it.menu_items?.name;
+    if (nombre) {
+      const previos = namesByOrder.get(it.order_id) ?? [];
+      // La ingesta de Eats parte una línea con nota en una fila por unidad, así
+      // que el mismo platillo puede venir repetido: se colapsa para la lista.
+      if (!previos.includes(nombre)) previos.push(nombre);
+      namesByOrder.set(it.order_id, previos);
+    }
   }
   const paidOrders = new Set(((payments ?? []) as { order_id: string }[]).map((p) => p.order_id));
 
@@ -144,6 +195,7 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
       id: string;
       status: OrderStatus;
       channel: string;
+      external_id: string | null;
       customer_name: string;
       total: number;
       payment_method: string | null;
@@ -151,14 +203,16 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
     };
     return {
       id: row.id,
-      folio: `${row.channel === 'direct' ? 'WEB' : 'POS'}-${row.id.slice(-6).toUpperCase()}`,
+      folio: folioFor(row.channel, row.external_id, row.id),
       status: row.status,
       channel: row.channel,
+      external_id: row.external_id,
       customer_name: row.customer_name,
       total_cents: row.total,
       payment_method: row.payment_method,
       created_at: row.created_at,
       items_count: itemsByOrder.get(row.id) ?? 0,
+      item_names: namesByOrder.get(row.id) ?? [],
       is_paid: paidOrders.has(row.id) || row.payment_method !== null,
     };
   });

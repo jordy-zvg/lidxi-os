@@ -9,7 +9,7 @@ import {
 import type { ShiftInfo, ShiftSummary } from '@/lib/operations/shift-actions';
 import { isMarketplace } from '@kobi/shared';
 import type { ChannelKey } from '@kobi/shared';
-import { Button, EmptyState, StatusPill } from '@kobi/ui';
+import { Button, ChannelBadge, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -43,11 +43,6 @@ const STATUS_VARIANT: Record<OrderStatus, 'info' | 'warn' | 'ok' | 'neutral' | '
  * `ready`, un pedido de plataforma lo recoge un repartidor y uno de mostrador
  * se entrega en la barra.
  */
-const CHANNEL_LABEL: Record<string, string> = {
-  mostrador: 'Mostrador',
-  direct: 'En línea',
-};
-
 const nextLabelFor = (status: OrderStatus, channel: string): string | undefined => {
   if (status === 'received') return 'Marcar en preparación';
   if (status === 'preparing') return 'Marcar lista';
@@ -147,6 +142,7 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
   };
 
   const nextLabel = nextLabelFor(order.status, order.channel);
+  const esDePlataforma = isMarketplace(order.channel as ChannelKey);
 
   return (
     <article className="bg-surface border border-line rounded-lg p-4 flex flex-col gap-3">
@@ -154,13 +150,7 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
         <div>
           <div className="flex items-center gap-1.5">
             <p className="font-mono text-xs text-ink-400">{order.folio}</p>
-            <span
-              className={`text-[10px] font-medium px-1.5 py-0.5 rounded leading-none ${
-                order.channel === 'direct' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-ink-400'
-              }`}
-            >
-              {CHANNEL_LABEL[order.channel] ?? order.channel}
-            </span>
+            <ChannelBadge channel={order.channel as ChannelKey} short />
           </div>
           <p className="text-sm font-medium text-ink mt-0.5">{order.customer_name}</p>
         </div>
@@ -174,6 +164,10 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
         </span>
         <span className="font-mono font-semibold text-ink">{formatMoney(order.total_cents)}</span>
       </div>
+
+      {order.item_names.length > 0 && (
+        <p className="text-xs text-ink-300 leading-snug">{order.item_names.join(' · ')}</p>
+      )}
 
       {error && <p className="text-xs text-danger-text">{error}</p>}
 
@@ -189,16 +183,25 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
             {pending ? 'Actualizando…' : nextLabel}
           </Button>
         )}
-        {!order.is_paid && (
-          <Button onClick={onCharge} size="sm" disabled={pending} className="w-full">
-            <IconCash size={14} className="mr-1.5" />
-            Cobrar
-          </Button>
-        )}
-        {order.is_paid && (
-          <p className="text-[11px] text-ok-text text-center font-medium">
-            Pagada · {order.payment_method === 'cash' ? 'Efectivo' : 'Tarjeta'}
-          </p>
+        {/* En marketplace cobra la plataforma: ofrecer "Cobrar" invitaría al
+            cajero a recibir efectivo por un pedido ya pagado, y ese cobro
+            entraría al arqueo del turno como dinero que nunca existió. */}
+        {esDePlataforma ? (
+          <p className="text-[11px] text-ink-400 text-center">Cobrado por la plataforma</p>
+        ) : (
+          <>
+            {!order.is_paid && (
+              <Button onClick={onCharge} size="sm" disabled={pending} className="w-full">
+                <IconCash size={14} className="mr-1.5" />
+                Cobrar
+              </Button>
+            )}
+            {order.is_paid && (
+              <p className="text-[11px] text-ok-text text-center font-medium">
+                Pagada · {order.payment_method === 'cash' ? 'Efectivo' : 'Tarjeta'}
+              </p>
+            )}
+          </>
         )}
       </div>
     </article>
