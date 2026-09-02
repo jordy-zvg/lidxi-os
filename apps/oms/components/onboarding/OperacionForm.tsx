@@ -45,10 +45,26 @@ interface MapboxFeature {
 interface OperacionFormProps {
   mapboxToken?: string;
   branchName?: string;
+  /** Dirección capturada en el paso 1; habilita reusarla sin teclearla otra vez. */
+  restaurantAddress?: string;
+  /** Dark kitchen = un solo local sin sala: la dirección coincide por definición. */
+  isDarkKitchen?: boolean;
 }
 
-export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
-  const [address, setAddress] = useState('');
+export function OperacionForm({
+  mapboxToken,
+  branchName,
+  restaurantAddress,
+  isDarkKitchen = false,
+}: OperacionFormProps) {
+  // Pre-marcado solo en dark kitchen: ahí las dos direcciones SON la misma. Con
+  // sala o varias sucursales, presuponerlo apuesta a lo que suele ser falso.
+  const [sameAsRestaurant, setSameAsRestaurant] = useState(
+    Boolean(restaurantAddress) && isDarkKitchen,
+  );
+  const [address, setAddress] = useState(
+    restaurantAddress && isDarkKitchen ? restaurantAddress : '',
+  );
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<MapboxFeature[]>([]);
@@ -84,6 +100,19 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [address, mapboxToken, lat, lng]);
+
+  function toggleSameAsRestaurant(checked: boolean) {
+    setSameAsRestaurant(checked);
+    if (checked && restaurantAddress) {
+      setAddress(restaurantAddress);
+      // Sin lat/lng: la dirección del paso 1 se captura sin geocodificar. Queda
+      // igual que una captura manual — geolocalizable después desde Ajustes.
+      setLat(null);
+      setLng(null);
+      setSuggestions([]);
+      setErrors((e) => ({ ...e, address: '' }));
+    }
+  }
 
   function pickSuggestion(s: MapboxFeature) {
     setAddress(s.place_name);
@@ -126,6 +155,20 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
         <legend className="mb-2 block text-sm font-medium text-[#0A2540]">
           Dirección de tu sucursal <span className="text-[#7C71FF]">*</span>
         </legend>
+        {restaurantAddress && (
+          <label className="mb-2 flex cursor-pointer items-start gap-2 text-sm text-ink/70">
+            <input
+              type="checkbox"
+              checked={sameAsRestaurant}
+              onChange={(e) => toggleSameAsRestaurant(e.target.checked)}
+              className="mt-0.5 accent-[#7C71FF]"
+            />
+            <span>
+              Es la misma dirección del restaurante
+              <span className="mt-0.5 block text-xs text-ink/40">{restaurantAddress}</span>
+            </span>
+          </label>
+        )}
         <div className="relative">
           <IconMapPin
             size={16}
@@ -139,6 +182,8 @@ export function OperacionForm({ mapboxToken, branchName }: OperacionFormProps) {
               setAddress(e.target.value);
               setLat(null);
               setLng(null);
+              // Editar a mano desmarca: el checkbox refleja el estado real.
+              if (sameAsRestaurant) setSameAsRestaurant(false);
             }}
             placeholder="Av. Insurgentes Sur 1234, Roma Norte, CDMX"
             className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3.5 text-sm text-[#0A2540] outline-none transition-all focus:border-[#7C71FF] focus:ring-2 focus:ring-[#7C71FF]/20 ${
