@@ -11,6 +11,7 @@ import { isMarketplace } from '@kobi/shared';
 import type { ChannelKey } from '@kobi/shared';
 import { Button, ChannelBadge, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
@@ -149,7 +150,12 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-1.5">
-            <p className="font-mono text-xs text-ink-400">{order.folio}</p>
+            <Link
+              href={`/pedidos/${order.id}` as never}
+              className="font-mono text-ink-400 text-xs hover:text-brand hover:underline"
+            >
+              {order.folio}
+            </Link>
             <ChannelBadge channel={order.channel as ChannelKey} short />
           </div>
           <p className="text-sm font-medium text-ink mt-0.5">{order.customer_name}</p>

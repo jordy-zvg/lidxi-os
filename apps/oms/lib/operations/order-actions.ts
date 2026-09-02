@@ -5,9 +5,11 @@ import { createSupabaseServiceClient } from '@kobi/db';
 import {
   CHANNEL_KEYS,
   type ChannelKey,
+  type OrderItemModifier,
   type OrderStatus,
   canTransition,
   isMarketplace,
+  modifiersToReceiptStrings,
 } from '@kobi/shared';
 import { revalidatePath } from 'next/cache';
 
@@ -324,4 +326,153 @@ export async function chargeOrder(input: ChargeOrderInput): Promise<OperationRes
 
   revalidatePath('/pedidos');
   return { ok: true, data: null };
+}
+
+// ---------------------------------------------------------------------------
+// Detalle de un pedido (Sprint 20, H20.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * `order_items.modifiers` es jsonb; se guarda como `[{name, priceDelta}]`.
+ * Se normaliza y se pasa por el mapper de `@kobi/shared` para que el texto sea
+ * el mismo que ya produce cualquier otra superficie de impresión.
+ */
+const modifierNames = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) return [];
+  const mods = raw.flatMap((m) =>
+    m && typeof m === 'object' && typeof (m as { name?: unknown }).name === 'string'
+      ? [{ name: (m as { name: string }).name, priceDelta: 0 } as OrderItemModifier]
+      : [],
+  );
+  return modifiersToReceiptStrings(mods);
+};
+
+export interface OrderDetailItem {
+  qty: number;
+  name: string;
+  unit_price_cents: number;
+  /** Modificadores tal como se guardaron; vacío en canales que no los capturan. */
+  modifiers: string[];
+  notes: string | null;
+}
+
+export interface OrderDetail {
+  id: string;
+  folio: string;
+  external_id: string | null;
+  channel: string;
+  status: OrderStatus;
+  customer_name: string;
+  customer_phone: string | null;
+  customer_address: string | null;
+  subtotal_cents: number;
+  tax_cents: number;
+  total_cents: number;
+  payment_method: string | null;
+  is_paid: boolean;
+  created_at: string;
+  ready_at: string | null;
+  dispatched_at: string | null;
+  delivered_at: string | null;
+  items: OrderDetailItem[];
+}
+
+/**
+ * Carga UN pedido con sus líneas, para la pantalla de detalle y la
+ * reimpresión de la comanda.
+ *
+ * Las filas de `order_items` se devuelven TAL COMO están guardadas, sin
+ * reagrupar: la captura ya explotó las líneas con nota o modificadores en una
+ * fila por unidad, y reagruparlas aquí perdería notas o ítems — es justo lo
+ * que la comanda no debe hacer.
+ *
+ * `order_items` no tiene `tenant_id`: el aislamiento sale de filtrar el pedido
+ * padre por tenant, porque el JWT de empleado no pasa por RLS.
+ */
+export async function loadOrderDetail(orderId: string): Promise<OperationResult<OrderDetail>> {
+  let ctx: Awaited<ReturnType<typeof requireEmployeeContext>>;
+  try {
+    ctx = await requireEmployeeContext();
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Sin sesión' };
+  }
+  const supabase = createSupabaseServiceClient();
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select(
+      'id, status, channel, external_id, customer_name, customer_phone, customer_address, subtotal, tax, total, payment_method, created_at, ready_at, dispatched_at, delivered_at',
+    )
+    .eq('id', orderId)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle();
+
+  // Sin fallback a otro pedido: si no existe o es de otro tenant, se dice.
+  if (error || !order) return { ok: false, error: 'Pedido no encontrado' };
+
+  const row = order as {
+    id: string;
+    status: OrderStatus;
+    channel: string;
+    external_id: string | null;
+    customer_name: string | null;
+    customer_phone: string | null;
+    customer_address: string | null;
+    subtotal: number | null;
+    tax: number | null;
+    total: number;
+    payment_method: string | null;
+    created_at: string;
+    ready_at: string | null;
+    dispatched_at: string | null;
+    delivered_at: string | null;
+  };
+
+  const [{ data: items }, { data: payments }] = await Promise.all([
+    supabase
+      .from('order_items')
+      .select('qty, unit_price, modifiers, notes, menu_items(name)')
+      .eq('order_id', orderId),
+    supabase.from('order_payments').select('order_id').eq('order_id', orderId).limit(1),
+  ]);
+
+  type ItemRow = {
+    qty: number;
+    unit_price: number;
+    modifiers: unknown;
+    notes: string | null;
+    menu_items: { name: string } | null;
+  };
+
+  const detalleItems: OrderDetailItem[] = ((items ?? []) as ItemRow[]).map((it) => ({
+    qty: it.qty,
+    name: it.menu_items?.name ?? 'Platillo',
+    unit_price_cents: it.unit_price,
+    modifiers: modifierNames(it.modifiers),
+    notes: it.notes,
+  }));
+
+  return {
+    ok: true,
+    data: {
+      id: row.id,
+      folio: folioFor(row.channel, row.external_id, row.id),
+      external_id: row.external_id,
+      channel: row.channel,
+      status: row.status,
+      customer_name: row.customer_name ?? 'Cliente',
+      customer_phone: row.customer_phone,
+      customer_address: row.customer_address,
+      subtotal_cents: row.subtotal ?? row.total,
+      tax_cents: row.tax ?? 0,
+      total_cents: row.total,
+      payment_method: row.payment_method,
+      is_paid: (payments ?? []).length > 0 || row.payment_method !== null,
+      created_at: row.created_at,
+      ready_at: row.ready_at,
+      dispatched_at: row.dispatched_at,
+      delivered_at: row.delivered_at,
+      items: detalleItems,
+    },
+  };
 }

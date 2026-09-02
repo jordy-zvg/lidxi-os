@@ -1,8 +1,8 @@
 export const metadata = { title: 'Detalle del pedido' };
 
 import { OrderDetailView } from '@/components/order-detail/OrderDetailView';
-import { getEmployeeContext } from '@/lib/operations/employee-context';
-import { createSupabaseServiceClient } from '@kobi/db';
+import { loadOrderDetail } from '@/lib/operations/order-actions';
+import Link from 'next/link';
 
 interface Props {
   params: { id: string };
@@ -11,27 +11,21 @@ interface Props {
 export const dynamic = 'force-dynamic';
 
 export default async function OrderDetailPage({ params }: Props) {
-  // El slug público es restaurants.slug del tenant activo (NO tenants.slug, que
-  // es interno/autogenerado). Lo resolvemos server-side para construir el link
-  // de seguimiento que el operador comparte con el cliente.
-  const ctx = await getEmployeeContext();
-  let restaurantSlug: string | null = null;
-  if (ctx) {
-    const supabase = createSupabaseServiceClient();
-    const { data } = await supabase
-      .from('restaurants')
-      .select('slug')
-      .eq('tenant_id', ctx.tenantId)
-      .limit(1)
-      .maybeSingle();
-    restaurantSlug = (data as { slug: string | null } | null)?.slug ?? null;
+  const res = await loadOrderDetail(params.id);
+
+  // Sin fallback a otro pedido: antes, un id desconocido renderizaba el mock
+  // de otro cliente con su nombre y dirección, como si fuera este pedido.
+  if (!res.ok) {
+    return (
+      <div className="p-6">
+        <h1 className="mb-2 font-semibold text-ink text-lg">Pedido no encontrado</h1>
+        <p className="mb-4 text-ink-300 text-sm">{res.error}</p>
+        <Link href="/pedidos" className="text-brand text-sm hover:underline">
+          Volver a pedidos
+        </Link>
+      </div>
+    );
   }
 
-  return (
-    <OrderDetailView
-      orderId={params.id}
-      restaurantSlug={restaurantSlug}
-      storefrontUrl={process.env.NEXT_PUBLIC_STOREFRONT_URL ?? null}
-    />
-  );
+  return <OrderDetailView order={res.data} />;
 }
