@@ -27,13 +27,20 @@ export default async function OnboardingOperacionPage() {
   const membership = resolveSingleMembership(rows, 'onboarding.operacion.page', user.id);
 
   let branchName: string | undefined;
+  // Dirección y tipo de operación capturados en el paso 1: permiten ofrecer
+  // "es la misma dirección" en vez de teclearla dos veces.
+  let restaurantAddress: string | undefined;
+  let isDarkKitchen = false;
   if (membership) {
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('name')
+      .select('name, address, metadata')
       .eq('id', membership.tenant_id)
       .single();
     branchName = (tenant?.name as string | undefined) ?? undefined;
+    restaurantAddress = (tenant?.address as string | null | undefined) ?? undefined;
+    isDarkKitchen =
+      (tenant?.metadata as Record<string, unknown> | null)?.operation_type === 'dark_kitchen';
   }
 
   return (
@@ -46,7 +53,12 @@ export default async function OnboardingOperacionPage() {
         Captura la dirección, horario y canales activos. Lo usamos para configurar tu OMS y la
         cobertura de delivery.
       </p>
-      <OperacionForm mapboxToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN} branchName={branchName} />
+      <OperacionForm
+        mapboxToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+        branchName={branchName}
+        restaurantAddress={restaurantAddress}
+        isDarkKitchen={isDarkKitchen}
+      />
     </div>
   );
 }

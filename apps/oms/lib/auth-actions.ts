@@ -20,6 +20,14 @@ import { cookies } from 'next/headers';
 import { getBranchId, getStationId } from './station';
 
 /**
+ * Error de "no hay nadie dado de alta" — distinto de credencial errónea.
+ * La UI lo reconoce por igualdad para ofrecer el enlace al alta de empleados;
+ * exportado para que ese acoplamiento sea explícito y no un string duplicado.
+ */
+export const NO_EMPLOYEES_ERROR =
+  'Todavía no hay empleados dados de alta en este restaurante. Crea el primero desde Equipo, en el panel de administración.';
+
+/**
  * Server Actions del flujo de auth.
  *
  *   • activatePosStation   — Login del POS. Solo manager/cashier. Crea sesión
@@ -84,7 +92,25 @@ async function activateV2(
   const supabase = createSupabaseServiceClient();
 
   const employee = await findEmployeeByPinV2(supabase, tenantId, pin);
-  if (!employee) return { ok: false, error: 'PIN incorrecto' };
+  if (!employee) {
+    // findEmployeeByPinV2 devuelve null en dos casos distintos: no hay ningún
+    // empleado activo, o ninguno coincide con el PIN. Colapsarlos en "PIN
+    // incorrecto" deja al dueño recién salido del onboarding tecleando PINs
+    // contra un tenant vacío, sin forma de saber que el problema es otro.
+    const { count } = await supabase
+      .from('employees_v2')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('status', 'activo');
+
+    if (count === 0) {
+      return {
+        ok: false,
+        error: NO_EMPLOYEES_ERROR,
+      };
+    }
+    return { ok: false, error: 'PIN incorrecto' };
+  }
   if (!ACTIVATABLE_ROLES.has(employee.role)) {
     return { ok: false, error: 'Tu rol no permite activar el POS' };
   }

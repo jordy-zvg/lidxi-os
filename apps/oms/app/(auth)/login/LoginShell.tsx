@@ -1,7 +1,11 @@
 'use client';
 
 import { HoraEnVivo } from '@/components/HoraEnVivo';
-import { activatePosStation, activatePosStationWithBranch } from '@/lib/auth-actions';
+import {
+  NO_EMPLOYEES_ERROR,
+  activatePosStation,
+  activatePosStationWithBranch,
+} from '@/lib/auth-actions';
 import { formatTimeMX } from '@kobi/shared';
 import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@kobi/ui';
 import { IconInfoCircle } from '@tabler/icons-react';
@@ -178,11 +182,25 @@ export const LoginShell = ({
                   </button>
                 ))}
               </div>
-              {error && (
-                <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
-                  {error}
-                </p>
-              )}
+              {error &&
+                (error === NO_EMPLOYEES_ERROR ? (
+                  <div
+                    className="space-y-2 rounded-lg border border-line bg-canvas px-4 py-3 text-center"
+                    role="alert"
+                  >
+                    <p className="text-[13px] text-ink-200">{error}</p>
+                    <a
+                      href="/admin/equipo"
+                      className="inline-block text-[13px] font-medium text-brand hover:underline"
+                    >
+                      Ir a Equipo
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
+                    {error}
+                  </p>
+                ))}
               <button
                 type="button"
                 onClick={() => {
@@ -213,11 +231,25 @@ export const LoginShell = ({
                 size="md"
               />
 
-              {error && (
-                <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
-                  {error}
-                </p>
-              )}
+              {error &&
+                (error === NO_EMPLOYEES_ERROR ? (
+                  <div
+                    className="space-y-2 rounded-lg border border-line bg-canvas px-4 py-3 text-center"
+                    role="alert"
+                  >
+                    <p className="text-[13px] text-ink-200">{error}</p>
+                    <a
+                      href="/admin/equipo"
+                      className="inline-block text-[13px] font-medium text-brand hover:underline"
+                    >
+                      Ir a Equipo
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-[13px] font-medium text-danger-text text-center" role="alert">
+                    {error}
+                  </p>
+                ))}
 
               <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[11px] text-ink-400">
                 <IconInfoCircle size={13} />

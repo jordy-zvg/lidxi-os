@@ -86,23 +86,33 @@ export function ListoSuccess({ tenantName, trialEndsAt, needsSalesContact }: Lis
             Próximos pasos
           </p>
           <ul className="space-y-3">
+            {/* Va primero porque es el único que bloquea operar: sin empleados
+                nadie puede activar el POS con un PIN. */}
             <li className="flex items-center gap-3 text-sm text-ink/70">
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
                 1
+              </span>
+              Da de alta a tu primer empleado en{' '}
+              <span className="font-medium text-[#7C71FF]">Equipo</span> — su PIN es lo que abre el
+              POS
+            </li>
+            <li className="flex items-center gap-3 text-sm text-ink/70">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
+                2
               </span>
               Configura tus impresoras en{' '}
               <span className="font-medium text-[#7C71FF]">Ajustes › Impresoras</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-ink/70">
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
-                2
+                3
               </span>
               Conecta Uber Eats, Rappi o Didi en{' '}
               <span className="font-medium text-[#7C71FF]">Integraciones</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-ink/70">
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-ink/20 text-xs">
-                3
+                4
               </span>
               Crea tu primer producto en <span className="font-medium text-[#7C71FF]">Menú</span>
             </li>
