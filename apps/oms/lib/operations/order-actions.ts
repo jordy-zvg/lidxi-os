@@ -106,6 +106,8 @@ export interface ActiveOrder {
   total_cents: number;
   payment_method: string | null;
   created_at: string;
+  /** Momento en que se marcó lista; alimenta el cronómetro de espera. */
+  ready_at: string | null;
   items_count: number;
   /** Nombres de los platillos, para no tener que ir al papel a saber qué lleva. */
   item_names: string[];
@@ -152,7 +154,9 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
 
   const { data: orders, error } = await supabase
     .from('orders')
-    .select('id, status, channel, external_id, customer_name, total, payment_method, created_at')
+    .select(
+      'id, status, channel, external_id, customer_name, total, payment_method, created_at, ready_at',
+    )
     .eq('tenant_id', ctx.tenantId)
     .neq('status', 'cancelled')
     // `dispatched` es terminal SOLO en marketplace, así que esos salen de
@@ -202,6 +206,7 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
       total: number;
       payment_method: string | null;
       created_at: string;
+      ready_at: string | null;
     };
     return {
       id: row.id,
@@ -213,6 +218,7 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
       total_cents: row.total,
       payment_method: row.payment_method,
       created_at: row.created_at,
+      ready_at: row.ready_at,
       items_count: itemsByOrder.get(row.id) ?? 0,
       item_names: namesByOrder.get(row.id) ?? [],
       is_paid: paidOrders.has(row.id) || row.payment_method !== null,

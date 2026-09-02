@@ -6,6 +6,7 @@ import {
   advanceOrderStatus,
   chargeOrder,
 } from '@/lib/operations/order-actions';
+import { READY_ALERT_THRESHOLD_MS } from '@/lib/operations/order-timing';
 import type { ShiftInfo, ShiftSummary } from '@/lib/operations/shift-actions';
 import { isMarketplace } from '@kobi/shared';
 import type { ChannelKey } from '@kobi/shared';
@@ -13,7 +14,7 @@ import { Button, ChannelBadge, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
 interface PedidosScreenProps {
   shift: ShiftInfo;
@@ -64,6 +65,38 @@ function formatMoney(cents: number): string {
   return `$${(cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+/**
+ * Minutos:segundos transcurridos, para el cronómetro de espera.
+ * Se calcula en el cliente sobre `ready_at`: sin Realtime, sin recargar.
+ */
+function formatElapsed(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const min = Math.floor(total / 60);
+  const seg = total % 60;
+  return `${min}:${String(seg).padStart(2, '0')}`;
+}
+
+/**
+ * Reloj compartido por toda la lista: un solo intervalo para N tarjetas, en
+ * vez de uno por tarjeta.
+ *
+ * Arranca en null a propósito. Si sembrara `Date.now()` en el estado inicial,
+ * el servidor renderizaría un cronómetro y el cliente otro un segundo después
+ * — error de hidratación real, visto en el navegador
+ * ("Text content did not match. Server: 1:52 Client: 1:53"). Con null, el
+ * cronómetro simplemente no existe hasta que monta en el cliente.
+ */
+function useTicker(activo: boolean): number | null {
+  const [ahora, setAhora] = useState<number | null>(null);
+  useEffect(() => {
+    if (!activo) return;
+    setAhora(Date.now());
+    const t = setInterval(() => setAhora(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [activo]);
+  return ahora;
+}
+
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 }
@@ -71,6 +104,9 @@ function formatTime(iso: string): string {
 export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) => {
   const router = useRouter();
   const [chargingOrder, setChargingOrder] = useState<ActiveOrder | null>(null);
+  // El reloj solo corre si hay algo que cronometrar.
+  const hayEnEspera = orders.some((o) => o.status === 'ready' && o.ready_at);
+  const ahora = useTicker(hayEnEspera);
 
   return (
     <div className="h-full flex flex-col gap-3 sm:gap-4">
@@ -113,7 +149,12 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}
           >
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} onCharge={() => setChargingOrder(order)} />
+              <OrderCard
+                key={order.id}
+                order={order}
+                ahora={ahora}
+                onCharge={() => setChargingOrder(order)}
+              />
             ))}
           </div>
         )}
@@ -130,7 +171,11 @@ export const PedidosScreen = ({ shift, orders, summary }: PedidosScreenProps) =>
 // Tarjeta de orden con acciones de estado/cobro
 // ---------------------------------------------------------------------------
 
-function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => void }) {
+function OrderCard({
+  order,
+  ahora,
+  onCharge,
+}: { order: ActiveOrder; ahora: number | null; onCharge: () => void }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -145,8 +190,20 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
   const nextLabel = nextLabelFor(order.status, order.channel);
   const esDePlataforma = isMarketplace(order.channel as ChannelKey);
 
+  // Cronómetro: solo cuenta mientras el pedido espera en `ready`. Se calcula
+  // en el cliente sobre ready_at, así que avanza sin recargar y sin Realtime.
+  const esperaMs =
+    ahora !== null && order.status === 'ready' && order.ready_at
+      ? ahora - Date.parse(order.ready_at)
+      : null;
+  const alerta = esperaMs !== null && esperaMs >= READY_ALERT_THRESHOLD_MS;
+
   return (
-    <article className="bg-surface border border-line rounded-lg p-4 flex flex-col gap-3">
+    <article
+      className={`rounded-lg border p-4 flex flex-col gap-3 ${
+        alerta ? 'border-danger border-2 bg-danger/5' : 'bg-surface border-line'
+      }`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-1.5">
@@ -170,6 +227,25 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
         </span>
         <span className="font-mono font-semibold text-ink">{formatMoney(order.total_cents)}</span>
       </div>
+
+      {esperaMs !== null && (
+        <div
+          className={`flex items-baseline justify-between rounded-md px-2 py-1.5 ${
+            alerta ? 'bg-danger text-white' : 'bg-surface-2'
+          }`}
+        >
+          <span className={`text-xs ${alerta ? 'text-white' : 'text-ink-400'}`}>
+            {alerta ? 'Lista sin recoger' : 'Esperando'}
+          </span>
+          <span
+            className={`font-mono font-semibold tabular-nums ${
+              alerta ? 'text-xl' : 'text-sm text-ink'
+            }`}
+          >
+            {formatElapsed(esperaMs)}
+          </span>
+        </div>
+      )}
 
       {order.item_names.length > 0 && (
         <p className="text-xs text-ink-300 leading-snug">{order.item_names.join(' · ')}</p>
