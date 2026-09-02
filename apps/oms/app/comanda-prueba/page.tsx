@@ -31,6 +31,11 @@ export const metadata = {
  *   - Un ítem con cantidad > 1 (¿se lee "3×" pegado al nombre?).
  *   - Un ítem con dos modificadores (¿se distinguen del nombre del platillo?).
  *   - Un ítem con nota larga (¿hace wrap sin romper la comanda?).
+ *   - Un nombre de platillo largo y un modificador largo: es donde 58mm se
+ *     rompe primero. A 48mm útiles caben ~21 caracteres en el nombre del ítem
+ *     y ~30 en un modificador, así que ambos deben envolver — y al envolver,
+ *     el modificador tiene que seguir leyéndose como subordinado, no como
+ *     otro platillo.
  */
 const ORDEN_DE_PRUEBA: ReceiptOrder = {
   id: 'prueba-impresion-0001',
@@ -48,6 +53,13 @@ const ORDEN_DE_PRUEBA: ReceiptOrder = {
       qty: 1,
       name: 'Hamburguesa con queso',
       modifiers: ['Sin cebolla', 'Extra queso'],
+    },
+    // El caso que rompe 58mm: nombre largo Y modificador largo en el mismo
+    // ítem. Los dos envuelven a 48mm; si la jerarquía aguanta aquí, aguanta.
+    {
+      qty: 1,
+      name: 'Hamburguesa de la casa con doble carne y tocino',
+      modifiers: ['Sin cebolla morada, sin jitomate y sin pepinillos', 'Aderezo de la casa aparte'],
     },
     {
       qty: 2,

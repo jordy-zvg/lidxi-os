@@ -192,9 +192,11 @@ export const ingestEatsOrder = async (
     return { ok: false, error: `Error al guardar los ítems: ${itemsErr.message}` };
   }
 
-  // TODO[Fase 3]: enganchar aquí el disparo de impresión automática de la
-  // comanda. Deliberadamente sin cablear: la validación física del papel es
-  // requisito previo.
+  // La impresión de la comanda NO va aquí: window.print() es del navegador y
+  // esto corre en el server. El disparo vive en EatsCaptureScreen, que imprime
+  // con los datos ya guardados y solo después limpia el formulario. Este punto
+  // queda marcado por si algún día hay impresora de red (ESC/POS por TCP), que
+  // sí sería una llamada de servidor — ver @kobi/printing.
 
   revalidatePath('/pedidos');
   revalidatePath('/kds');
