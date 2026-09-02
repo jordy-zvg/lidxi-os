@@ -421,6 +421,8 @@ Añadido tras la Fase 3b del Sprint 19 (impresión):
 - **`DEFAULT_PAPER_WIDTH_MM` es una constante a propósito.** Hoy hay una sola impresora (Ykioea de 58mm). El día que exista una segunda sucursal con otro rollo, pasa a columna de `branches_v2` — el componente ya recibe `paperWidth` parametrizado, así que ese cambio es cambiar de dónde sale el número, no tocar layout. Una columna antes de que existan dos configuraciones distintas es especulación que habría que migrar igual cuando llegue el caso real.
 - **`/comanda-prueba` sigue siendo pública a propósito**: el matcher la excluye para poder validar la impresión sin una sesión operativa. Antes de habilitar un ambiente productivo real, hay que **gatearla con una sesión/autorización adecuada o eliminarla**; esta excepción no debe permanecer expuesta en producción.
 
+- **Exportar una constante no-async desde un archivo `'use server'` rompe el build de Next**, y ni `pnpm type-check` ni biome lo detectan: es una restricción del compilador de Next, no de TypeScript. El error solo aparece al ejecutar la app (`Only async functions are allowed to be exported in a "use server" file`), y tumba TODA ruta que importe ese módulo — en nuestro caso la zona operativa entera devolvía 500 porque `auth-actions.ts` cuelga de `ClockOverlay` → `Chrome`. **El único filtro es levantar la app.** Las constantes compartidas entre server actions y UI van en un módulo aparte sin `'use server'` (ver `apps/oms/lib/auth-errors.ts`).
+
 ## Aprendizaje del sprint
 
 **Las auditorías se releen contra el código, no se citan.** Dos veces en este trabajo un dato de una auditoría previa se dio por verdadero sin volver a la fuente:

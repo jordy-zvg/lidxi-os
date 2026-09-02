@@ -1,11 +1,8 @@
 'use client';
 
 import { HoraEnVivo } from '@/components/HoraEnVivo';
-import {
-  NO_EMPLOYEES_ERROR,
-  activatePosStation,
-  activatePosStationWithBranch,
-} from '@/lib/auth-actions';
+import { activatePosStation, activatePosStationWithBranch } from '@/lib/auth-actions';
+import { NO_EMPLOYEES_ERROR } from '@/lib/auth-errors';
 import { formatTimeMX } from '@kobi/shared';
 import { Card, Keypad, KobiWordmark, PinDots, StatusPill } from '@kobi/ui';
 import { IconInfoCircle } from '@tabler/icons-react';

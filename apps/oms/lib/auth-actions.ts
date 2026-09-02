@@ -17,15 +17,8 @@ import {
 import type { EmployeeRow } from '@kobi/db';
 import type { Role } from '@kobi/shared';
 import { cookies } from 'next/headers';
+import { NO_EMPLOYEES_ERROR } from './auth-errors';
 import { getBranchId, getStationId } from './station';
-
-/**
- * Error de "no hay nadie dado de alta" — distinto de credencial errónea.
- * La UI lo reconoce por igualdad para ofrecer el enlace al alta de empleados;
- * exportado para que ese acoplamiento sea explícito y no un string duplicado.
- */
-export const NO_EMPLOYEES_ERROR =
-  'Todavía no hay empleados dados de alta en este restaurante. Crea el primero desde Equipo, en el panel de administración.';
 
 /**
  * Server Actions del flujo de auth.
