@@ -2,23 +2,87 @@
 
 import { requireEmployeeContext } from '@/lib/operations/employee-context';
 import { createSupabaseServiceClient } from '@kobi/db';
+import { type ChannelKey, type OrderStatus, canTransition, isMarketplace } from '@kobi/shared';
 import { revalidatePath } from 'next/cache';
 
 export type OperationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-export type OrderStatus = 'received' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+export type { OrderStatus };
 
-const NEXT_STATUS: Record<OrderStatus, OrderStatus | null> = {
+/** `channel` viaja como string desde la base; fuera del enum, no es marketplace. */
+const esMarketplace = (channel: string): boolean => isMarketplace(channel as ChannelKey);
+
+/**
+ * Escalera operativa por canal (Sprint 20, H20.2).
+ *
+ * El ciclo canónico lo define `@kobi/shared` y es lineal:
+ * received → preparing → ready → dispatched → delivered. Lo que cambia por
+ * canal es HASTA DÓNDE llega cada pedido y qué pasos recorre, porque el
+ * cumplimiento es distinto:
+ *
+ *   - Marketplace (eats/rappi/didi): termina en `dispatched`. Kobi no sabe
+ *     cuándo el pedido llega al cliente — ese dato lo tiene la plataforma.
+ *     Fingir `delivered` sería inventar información, así que `dispatched` es
+ *     terminal de facto para estos canales.
+ *   - `direct`: llega a `delivered`. Uber Direct escribe `dispatched` al
+ *     contratar el repartidor y `delivered` cuando su sync lo confirma; el
+ *     paso manual dispatched → delivered existe para que el operador pueda
+ *     cerrar un pedido cuya confirmación nunca llegó (hoy quedaba atorado en
+ *     "esta orden ya no puede avanzar").
+ *   - `mostrador`: conserva ready → delivered. Es la venta en barra: no hay
+ *     despacho que registrar. Es la ÚNICA divergencia contra la tabla
+ *     canónica, que no contempla ese salto — preexistente y deliberada; ver
+ *     la nota en `nextOperationalStatus`.
+ */
+const ADVANCE_MARKETPLACE: Partial<Record<OrderStatus, OrderStatus>> = {
+  received: 'preparing',
+  preparing: 'ready',
+  ready: 'dispatched',
+};
+
+const ADVANCE_DIRECT: Partial<Record<OrderStatus, OrderStatus>> = {
+  received: 'preparing',
+  preparing: 'ready',
+  ready: 'dispatched',
+  dispatched: 'delivered',
+};
+
+const ADVANCE_MOSTRADOR: Partial<Record<OrderStatus, OrderStatus>> = {
   received: 'preparing',
   preparing: 'ready',
   ready: 'delivered',
-  delivered: null,
-  cancelled: null,
+};
+
+/**
+ * Siguiente estado operativo para un pedido, o null si ya no avanza.
+ *
+ * Valida contra `canTransition()` del SSOT, con UNA excepción documentada:
+ * mostrador ready → delivered. La tabla canónica exige pasar por `dispatched`,
+ * que para una venta en barra no significa nada — no hay repartidor al que
+ * despachar. Cambiarlo obligaría a un tap extra en cada venta de mostrador,
+ * así que se conserva el comportamiento actual y se marca aquí en vez de
+ * relajar el ciclo canónico para todos los canales.
+ */
+const nextOperationalStatus = (current: OrderStatus, channel: string): OrderStatus | null => {
+  const ladder = esMarketplace(channel)
+    ? ADVANCE_MARKETPLACE
+    : channel === 'mostrador'
+      ? ADVANCE_MOSTRADOR
+      : ADVANCE_DIRECT;
+
+  const next = ladder[current];
+  if (!next) return null;
+
+  const saltoDeMostrador = channel === 'mostrador' && current === 'ready' && next === 'delivered';
+  if (!saltoDeMostrador && !canTransition(current, next)) return null;
+
+  return next;
 };
 
 const STATUS_TIMESTAMP: Partial<Record<OrderStatus, string>> = {
   preparing: 'accepted_at',
   ready: 'ready_at',
+  dispatched: 'dispatched_at',
   delivered: 'delivered_at',
 };
 
@@ -103,7 +167,7 @@ export async function loadActiveOrders(): Promise<OperationResult<ActiveOrder[]>
 }
 
 /**
- * Avanza el estado de una orden al siguiente (received → preparing → ready → delivered).
+ * Avanza el pedido al siguiente estado de la escalera de SU canal.
  * Filtro explícito por tenant_id para defense in depth.
  */
 export async function advanceOrderStatus(orderId: string): Promise<OperationResult<OrderStatus>> {
@@ -117,15 +181,16 @@ export async function advanceOrderStatus(orderId: string): Promise<OperationResu
 
   const { data: order, error: loadErr } = await supabase
     .from('orders')
-    .select('id, status')
+    .select('id, status, channel')
     .eq('id', orderId)
     .eq('tenant_id', ctx.tenantId)
     .maybeSingle();
 
   if (loadErr || !order) return { ok: false, error: 'Orden no encontrada' };
 
-  const currentStatus = (order as { status: OrderStatus }).status;
-  const nextStatus = NEXT_STATUS[currentStatus];
+  const row = order as { status: OrderStatus; channel: string };
+  const currentStatus = row.status;
+  const nextStatus = nextOperationalStatus(currentStatus, row.channel);
   if (!nextStatus) return { ok: false, error: 'Esta orden ya no puede avanzar' };
 
   const updates: Record<string, string> = { status: nextStatus };

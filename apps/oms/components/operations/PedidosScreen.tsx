@@ -7,6 +7,8 @@ import {
   chargeOrder,
 } from '@/lib/operations/order-actions';
 import type { ShiftInfo, ShiftSummary } from '@/lib/operations/shift-actions';
+import { isMarketplace } from '@kobi/shared';
+import type { ChannelKey } from '@kobi/shared';
 import { Button, EmptyState, StatusPill } from '@kobi/ui';
 import { IconCash, IconCreditCard, IconReceipt, IconX } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
@@ -22,6 +24,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   received: 'Nueva',
   preparing: 'En preparación',
   ready: 'Lista',
+  dispatched: 'En camino',
   delivered: 'Entregada',
   cancelled: 'Cancelada',
 };
@@ -30,19 +33,35 @@ const STATUS_VARIANT: Record<OrderStatus, 'info' | 'warn' | 'ok' | 'neutral' | '
   received: 'info',
   preparing: 'warn',
   ready: 'ok',
+  dispatched: 'neutral',
   delivered: 'neutral',
   cancelled: 'danger',
 };
 
-const NEXT_LABEL: Partial<Record<OrderStatus, string>> = {
-  received: 'Marcar en preparación',
-  preparing: 'Marcar lista',
-  ready: 'Marcar entregada',
-};
-
+/**
+ * Etiqueta del botón de avance. Depende del canal, no solo del estado: desde
+ * `ready`, un pedido de plataforma lo recoge un repartidor y uno de mostrador
+ * se entrega en la barra.
+ */
 const CHANNEL_LABEL: Record<string, string> = {
   mostrador: 'Mostrador',
   direct: 'En línea',
+};
+
+const nextLabelFor = (status: OrderStatus, channel: string): string | undefined => {
+  if (status === 'received') return 'Marcar en preparación';
+  if (status === 'preparing') return 'Marcar lista';
+  if (status === 'ready') {
+    // Desde `ready` el destino depende del canal: plataforma → dispatched
+    // (lo recoge el repartidor), mostrador → delivered (se entrega en barra),
+    // direct → dispatched (sale con el repartidor de Uber Direct).
+    if (isMarketplace(channel as ChannelKey)) return 'Repartidor recogió';
+    return channel === 'mostrador' ? 'Marcar entregada' : 'Marcar despachada';
+  }
+  // `direct` despachado con Uber Direct: cierre manual cuando la confirmación
+  // automática no llega. En marketplace no hay siguiente paso.
+  if (status === 'dispatched' && !isMarketplace(channel as ChannelKey)) return 'Marcar entregada';
+  return undefined;
 };
 
 function formatMoney(cents: number): string {
@@ -127,7 +146,7 @@ function OrderCard({ order, onCharge }: { order: ActiveOrder; onCharge: () => vo
     });
   };
 
-  const nextLabel = NEXT_LABEL[order.status];
+  const nextLabel = nextLabelFor(order.status, order.channel);
 
   return (
     <article className="bg-surface border border-line rounded-lg p-4 flex flex-col gap-3">
