@@ -407,7 +407,7 @@ Recogida de la sección 13 de la brecha, sin re-litigar:
 - Renombrar el proyecto de Railway antes de que exista producción real.
 - Verificar el importador de menú por visión en staging.
 - UUIDs de Miztli discrepantes entre `scripts/create-test-employees.ts:8-9` y el test de RLS/migración `20260521000003`. No bloquea con tenant nuevo, pero sigue sin resolverse.
-- `apps/oms/components/orders/mock-orders.ts` queda sin consumidores de datos tras H20.4; confirmar antes de borrar porque su **tipo** sí se importa en dos componentes.
+- ~~`apps/oms/components/orders/mock-orders.ts` queda sin consumidores de datos tras H20.4~~ — **resuelto en el Sprint 20**: borrado junto con `OrderDetailSlideOver.tsx` y `WebReceipt.tsx`, los dos únicos importadores de su tipo y ambos código muerto.
 
 Añadido tras la Fase 2 del Sprint 19 (ingesta de Eats):
 
