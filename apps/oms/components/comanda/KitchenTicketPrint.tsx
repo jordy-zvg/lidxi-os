@@ -169,6 +169,12 @@ export const printCss = (
   .kobi-comanda-no-print {
     display: none !important;
   }
+  /* En papel vuelve al flujo normal: si conservara el desplazamiento de
+     pantalla, la comanda se imprimiría fuera de la página. */
+  .kobi-comanda-solo-impresion {
+    position: static !important;
+    left: auto !important;
+  }
   /* El marco de vista previa es cosmético de pantalla: borde, padding y
      sombra no deben desplazar ni recuadrar la comanda en el papel. */
   .kobi-comanda-preview-frame {
@@ -178,6 +184,17 @@ export const printCss = (
     box-shadow: none !important;
     width: auto !important;
   }
+}
+
+/* Montada para imprimir, invisible en pantalla.
+   Fuera de la vista con posición absoluta y NO con display:none: un elemento
+   con display:none tiene offsetHeight 0, así que printComanda() no podría
+   medirlo y cada comanda alimentaría los 300mm de reserva. Absoluta y
+   desplazada, se maquetea de verdad y no ocupa espacio en la captura. */
+.kobi-comanda-solo-impresion {
+  position: absolute;
+  left: -10000px;
+  top: 0;
 }
 
 .kobi-comanda {

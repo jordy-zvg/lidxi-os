@@ -1,10 +1,24 @@
 'use client';
 
+import { useOperationSession } from '@/components/OperationSessionProvider';
+import {
+  KitchenTicketPrint,
+  printComanda,
+  printCss,
+} from '@/components/comanda/KitchenTicketPrint';
 import { type EatsLineInput, type EatsMenuItem, ingestEatsOrder } from '@/lib/eats-ingest-actions';
-import { type CentsMXN, cents } from '@kobi/shared';
+import { useTenant } from '@/lib/tenant';
+import type { ReceiptOrder } from '@kobi/printing';
+import {
+  type CentsMXN,
+  type OrderItemModifier,
+  cents,
+  modifiersToReceiptStrings,
+} from '@kobi/shared';
 import { Button, Card } from '@kobi/ui';
 import { IconMinus, IconPlus, IconX } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 /**
  * Captura rápida de pedidos de Uber Eats (Sprint 19, H19.3).
@@ -16,6 +30,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
  *     categorías anidadas: la carta de una hamburguesería cabe en pantalla.
  *   - Al guardar la pantalla vuelve en blanco sin modal de éxito. La
  *     confirmación es que el formulario se vació y el foco volvió al ID.
+ *
+ * Impresión automática (Fase 3b): al guardar sale la comanda sin ningún tap
+ * extra. El orden es deliberado — guardar, imprimir, y solo entonces limpiar:
+ *   1. El pedido se guarda PRIMERO. Si la impresión falla, el pedido ya está
+ *      en la base y la pantalla lo dice. Nunca se pierde un pedido por papel.
+ *   2. `flushSync` fuerza a React a montar la comanda en el DOM ANTES de
+ *      llamar a window.print(). Sin eso, print() dispararía contra el árbol
+ *      anterior y saldría papel en blanco o el pedido equivocado.
+ *   3. El reset va al final, después de que print() retorna.
  */
 
 interface CaptureLine {
@@ -45,7 +68,18 @@ export const EatsCaptureScreen = ({ menu }: { menu: EatsMenuItem[] }) => {
   const [lines, setLines] = useState<CaptureLine[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * Comanda montada para imprimir. Se conserva después de imprimir (invisible
+   * en pantalla) a propósito: permite reintentar la impresión sin volver a
+   * capturar, y no hay carrera posible con el reset del formulario porque no
+   * comparten estado.
+   */
+  const [printOrder, setPrintOrder] = useState<ReceiptOrder | null>(null);
+  /** El pedido se guardó pero la impresión falló: aviso, no error de captura. */
+  const [printFailed, setPrintFailed] = useState<string | null>(null);
 
+  const tenant = useTenant();
+  const session = useOperationSession();
   const idInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -102,32 +136,56 @@ export const EatsCaptureScreen = ({ menu }: { menu: EatsMenuItem[] }) => {
     idInputRef.current?.focus();
   };
 
+  /**
+   * Monta la comanda y dispara el diálogo de impresión.
+   * `flushSync` garantiza que el DOM ya tiene la comanda cuando print() corre.
+   * Devuelve false si el navegador rechazó la impresión.
+   */
+  const imprimirComanda = (receipt: ReceiptOrder): boolean => {
+    try {
+      flushSync(() => setPrintOrder(receipt));
+    } catch {
+      return false;
+    }
+    // printComanda mide la comanda ya montada y ajusta el alto de página.
+    return printComanda();
+  };
+
   const canSave = externalId.trim().length > 0 && lines.length > 0 && !saving;
 
   const save = async () => {
     if (!canSave) return;
     setSaving(true);
     setError(null);
+    setPrintFailed(null);
 
     const parsedTotal = Number.parseFloat(totalPesos);
     const totalCents = cents(Number.isFinite(parsedTotal) ? Math.round(parsedTotal * 100) : 0);
 
-    const items: EatsLineInput[] = lines.map((l) => ({
-      menuItemId: l.menuItemId,
-      qty: l.qty,
-      unitPriceCents: l.unitPriceCents,
-      note: l.note,
-      // Texto libre → modifiers estructurados. priceDelta 0: el precio lo fija
-      // Uber, pero la forma ya es la definitiva (compatible hacia adelante).
+    // Texto libre → modifiers estructurados. priceDelta 0: el precio lo fija
+    // Uber, pero la forma ya es la definitiva (compatible hacia adelante).
+    // Se parsean UNA vez y se usan para el guardado y para el papel: si el
+    // papel se formateara aparte, las dos representaciones derivarían.
+    const parsedLines = lines.map((l) => ({
+      line: l,
       modifiers: l.modifierText
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean)
-        .map((name) => ({ name, priceDelta: cents(0) })),
+        .map((name): OrderItemModifier => ({ name, priceDelta: cents(0) })),
     }));
 
+    const items: EatsLineInput[] = parsedLines.map(({ line, modifiers }) => ({
+      menuItemId: line.menuItemId,
+      qty: line.qty,
+      unitPriceCents: line.unitPriceCents,
+      note: line.note,
+      modifiers,
+    }));
+
+    const trimmedExternalId = externalId.trim();
     const res = await ingestEatsOrder({
-      externalId: externalId.trim(),
+      externalId: trimmedExternalId,
       customerName: customerName.trim() || null,
       items,
       totalCents,
@@ -135,15 +193,52 @@ export const EatsCaptureScreen = ({ menu }: { menu: EatsMenuItem[] }) => {
 
     setSaving(false);
     if (!res.ok) {
+      // El pedido NO se guardó: se conserva lo capturado para reintentar.
       setError(res.error);
       return;
     }
+
+    // Guardado. A partir de aquí nada puede perder el pedido.
+    const receipt: ReceiptOrder = {
+      id: res.data.orderId,
+      channel: 'eats',
+      externalId: trimmedExternalId,
+      createdAt: new Date().toISOString(),
+      customer: { name: customerName.trim() || 'Cliente Uber Eats' },
+      items: parsedLines.map(({ line, modifiers }) => ({
+        qty: line.qty,
+        name: line.name,
+        notes: line.note.trim() || undefined,
+        // Mapper de @kobi/shared: mismo formato que consume cualquier otra
+        // superficie de impresión, en vez de formatear aquí a mano.
+        modifiers: modifiersToReceiptStrings(modifiers),
+      })),
+      // La comanda de cocina no imprime precios; el contrato los exige.
+      subtotal: totalCents,
+      tax: cents(0),
+      total: totalCents,
+    };
+
+    const impreso = imprimirComanda(receipt);
+    if (!impreso) {
+      setPrintFailed(
+        `El pedido ${trimmedExternalId} se guardó, pero no se pudo imprimir la comanda.`,
+      );
+    }
+
     // Sin modal de éxito: la pantalla en blanco ES la confirmación.
+    // Va al final — después de imprimir — para que print() nunca dispare
+    // contra un formulario ya vaciado.
     reset();
   };
 
   return (
     <div className="flex h-full flex-col gap-4 p-4">
+      {/* Estilos de impresión de la comanda: sin esto el papel saldría con el
+          chrome de la app (sidebar, topbar) y sin el ancho de rollo correcto. */}
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: CSS estático propio, sin entrada de usuario. */}
+      <style dangerouslySetInnerHTML={{ __html: printCss() }} />
+
       <header className="flex items-baseline justify-between">
         <h1 className="font-semibold text-ink text-lg">Captura de Uber Eats</h1>
         <span className="text-ink-3 text-xs">El pedido entra directo a preparación</span>
@@ -156,6 +251,30 @@ export const EatsCaptureScreen = ({ menu }: { menu: EatsMenuItem[] }) => {
         >
           {error}
         </div>
+      ) : null}
+
+      {/* Aviso, no error: el pedido está guardado. En ámbar y con reintento,
+          para que nadie lo lea como "hay que capturar de nuevo". */}
+      {printFailed ? (
+        <output className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line-2 bg-surface-2 px-3 py-2 text-ink text-sm">
+          <span>{printFailed}</span>
+          <div className="flex items-center gap-2">
+            {printOrder ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  if (imprimirComanda(printOrder)) setPrintFailed(null);
+                }}
+              >
+                Reintentar impresión
+              </Button>
+            ) : null}
+            <Button size="sm" variant="ghost" onClick={() => setPrintFailed(null)}>
+              Entendido
+            </Button>
+          </div>
+        </output>
       ) : null}
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_380px]">
@@ -289,6 +408,19 @@ export const EatsCaptureScreen = ({ menu }: { menu: EatsMenuItem[] }) => {
           </div>
         </Card>
       </div>
+
+      {/* Solo existe para el papel: fuera de la vista en pantalla (absoluta y
+          desplazada, para que siga siendo medible) y en su sitio al imprimir.
+          El nombre del negocio sale del tenant de la sesión, nunca literal. */}
+      {printOrder ? (
+        <div className="kobi-comanda-solo-impresion">
+          <KitchenTicketPrint
+            order={printOrder}
+            tenantName={tenant.displayName}
+            branchName={session?.branchName}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };
