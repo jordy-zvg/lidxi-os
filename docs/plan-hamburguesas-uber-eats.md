@@ -419,6 +419,7 @@ Añadido tras la Fase 3b del Sprint 19 (impresión):
 
 - **`@page { size: <length> auto }` es CSS inválido** y el navegador descarta la declaración ENTERA. La gramática admite `<length>{1,2}` o `auto`, nunca mezclados. El `size: 80mm auto` original hacía que Chrome cayera a tamaño Carta: verificado imprimiendo a PDF, 215.9mm de ancho en vez de 80 — la comanda nunca imprimió al ancho correcto hasta este arreglo. **Cualquier hoja de impresión futura declara las dos dimensiones o solo `auto`.** Como el rollo térmico alimenta hasta el largo de página declarado, el alto se mide del contenido (`printComanda()`) en vez de fijarlo: con 300mm fijos cada comanda desperdiciaría ~20cm de papel en blanco.
 - **`DEFAULT_PAPER_WIDTH_MM` es una constante a propósito.** Hoy hay una sola impresora (Ykioea de 58mm). El día que exista una segunda sucursal con otro rollo, pasa a columna de `branches_v2` — el componente ya recibe `paperWidth` parametrizado, así que ese cambio es cambiar de dónde sale el número, no tocar layout. Una columna antes de que existan dos configuraciones distintas es especulación que habría que migrar igual cuando llegue el caso real.
+- **`/comanda-prueba` sigue siendo pública a propósito**: el matcher la excluye para poder validar la impresión sin una sesión operativa. Antes de habilitar un ambiente productivo real, hay que **gatearla con una sesión/autorización adecuada o eliminarla**; esta excepción no debe permanecer expuesta en producción.
 
 ## Aprendizaje del sprint
 
