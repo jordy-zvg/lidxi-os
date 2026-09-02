@@ -83,7 +83,8 @@ if (!url || !key) {
 // ---------------------------------------------------------------------------
 // Guard contra ejecución accidental en producción
 // ---------------------------------------------------------------------------
-const isProd = url.includes('.supabase.co') && !url.includes('127.0.0.1') && !url.includes('localhost');
+const isProd =
+  url.includes('.supabase.co') && !url.includes('127.0.0.1') && !url.includes('localhost');
 if (isProd && process.env.ALLOW_SEED_PROD !== 'true') {
   console.error(
     '✗ El SUPABASE_URL apunta a un proyecto cloud (.supabase.co).\n' +
@@ -266,18 +267,15 @@ for (const g of generated) {
     orderId = existing.id;
     skippedOrders++;
   } else {
-    const acceptedAt =
-      ['preparing', 'ready', 'dispatched', 'delivered'].includes(g.status)
-        ? new Date(new Date(g.createdAt).getTime() + 60_000).toISOString()
-        : null;
-    const readyAt =
-      ['ready', 'dispatched', 'delivered'].includes(g.status)
-        ? new Date(new Date(g.createdAt).getTime() + 18 * 60_000).toISOString()
-        : null;
-    const dispatchedAt =
-      ['dispatched', 'delivered'].includes(g.status)
-        ? new Date(new Date(g.createdAt).getTime() + 22 * 60_000).toISOString()
-        : null;
+    const acceptedAt = ['preparing', 'ready', 'dispatched', 'delivered'].includes(g.status)
+      ? new Date(new Date(g.createdAt).getTime() + 60_000).toISOString()
+      : null;
+    const readyAt = ['ready', 'dispatched', 'delivered'].includes(g.status)
+      ? new Date(new Date(g.createdAt).getTime() + 18 * 60_000).toISOString()
+      : null;
+    const dispatchedAt = ['dispatched', 'delivered'].includes(g.status)
+      ? new Date(new Date(g.createdAt).getTime() + 22 * 60_000).toISOString()
+      : null;
     const deliveredAt =
       g.status === 'delivered'
         ? new Date(new Date(g.createdAt).getTime() + 45 * 60_000).toISOString()
@@ -334,7 +332,7 @@ for (const g of generated) {
         provider: 'uber_direct',
         external_id: `demo-del-${g.externalId}`,
         status: 'delivered',
-        quote_fee_cents: 4500 + ((g.subtotal % 5000)),
+        quote_fee_cents: 4500 + (g.subtotal % 5000),
         quote_currency: 'MXN',
         courier_name: 'Demo Courier',
         courier_vehicle: 'motorcycle',
@@ -357,30 +355,43 @@ for (const g of generated) {
 const MARKETPLACE_FEE = 0.28;
 const totalSavingsCents = Math.round(totalRevenueCents * MARKETPLACE_FEE);
 const todaySavingsCents = Math.round(todayRevenueCents * MARKETPLACE_FEE);
-const avgTicketTodayCents = todayRevenueCents > 0
-  ? Math.round(todayRevenueCents / DISTRIBUTION[0].count)
-  : 0;
+const avgTicketTodayCents =
+  todayRevenueCents > 0 ? Math.round(todayRevenueCents / DISTRIBUTION[0].count) : 0;
 
 const pesos = (cents) => `$${(cents / 100).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`;
 
-console.log(`\n┌──────────────────────────────────────────────────────────────┐`);
-console.log(`│ Seed completado                                              │`);
-console.log(`├──────────────────────────────────────────────────────────────┤`);
-console.log(`│  Insertadas:   ${insertedOrders.toString().padStart(3)}                                           │`);
-console.log(`│  Ya existían:  ${skippedOrders.toString().padStart(3)} (idempotencia OK)                          │`);
-console.log(`├──────────────────────────────────────────────────────────────┤`);
-console.log(`│ Métricas que mostrará Sitio Propio:                          │`);
-console.log(`│                                                              │`);
-console.log(`│  Órdenes hoy:           ${DISTRIBUTION[0].count.toString().padStart(3)}                                  │`);
-console.log(`│  Ticket promedio hoy:   ${pesos(avgTicketTodayCents).padStart(8)}                              │`);
-console.log(`│  Comisión promedio:     0% (solo logística)                  │`);
-console.log(`│  Ahorro hoy:            ${pesos(todaySavingsCents).padStart(8)}                              │`);
-console.log(`│                                                              │`);
-console.log(`│  Total 7 días:          ${pesos(totalRevenueCents).padStart(9)}                            │`);
-console.log(`│  Ahorro 7 días vs 28%:  ${pesos(totalSavingsCents).padStart(9)}                            │`);
-console.log(`└──────────────────────────────────────────────────────────────┘`);
+console.log('\n┌──────────────────────────────────────────────────────────────┐');
+console.log('│ Seed completado                                              │');
+console.log('├──────────────────────────────────────────────────────────────┤');
+console.log(
+  `│  Insertadas:   ${insertedOrders.toString().padStart(3)}                                           │`,
+);
+console.log(
+  `│  Ya existían:  ${skippedOrders.toString().padStart(3)} (idempotencia OK)                          │`,
+);
+console.log('├──────────────────────────────────────────────────────────────┤');
+console.log('│ Métricas que mostrará Sitio Propio:                          │');
+console.log('│                                                              │');
+console.log(
+  `│  Órdenes hoy:           ${DISTRIBUTION[0].count.toString().padStart(3)}                                  │`,
+);
+console.log(
+  `│  Ticket promedio hoy:   ${pesos(avgTicketTodayCents).padStart(8)}                              │`,
+);
+console.log('│  Comisión promedio:     0% (solo logística)                  │');
+console.log(
+  `│  Ahorro hoy:            ${pesos(todaySavingsCents).padStart(8)}                              │`,
+);
+console.log('│                                                              │');
+console.log(
+  `│  Total 7 días:          ${pesos(totalRevenueCents).padStart(9)}                            │`,
+);
+console.log(
+  `│  Ahorro 7 días vs 28%:  ${pesos(totalSavingsCents).padStart(9)}                            │`,
+);
+console.log('└──────────────────────────────────────────────────────────────┘');
 
-console.log(`\nPara limpiar después de la demo:`);
-console.log(`  delete from public.orders`);
+console.log('\nPara limpiar después de la demo:');
+console.log('  delete from public.orders');
 console.log(`  where tenant_id = '${tenant.id}'`);
-console.log(`    and external_id like 'demo-seed-%';`);
+console.log("    and external_id like 'demo-seed-%';");

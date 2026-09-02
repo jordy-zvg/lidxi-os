@@ -69,12 +69,12 @@ async function main() {
       );
 
       if (branchError) {
-        console.error(`   ⚠️  Error assigning branches:`, branchError.message);
+        console.error('   ⚠️  Error assigning branches:', branchError.message);
       } else {
         console.log(`   ✓ Assigned to ${emp.branchIds.length} branch(es)`);
       }
     } else {
-      console.log(`   ✓ No explicit branch assignment (can access all active)`);
+      console.log('   ✓ No explicit branch assignment (can access all active)');
     }
     console.log();
   }

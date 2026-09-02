@@ -77,6 +77,17 @@
           }
         }
       }
+    },
+    {
+      // Los scripts CLI tienen salida de consola como parte de su contrato.
+      "include": ["scripts/**", "packages/db/scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
     }
   ]
 }

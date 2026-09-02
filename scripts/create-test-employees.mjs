@@ -5,22 +5,22 @@
  * Nota: Usa Supabase REST API para crear employees y branches.
  */
 
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Load .env.local
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.join(__dirname, '..', '.env.local');
 if (fs.existsSync(envPath)) {
   const env = fs.readFileSync(envPath, 'utf-8');
-  env.split('\n').forEach((line) => {
+  for (const line of env.split('\n')) {
     if (line && !line.startsWith('#')) {
       const [key, ...val] = line.split('=');
       if (key) process.env[key.trim()] = val.join('=').trim();
     }
-  });
+  }
 }
 
 const MIZTLI_TENANT_ID = 'b27036fa-c1d1-4138-85c6-844d89637b1a';
@@ -127,7 +127,7 @@ async function main() {
         await assignBranches(employeeId, emp.branchIds);
         console.log(`   ✓ Assigned to ${emp.branchIds.length} branch(es)`);
       } else {
-        console.log(`   ✓ No explicit branch assignment (can access all active)`);
+        console.log('   ✓ No explicit branch assignment (can access all active)');
       }
     } catch (err) {
       console.error(`❌ Error creating ${emp.name}:`, err.message);

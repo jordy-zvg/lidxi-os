@@ -11,16 +11,7 @@ const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
 ];
 
-const REQUIRED_IN_PRODUCTION = [
-  'NEXT_PUBLIC_APP_URL',
-  // Base URL del storefront público — usada para construir links de seguimiento
-  // que el operador comparte con el cliente desde el detalle del pedido.
-  'NEXT_PUBLIC_STOREFRONT_URL',
-  // Extracción de menú por visión (importador de fotos). SOLO server-side —
-  // jamás exponer al cliente. En dev es opcional: sin ella, el importador
-  // marca el import como error con mensaje claro en vez de tronar al boot.
-  'ANTHROPIC_API_KEY',
-];
+const REQUIRED_IN_PRODUCTION = ['NEXT_PUBLIC_APP_URL'];
 
 export function validateEnv(): void {
   const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
