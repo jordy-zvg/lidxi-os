@@ -241,7 +241,17 @@ Criterios de aceptación:
 - Hay un botón de reimprimir que produce la misma comanda del Sprint 19.
 - Reimprimir **no cambia el estado** del pedido ni duplica nada en la base.
 
-### H20.5 — Middleware acotado
+### H20.5 — Middleware acotado ✅ (ya implementada antes del sprint)
+
+> **Cerrada por `1ae1614` — `fix(oms): protege rutas nuevas en middleware`**, integrado desde
+> `fix/estabilidad-operativa` y ya presente en `main` antes de que arrancara el Sprint 20.
+> `apps/oms/middleware.ts` exporta `config.matcher` excluyendo assets y rutas públicas, y el
+> modelo pasó de una lista `opPaths` de rutas a proteger a **protegido por defecto salvo
+> exclusión explícita**: toda ruta que llega al middleware exige la cookie `kobi-session`.
+> Verificado con la app levantada: `/eats`, `/pedidos`, `/pos`, `/kds`, `/reportes`,
+> `/sitio-propio` y `/caja` responden 307 → `/login` sin sesión; un `.woff2` responde 200 sin
+> pasar por el middleware; y una ruta inexistente también queda protegida — que es la prueba
+> de que una ruta nueva ya no nace desprotegida.
 
 > Como cocinero, quiero que Kobi no se ponga lento ni falle en la hora pico, para poder capturar el pedido que tengo enfrente.
 
@@ -429,12 +439,15 @@ Añadido en el Sprint 20, Fase 1:
 
 ## Aprendizaje del sprint
 
-**Las auditorías se releen contra el código, no se citan.** Dos veces en este trabajo un dato de una auditoría previa se dio por verdadero sin volver a la fuente:
+**Ninguna afirmación sobre el estado del código se repite sin abrir el archivo.** Da igual de dónde venga: un documento, una auditoría previa, un subagente, o el propio Jordy en el prompt. El origen no cambia la regla, porque el fallo no está en quién lo dijo sino en repetirlo sin comprobarlo.
 
-1. **El número de línea del patrón condicional** de `pos-actions.ts` — dos auditorías previas lo describieron de forma distinta, y la ruta del archivo también estaba mal (`lib/operations/pos-actions.ts` en vez de `lib/pos-actions.ts`).
-2. **El nombre de la columna de permisos** — se buscó `employees_v2.permissions`, que nunca existió; la migración crea cinco `perm_*`. El falso negativo se reportó como hecho y se propagó al prompt de la fase siguiente, donde se convirtió en una restricción basada en una premisa falsa.
+Pasó tres veces entre los sprints 19 y 20, con la misma forma y distinta fuente cada vez:
 
-En ambos casos el costo fue trabajo dirigido por una premisa incorrecta. Un documento de auditoría envejece en cuanto el código se mueve; la fuente de verdad es el archivo.
+1. **El número de línea del patrón condicional** de `pos-actions.ts` — fuente: dos auditorías previas, que además lo describían de forma distinta entre sí. La ruta del archivo también estaba mal (`lib/operations/pos-actions.ts` en vez de `lib/pos-actions.ts`).
+2. **El nombre de la columna de permisos** — fuente: una comprobación propia mal hecha. Se buscó `employees_v2.permissions`, que nunca existió; la migración crea cinco booleanos `perm_*`. El falso negativo se reportó como hecho y se propagó al prompt de la fase siguiente, donde se convirtió en una restricción basada en una premisa falsa.
+3. **`opPaths` omitiendo `/eats`** — fuente: un subagente de mapeo. Describía una versión del middleware que ya no existía: `1ae1614` había sustituido la lista `opPaths` por `config.matcher` con modelo de protegido-por-defecto, y ese commit ya era ancestro del `main` del que salió la rama. Se reportó como hueco de seguridad y como trabajo pendiente (H20.5) sin abrir `middleware.ts`; la historia llevaba cerrada desde antes de empezar el sprint.
+
+El costo es siempre el mismo: trabajo dirigido por una premisa incorrecta, y en el tercer caso además una alarma de seguridad falsa. Un documento envejece en cuanto el código se mueve, un subagente puede leer mal, y un prompt puede arrastrar un error anterior — la fuente de verdad es el archivo, y comprobarlo cuesta un `grep`.
 
 ---
 
