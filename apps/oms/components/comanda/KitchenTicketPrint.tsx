@@ -64,16 +64,23 @@ interface PaperSpec {
   /** Ancho imprimible real (el resto es zona muerta del cabezal). */
   printableMm: number;
   baseMm: number;
+  /** Una sola línea discreta de identidad (negocio · sucursal). */
   negocioMm: number;
-  sucursalMm: number;
   canalMm: number;
   horaMm: number;
   folioMm: number;
   folioLabelMm: number;
   clienteMm: number;
   itemNombreMm: number;
+  /** Ancho de la columna fija de cantidad, para que no quede huérfana. */
+  qtyColMm: number;
+  /** Separación ENTRE platillos. Debe superar con claridad a modGapMm. */
+  itemGapMm: number;
   modMm: number;
-  modIndentMm: number;
+  /** Separación INTERNA, del platillo a sus modificadores. */
+  modGapMm: number;
+  /** La nota tiene tamaño propio: es lo más consecuente de la comanda. */
+  notaMm: number;
   pieMm: number;
 }
 
@@ -82,32 +89,36 @@ const PAPER: Record<PaperWidthMm, PaperSpec> = {
     rollMm: 58,
     printableMm: 48,
     baseMm: 3.2,
-    negocioMm: 4,
-    sucursalMm: 2.8,
+    negocioMm: 2.8,
     canalMm: 3.1,
-    horaMm: 3,
+    horaMm: 3.4,
     folioMm: 7,
     folioLabelMm: 2.6,
     clienteMm: 3.2,
     itemNombreMm: 4,
+    qtyColMm: 7,
+    itemGapMm: 5.5,
     modMm: 3.1,
-    modIndentMm: 2.5,
+    modGapMm: 0.2,
+    notaMm: 3.6,
     pieMm: 2.8,
   },
   80: {
     rollMm: 80,
     printableMm: 72,
     baseMm: 3.2,
-    negocioMm: 4.6,
-    sucursalMm: 3,
+    negocioMm: 3,
     canalMm: 3.4,
-    horaMm: 3.2,
+    horaMm: 3.6,
     folioMm: 9,
     folioLabelMm: 2.8,
     clienteMm: 3.4,
     itemNombreMm: 4.4,
+    qtyColMm: 8,
+    itemGapMm: 6,
     modMm: 3.4,
-    modIndentMm: 4,
+    modGapMm: 0.2,
+    notaMm: 3.9,
     pieMm: 3,
   },
 };
@@ -211,20 +222,15 @@ export const printCss = (
   print-color-adjust: exact;
 }
 
+/* Identidad del negocio en UNA línea discreta. El cocinero no necesita que
+   se le recuerde dónde trabaja; el espacio vertical de un rollo de 48mm sí
+   hace falta. Antes eran dos bloques (nombre en grande a varias líneas +
+   sucursal debajo) que se comían ~10mm de papel. */
 .kobi-comanda__negocio {
   text-align: center;
   font-size: ${p.negocioMm}mm;
-  font-weight: 700;
-  letter-spacing: 0.3mm;
-  text-transform: uppercase;
+  font-weight: 400;
   margin: 0;
-  overflow-wrap: break-word;
-}
-
-.kobi-comanda__sucursal {
-  text-align: center;
-  font-size: ${p.sucursalMm}mm;
-  margin: 0.5mm 0 0;
   overflow-wrap: break-word;
 }
 
@@ -234,10 +240,12 @@ export const printCss = (
   margin: 2mm 0;
 }
 
+/* El badge quedó solo en su fila al bajar la hora al bloque del folio, así
+   que se centra con el resto en vez de flotar contra el margen izquierdo. */
 .kobi-comanda__meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 2mm;
 }
 
@@ -254,10 +262,19 @@ export const printCss = (
   white-space: nowrap;
 }
 
+/* La hora baja al bloque del folio y se etiqueta. Arriba competía con el
+   badge de canal por la misma fila y se leía como decoración.
+   Es la hora de ENTRADA, no el tiempo transcurrido: el papel es estático y
+   un "hace 3 min" impreso queda desactualizado al minuto siguiente — y en
+   una reimpresión mentiría directamente. Con la hora de entrada, el cocinero
+   la compara contra el reloj de la pared y siempre acierta. */
 .kobi-comanda__hora {
+  text-align: center;
   font-size: ${p.horaMm}mm;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  margin: 1.5mm 0 0;
 }
 
 /* El elemento más grande de la comanda: es lo que canta el repartidor. */
@@ -276,7 +293,7 @@ export const printCss = (
   font-size: ${p.folioLabelMm}mm;
   text-transform: uppercase;
   letter-spacing: 0.3mm;
-  margin: 0;
+  margin: 1.5mm 0 0;
 }
 
 .kobi-comanda__cliente {
@@ -292,39 +309,80 @@ export const printCss = (
   padding: 0;
 }
 
-/* Un ítem nunca se parte entre páginas: la cocina leería medio platillo. */
+/* Un ítem nunca se parte entre páginas: la cocina leería medio platillo.
+   La separación ENTRE platillos es varias veces la interna (modGapMm), para
+   que cada uno se lea como un bloque y no como una lista plana. Antes ambas
+   eran casi iguales y los modificadores flotaban entre dos platillos. */
 .kobi-comanda__item {
   break-inside: avoid;
   page-break-inside: avoid;
-  margin: 0 0 3mm;
+  margin: 0 0 ${p.itemGapMm}mm;
 }
 
-/* Cantidad pegada al nombre y del mismo tamaño ("2× Hamburguesa"),
-   nunca en letra pequeña aparte. A 48mm un nombre largo envuelve; sin
-   overflow-wrap una palabra larga se saldría del rollo. */
+.kobi-comanda__item:last-child {
+  margin-bottom: 0;
+}
+
+/* Cantidad y nombre en DOS COLUMNAS, no en un párrafo corrido.
+   Un nombre largo ("Hamburguesa de la casa con doble carne y tocino")
+   envuelve a tres líneas en 48mm, y en un párrafo corrido la cantidad
+   quedaba huérfana al principio de la primera línea, visualmente tragada
+   por el nombre. Con la cantidad en columna fija, el nombre envuelve dentro
+   de la suya y todas sus líneas quedan alineadas bajo la primera.
+
+   Se descartó truncar (la cocina necesita el nombre completo: es la
+   restricción explícita) y también reducir el cuerpo en nombres largos, que
+   haría del platillo más complejo el más difícil de leer — justo al revés
+   de lo que conviene. */
 .kobi-comanda__item-nombre {
+  display: flex;
+  gap: 1mm;
   font-size: ${p.itemNombreMm}mm;
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
+}
+
+.kobi-comanda__item-qty {
+  flex: 0 0 ${p.qtyColMm}mm;
+  font-variant-numeric: tabular-nums;
+}
+
+.kobi-comanda__item-texto {
+  flex: 1;
+  min-width: 0;
   overflow-wrap: break-word;
 }
 
 /* Modificadores: subordinados y claramente distintos del nombre.
-   Confundir "sin cebolla" con un ítem es el error caro. */
+   Confundir "sin cebolla" con un ítem es el error caro. Se alinean con la
+   columna del nombre (no con la de la cantidad), así que la sangría sale de
+   qtyColMm y no de un valor suelto. */
 .kobi-comanda__mod {
   font-size: ${p.modMm}mm;
   font-weight: 400;
-  margin: 0.4mm 0 0 ${p.modIndentMm}mm;
+  line-height: 1.2;
+  margin: ${p.modGapMm}mm 0 0 ${p.qtyColMm + 1}mm;
   overflow-wrap: break-word;
 }
 
+/* La nota es lo más consecuente que lleva la comanda — en los datos de
+   prueba, una alergia. Antes tenía el tamaño de un modificador y solo una
+   barra lateral, así que pesaba igual que un "extra queso". Ahora tiene
+   cuerpo propio (mayor que el modificador), recuadro completo y aire
+   alrededor: se ve como un bloque aparte antes de leerse.
+   Recuadro y no fondo negro: los navegadores no imprimen fondos de forma
+   fiable y la nota es justo lo que no puede desaparecer.
+   Va a ancho completo, sin la sangría de los modificadores: sangrada quedaba
+   en 40mm y se partía en seis líneas, y además romper la columna del nombre
+   es justo lo que la distingue de un modificador más. */
 .kobi-comanda__nota {
-  font-size: ${p.modMm}mm;
+  font-size: ${p.notaMm}mm;
   font-weight: 700;
-  margin: 0.8mm 0 0 ${p.modIndentMm}mm;
-  padding-left: 1.6mm;
-  border-left: 0.6mm solid #000;
+  line-height: 1.25;
+  margin: 1.6mm 0 0;
+  padding: 1.2mm 1.6mm;
+  border: 0.5mm solid #000;
   overflow-wrap: break-word;
 }
 
@@ -407,19 +465,25 @@ export const KitchenTicketPrint = ({ order, tenantName, branchName }: KitchenTic
 
   return (
     <article className="kobi-comanda">
-      <p className="kobi-comanda__negocio">{tenantName}</p>
-      {branchName && <p className="kobi-comanda__sucursal">{branchName}</p>}
+      <p className="kobi-comanda__negocio">
+        {tenantName}
+        {branchName ? ` · ${branchName}` : ''}
+      </p>
 
       <hr className="kobi-comanda__sep" />
 
       <div className="kobi-comanda__meta">
         <span className="kobi-comanda__canal">{channel.short}</span>
-        <span className="kobi-comanda__hora">{formatTimeMX(order.createdAt)}</span>
       </div>
 
       <p className="kobi-comanda__folio-label">Pedido</p>
       <p className="kobi-comanda__folio">{folio}</p>
+      {/* El nombre del cliente NO es para la cocina, que no lo usa: es para
+          identificar la comanda. El repartidor llega preguntando por él, y
+          con varias comandas colgadas es lo que las distingue. No quitarlo
+          para recuperar espacio vertical. */}
       {order.customer?.name && <p className="kobi-comanda__cliente">{order.customer.name}</p>}
+      <p className="kobi-comanda__hora">Entró {formatTimeMX(order.createdAt)}</p>
 
       <hr className="kobi-comanda__sep" />
 
@@ -435,7 +499,8 @@ export const KitchenTicketPrint = ({ order, tenantName, branchName }: KitchenTic
           return (
             <li className="kobi-comanda__item" key={itemKey}>
               <p className="kobi-comanda__item-nombre">
-                {item.qty}× {item.name}
+                <span className="kobi-comanda__item-qty">{item.qty}×</span>
+                <span className="kobi-comanda__item-texto">{item.name}</span>
               </p>
               {item.modifiers?.map((mod, modIdx) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: dos modificadores repetidos ("extra queso" dos veces) deben imprimirse los dos; una clave por contenido los colapsaría. Lista estática de impresión, nunca se reordena.

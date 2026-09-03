@@ -423,6 +423,11 @@ Añadido tras la Fase 3b del Sprint 19 (impresión):
 
 - **Exportar una constante no-async desde un archivo `'use server'` rompe el build de Next**, y ni `pnpm type-check` ni biome lo detectan: es una restricción del compilador de Next, no de TypeScript. El error solo aparece al ejecutar la app (`Only async functions are allowed to be exported in a "use server" file`), y tumba TODA ruta que importe ese módulo — en nuestro caso la zona operativa entera devolvía 500 porque `auth-actions.ts` cuelga de `ClockOverlay` → `Chrome`. **El único filtro es levantar la app.** Las constantes compartidas entre server actions y UI van en un módulo aparte sin `'use server'` (ver `apps/oms/lib/auth-errors.ts`).
 
+Añadido con las mejoras de legibilidad de la comanda:
+
+- **La comanda impresa lleva la hora de ENTRADA, nunca el tiempo transcurrido.** No es un olvido ni una simplificación: el papel es estático. Un "hace 3 min" impreso ya está desactualizado al minuto siguiente, y en una **reimpresión** —justo cuando más se consulta la comanda, porque la original se perdió— mentiría abiertamente sobre un pedido que puede llevar media hora esperando. La hora de entrada se compara contra el reloj de la pared y siempre acierta. El tiempo transcurrido vive en pantalla, donde el cronómetro de `/pedidos` puede actualizarse cada segundo. **Si alguien propone "mejorar" la comanda añadiendo el transcurrido, esta es la razón de que no esté.**
+- **El nombre del cliente en la comanda no es para la cocina**, que no lo usa. Es para identificar la comanda: el repartidor llega preguntando por él y, con varias colgadas, es lo que las distingue. No es candidato a recortar cuando se busque espacio vertical.
+
 ## Aprendizaje del sprint
 
 **Las auditorías se releen contra el código, no se citan.** Dos veces en este trabajo un dato de una auditoría previa se dio por verdadero sin volver a la fuente:
