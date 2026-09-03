@@ -183,7 +183,7 @@ Razones, en orden de peso:
 Los folios se generan en código de app (no trigger). Hoy hay **inconsistencia existente** para `direct` (`WEB-` en operaciones [order-actions.ts:90](apps/oms/lib/operations/order-actions.ts), `SP-` en delivery [delivery-actions.ts:531](apps/oms/lib/delivery-actions.ts)). Propuesta: `WA-${id.slice(-6).toUpperCase()}`, consistente con `POS-`/`WEB-`. *(Nota lateral: valdría la pena unificar la lógica de folio en un helper único; fuera de alcance de este tubo.)*
 
 ### 3.1.3 Regla de marketplace (dirección completa)
-WhatsApp es **canal propio** → **SÍ muestra dirección completa** (como `direct`/Uber Direct, **no** como Eats/Rappi/Didi). En [OrderDetailSlideOver.tsx:205-238](apps/oms/components/OrderDetailSlideOver.tsx) la rama que muestra dirección + link a Google Maps está condicionada a `order.channel === 'direct'`. Extender a `=== 'direct' || === 'whatsapp'`.
+WhatsApp es **canal propio** → **SÍ muestra dirección completa** (como `direct`/Uber Direct, **no** como Eats/Rappi/Didi). Desde el Sprint 20 el detalle real vive en [OrderDetailView.tsx](apps/oms/components/order-detail/OrderDetailView.tsx) y la rama de dirección está condicionada a `!isMarketplace(channel)`, no a `=== 'direct'`: WhatsApp ya la cumple sin cambios. *(El `OrderDetailSlideOver.tsx` que citaba esta línea se borró con sus mocks.)*
 
 ### 3.1.4 Campos de cliente
 `orders` ya tiene `customer_name`, `customer_phone`, `customer_address`, `customer_lat`, `customer_lng` — suficiente. Decisiones:

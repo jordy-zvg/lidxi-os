@@ -1,188 +1,230 @@
 'use client';
 
-import { cents, formatMXN } from '@kobi/shared';
-import { IconArrowLeft, IconCheck, IconLink } from '@tabler/icons-react';
+import { useOperationSession } from '@/components/OperationSessionProvider';
+import {
+  KitchenTicketPrint,
+  printComanda,
+  printCss,
+} from '@/components/comanda/KitchenTicketPrint';
+import type { OrderDetail } from '@/lib/operations/order-actions';
+import { useTenant } from '@/lib/tenant';
+import type { ReceiptOrder } from '@kobi/printing';
+import { type ChannelKey, cents, formatMXN, formatTimeMX, isMarketplace } from '@kobi/shared';
+import { Button, ChannelBadge, StatusPill } from '@kobi/ui';
+import { IconArrowLeft, IconPrinter } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useOrderTracking } from '../../hooks/useOrderTracking';
-import { MOCK_ORDERS } from '../orders/mock-orders';
-import { TrackingPanel } from './TrackingPanel';
+import { flushSync } from 'react-dom';
 
-interface OrderDetailViewProps {
-  orderId: string;
-  /** Slug público (restaurants.slug) del tenant activo; null si no resuelto. */
-  restaurantSlug?: string | null;
-  /** Base URL del storefront (NEXT_PUBLIC_STOREFRONT_URL); null si no configurada. */
-  storefrontUrl?: string | null;
-}
+/**
+ * Detalle de un pedido, con datos reales de la base (Sprint 20, H20.4).
+ *
+ * Antes renderizaba `MOCK_ORDERS.find(...) ?? MOCK_ORDERS[0]`, así que
+ * CUALQUIER id abría el pedido de otra persona — nombre, dirección y teléfono
+ * de un cliente inventado, presentados como si fueran del pedido buscado.
+ *
+ * Aquí vive el botón de reimprimir, que es la razón de que la pantalla entre
+ * al día 1: el papel se atora, alguien tira la comanda, llega el repartidor y
+ * nadie encuentra el pedido. Reimprimir NO toca la base ni cambia el estado:
+ * monta la MISMA comanda del Sprint 19 y llama a imprimir.
+ */
 
-export const OrderDetailView = ({
-  orderId,
-  restaurantSlug,
-  storefrontUrl,
-}: OrderDetailViewProps) => {
-  // En producción, cargar desde BD. Por ahora usamos mocks.
-  const order = MOCK_ORDERS.find((o) => o.id === orderId) ?? MOCK_ORDERS[0];
+const STATUS_LABEL: Record<string, string> = {
+  received: 'Nueva',
+  preparing: 'En preparación',
+  ready: 'Lista',
+  dispatched: 'En camino',
+  delivered: 'Entregada',
+  cancelled: 'Cancelada',
+};
 
-  const isUberDirect = order?.channel === 'direct';
+const STATUS_VARIANT: Record<string, 'info' | 'warn' | 'ok' | 'neutral' | 'danger'> = {
+  received: 'info',
+  preparing: 'warn',
+  ready: 'ok',
+  dispatched: 'neutral',
+  delivered: 'neutral',
+  cancelled: 'danger',
+};
 
-  const { tracking, status: connectionStatus } = useOrderTracking(isUberDirect ? orderId : null);
+export const OrderDetailView = ({ order }: { order: OrderDetail }) => {
+  const tenant = useTenant();
+  const session = useOperationSession();
+  const [printOrder, setPrintOrder] = useState<ReceiptOrder | null>(null);
+  const [printFailed, setPrintFailed] = useState(false);
 
-  // Link de seguimiento público para compartir con el cliente. Solo se ofrece
-  // si tenemos slug + base URL del storefront.
-  const trackingUrl =
-    restaurantSlug && storefrontUrl
-      ? `${storefrontUrl}/${restaurantSlug}/seguimiento/${orderId}`
-      : null;
-  const [copied, setCopied] = useState(false);
+  const esDePlataforma = isMarketplace(order.channel as ChannelKey);
 
-  const handleShare = async () => {
-    if (!trackingUrl) return;
+  /** Misma comanda que imprime la captura: se reusa el componente, no el formato. */
+  const construirComanda = (): ReceiptOrder => ({
+    id: order.id,
+    channel: order.channel as ChannelKey,
+    externalId: order.external_id,
+    createdAt: order.created_at,
+    customer: { name: order.customer_name },
+    // Las filas van tal como se guardaron: la captura ya explotó las líneas
+    // con nota o modificadores en una fila por unidad. Reagrupar perdería
+    // notas, que es justo lo que cocina necesita ver.
+    items: order.items.map((it) => ({
+      qty: it.qty,
+      name: it.name,
+      notes: it.notes ?? undefined,
+      modifiers: it.modifiers,
+    })),
+    subtotal: cents(order.subtotal_cents),
+    tax: cents(order.tax_cents),
+    total: cents(order.total_cents),
+  });
+
+  const reimprimir = () => {
+    setPrintFailed(false);
+    const receipt = construirComanda();
     try {
-      await navigator.clipboard.writeText(trackingUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // flushSync monta la comanda en el DOM ANTES de imprimir; sin esto
+      // print() dispararía contra el árbol anterior.
+      flushSync(() => setPrintOrder(receipt));
     } catch {
-      // Clipboard bloqueado (contexto inseguro / permiso) → abrir en nueva pestaña.
-      window.open(trackingUrl, '_blank', 'noopener,noreferrer');
+      setPrintFailed(true);
+      return;
     }
+    if (!printComanda()) setPrintFailed(true);
   };
 
-  if (!order) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-3">
-        <p className="text-sm text-ink-400">Pedido {orderId} no encontrado</p>
-        <Link href="/pedidos" className="text-sm text-brand hover:underline">
-          Volver a pedidos
-        </Link>
-      </div>
-    );
-  }
-
-  const subtotal = order.items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-  const iva = Math.round((subtotal * 0.16) / 1.16);
-  const net = subtotal - iva;
-
   return (
-    <div className="max-w-[1280px] mx-auto px-6 py-6">
-      {/* Breadcrumb */}
-      <Link
-        href="/pedidos"
-        className="flex items-center gap-1.5 text-sm text-ink-300 hover:text-ink mb-6 w-fit"
-      >
-        <IconArrowLeft size={16} /> Pedidos
-      </Link>
+    <div className="flex flex-col gap-4 p-4">
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: CSS estático propio, sin entrada de usuario. */}
+      <style dangerouslySetInnerHTML={{ __html: printCss() }} />
 
-      <div className="flex gap-6 items-start">
-        {/* Columna izquierda — Detalle */}
-        <div className="flex-1 min-w-0 space-y-6">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-ink">#{order.id}</h1>
-              <p className="text-sm text-ink-300 mt-1">
-                {order.customer} · {order.channel.toUpperCase()}
-              </p>
+      <div className="kobi-comanda-no-print flex flex-col gap-4">
+        <Link
+          href="/pedidos"
+          className="inline-flex items-center gap-1.5 text-ink-400 text-sm hover:text-ink"
+        >
+          <IconArrowLeft size={16} /> Pedidos
+        </Link>
+
+        <header className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-mono font-semibold text-ink text-xl">{order.folio}</h1>
+              <ChannelBadge channel={order.channel as ChannelKey} short />
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                  order.status === 'delivered'
-                    ? 'bg-ok-soft text-ok-text'
-                    : order.status === 'cancelled'
-                      ? 'bg-danger-soft text-danger-text'
-                      : order.status === 'ready'
-                        ? 'bg-ok-soft text-ok-text'
-                        : 'bg-brand-soft text-brand-text'
-                }`}
-              >
-                {order.status}
-              </span>
-              {trackingUrl && (
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  title={trackingUrl}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-line-2 px-3 py-1.5 text-sm text-ink-200 transition-colors hover:bg-surface-2"
-                >
-                  {copied ? <IconCheck size={15} className="text-ok" /> : <IconLink size={15} />}
-                  {copied ? '¡Copiado!' : 'Compartir seguimiento'}
-                </button>
-              )}
-            </div>
+            <p className="mt-1 text-ink-300 text-sm">
+              {order.customer_name} · {formatTimeMX(order.created_at)}
+            </p>
           </div>
-
-          {/* Items */}
-          <div className="bg-surface border border-line rounded-xl p-5">
-            <h2 className="text-base font-semibold text-ink mb-4">Comanda</h2>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-ink-400 border-b border-line">
-                  <th className="text-left pb-2 font-medium">Producto</th>
-                  <th className="text-right pb-2 font-medium font-mono">Qty</th>
-                  <th className="text-right pb-2 font-medium font-mono">Precio</th>
-                  <th className="text-right pb-2 font-medium font-mono">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {order.items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="py-2.5 text-ink">{item.name}</td>
-                    <td className="py-2.5 text-right font-mono text-ink-300">{item.qty}</td>
-                    <td className="py-2.5 text-right font-mono text-ink-300">
-                      {formatMXN(cents(item.unitPrice))}
-                    </td>
-                    <td className="py-2.5 text-right font-mono text-ink">
-                      {formatMXN(cents(item.unitPrice * item.qty))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="mt-4 pt-4 border-t border-line space-y-1.5">
-              <div className="flex justify-between text-sm text-ink-300">
-                <span>Subtotal (sin IVA)</span>
-                <span className="font-mono">{formatMXN(cents(net))}</span>
-              </div>
-              <div className="flex justify-between text-sm text-ink-300">
-                <span>IVA 16%</span>
-                <span className="font-mono">{formatMXN(cents(iva))}</span>
-              </div>
-              <div className="flex justify-between font-semibold text-ink">
-                <span>Total</span>
-                <span className="font-mono text-xl">{formatMXN(cents(subtotal))}</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <StatusPill variant={STATUS_VARIANT[order.status] ?? 'neutral'}>
+              {STATUS_LABEL[order.status] ?? order.status}
+            </StatusPill>
+            <Button variant="secondary" size="sm" onClick={reimprimir}>
+              <IconPrinter size={14} className="mr-1.5" />
+              Reimprimir comanda
+            </Button>
           </div>
+        </header>
 
-          {/* Cliente y entrega */}
-          {order.channel === 'direct' && order.address && (
-            <div className="bg-surface border border-line rounded-xl p-5">
-              <h2 className="text-base font-semibold text-ink mb-3">Cliente y entrega</h2>
-              <div className="space-y-2 text-sm">
-                <p className="text-ink font-medium">{order.customer}</p>
-                {order.phone && <p className="text-ink-300">{order.phone}</p>}
-                <p className="text-ink-300">{order.address}</p>
-                {order.distance && (
-                  <p className="text-ink-400 text-xs">
-                    {order.distance} · estimado {order.deliveryEta} min
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Columna derecha — Tracking (solo Uber Direct) */}
-        {isUberDirect && (
-          <TrackingPanel
-            tracking={tracking}
-            connectionStatus={connectionStatus}
-            clientLat={null}
-            clientLng={null}
-          />
+        {printFailed && (
+          <output className="rounded-md border border-line-2 bg-surface-2 px-3 py-2 text-ink text-sm">
+            No se pudo abrir el diálogo de impresión. El pedido no cambió.
+          </output>
         )}
+
+        <section className="rounded-lg border border-line bg-surface p-4">
+          <h2 className="mb-3 font-medium text-ink text-sm">Comanda</h2>
+          <ul className="flex flex-col gap-2">
+            {order.items.map((it, idx) => {
+              // El índice ES la identidad: dos filas pueden ser idénticas en
+              // todos sus campos (explote por unidad) y una clave derivada del
+              // contenido las colapsaría, perdiendo ítems. La lista es estática.
+              const itemKey = `${idx}`;
+              return (
+                <li key={itemKey} className="border-line border-b pb-2 last:border-0 last:pb-0">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="font-medium text-ink text-sm">
+                      {it.qty}× {it.name}
+                    </span>
+                    <span className="font-mono text-ink-400 text-xs">
+                      {formatMXN(cents(it.unit_price_cents))}
+                    </span>
+                  </div>
+                  {it.modifiers.map((m, mIdx) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: dos modificadores repetidos deben mostrarse los dos.
+                    <p key={`${idx}-${mIdx}`} className="ml-3 text-ink-300 text-xs">
+                      + {m}
+                    </p>
+                  ))}
+                  {it.notes && (
+                    <p className="ml-3 font-medium text-ink text-xs">NOTA: {it.notes}</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-3 flex items-center justify-between border-line border-t pt-3">
+            <span className="font-medium text-ink text-sm">Total</span>
+            <span className="font-mono font-semibold text-ink">
+              {formatMXN(cents(order.total_cents))}
+            </span>
+          </div>
+          <p className="mt-1 text-ink-400 text-xs">
+            {esDePlataforma
+              ? 'Cobrado por la plataforma'
+              : order.is_paid
+                ? `Pagado · ${order.payment_method === 'cash' ? 'Efectivo' : 'Tarjeta'}`
+                : 'Pendiente de cobro'}
+          </p>
+        </section>
+
+        {/* En marketplace no hay dirección ni teléfono: el repartidor de la
+            plataforma entrega, y Kobi nunca recibe esos datos. Se omite el
+            bloque entero en vez de mostrar campos vacíos, que harían dudar al
+            operador de si falta un dato o no aplica. */}
+        {!esDePlataforma && (order.customer_address || order.customer_phone) && (
+          <section className="rounded-lg border border-line bg-surface p-4">
+            <h2 className="mb-2 font-medium text-ink text-sm">Cliente</h2>
+            <p className="text-ink text-sm">{order.customer_name}</p>
+            {order.customer_phone && <p className="text-ink-300 text-sm">{order.customer_phone}</p>}
+            {order.customer_address && (
+              <p className="text-ink-300 text-sm">{order.customer_address}</p>
+            )}
+          </section>
+        )}
+
+        <section className="rounded-lg border border-line bg-surface p-4">
+          <h2 className="mb-2 font-medium text-ink text-sm">Tiempos</h2>
+          <dl className="flex flex-col gap-1 text-sm">
+            <Tiempo label="Capturado" iso={order.created_at} />
+            <Tiempo label="Listo" iso={order.ready_at} />
+            <Tiempo
+              label={esDePlataforma ? 'Recogido por el repartidor' : 'Despachado'}
+              iso={order.dispatched_at}
+            />
+            {/* En marketplace la entrega final la sabe la plataforma, no Kobi:
+                mostrar la fila vacía sugeriría que Kobi debería saberlo. */}
+            {!esDePlataforma && <Tiempo label="Entregado" iso={order.delivered_at} />}
+          </dl>
+        </section>
       </div>
+
+      {/* Montada solo para el papel; fuera de la vista pero medible. */}
+      {printOrder ? (
+        <div className="kobi-comanda-solo-impresion">
+          <KitchenTicketPrint
+            order={printOrder}
+            tenantName={tenant.displayName}
+            branchName={session?.branchName}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };
+
+const Tiempo = ({ label, iso }: { label: string; iso: string | null }) => (
+  <div className="flex items-center justify-between">
+    <dt className="text-ink-300">{label}</dt>
+    <dd className={iso ? 'font-mono text-ink' : 'text-ink-400'}>{iso ? formatTimeMX(iso) : '—'}</dd>
+  </div>
+);
